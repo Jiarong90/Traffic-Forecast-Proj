@@ -143,3 +143,56 @@ docker compose up --build
    - PostgreSQL 数据库
 4. 在 Render 后台补全你的 API Key（LTA/Weather/Gemini/SMTP）。
 5. 每次 `git push` 后会自动重新构建并发布。
+
+## 10. 后续在 GitHub 更新的方法（常用）
+
+下面这套流程可以重复使用，用于你后续每次功能更新后提交到 GitHub。
+
+### 10.1 基础更新流程
+
+```bash
+cd /Users/apple/Desktop/fyp_demo
+git status
+git add .
+git commit -m "feat: 这里写本次更新说明"
+git push
+```
+
+说明：
+
+1. `git status`：先看哪些文件改了。  
+2. `git add .`：加入本次要提交的文件。  
+3. `git commit -m`：写清楚本次改动。  
+4. `git push`：推送到 GitHub（当前分支会推到 `origin/main`）。
+
+### 10.2 常见提交信息示例
+
+```bash
+git commit -m "fix: 修复路径规划失败提示"
+git commit -m "feat: 新增 Alerts 资讯栏排序"
+git commit -m "docs: 更新部署说明"
+```
+
+### 10.3 如果 push 被拒绝（远端有新提交）
+
+```bash
+git pull --rebase
+git push
+```
+
+### 10.4 查看远程仓库地址
+
+```bash
+git remote -v
+```
+
+预期应看到：`https://github.com/Bogda-Yang/fyp_demo.git`
+
+### 10.5 首次在新电脑上继续开发
+
+```bash
+git clone https://github.com/Bogda-Yang/fyp_demo.git
+cd fyp_demo
+```
+
+然后按 “10.1 基础更新流程” 即可继续提交。

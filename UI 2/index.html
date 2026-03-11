@@ -12,8 +12,8 @@
     <!-- 顶栏 -->
     <header class="header">
       <div class="logo">
-        <span class="icon-pin"></span>
-        <span>FAST</span>
+        <img src="assets/fast-logo.png" alt="FAST Logo" class="brand-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" />
+        <span class="brand-logo-text">FAST</span>
       </div>
       <div class="search-wrap">
         <span class="icon-search"></span>
@@ -30,10 +30,8 @@
           <div class="user-dropdown" id="user-dropdown">
             <div class="user-dropdown-head">LOGGED IN AS</div>
             <div class="user-dropdown-name" id="user-display-name">Jane Cooper</div>
-            <a href="#" class="user-dropdown-item"><span class="icon-profile"></span> Profile</a>
-            <a href="#" class="user-dropdown-item"><span class="icon-saved"></span> Saved Routes</a>
-            <a href="#" class="user-dropdown-item"><span class="icon-settings"></span> Settings</a>
-            <button type="button" class="user-dropdown-item delete-account"><span class="icon-warning"></span> Delete Account</button>
+            <a href="#profile" class="user-dropdown-item" id="menu-profile-link"><span class="icon-profile"></span> Profile</a>
+            <a href="#settings" class="user-dropdown-item" id="menu-settings-link"><span class="icon-settings"></span> Settings</a>
             <button type="button" class="user-dropdown-item logout"><span class="icon-logout"></span> Log Out</button>
           </div>
         </div>
@@ -106,6 +104,93 @@
         <p class="auth-switch">Already have an account? <a href="#login">Log in</a></p>
       </div>
       <span class="help-icon auth-help">?</span>
+    </main>
+
+    <!-- Profile -->
+    <main id="profile" class="page">
+      <section class="profile-page-card">
+        <div class="profile-avatar-lg"></div>
+        <h1 class="section-head" id="profile-name">--</h1>
+        <p class="profile-email" id="profile-email">--</p>
+      </section>
+    </main>
+
+    <!-- Settings -->
+    <main id="settings" class="page">
+      <section class="settings-page-card">
+        <h1 class="section-head">Settings</h1>
+        <p class="settings-desc">You can update your name/password and maintain frequent locations/routes here.</p>
+        <form id="settings-form" class="settings-form">
+          <div class="settings-grid">
+            <div class="settings-item">
+              <label for="settings-email">Email (fixed)</label>
+              <input type="email" id="settings-email" disabled />
+            </div>
+            <div class="settings-item">
+              <label for="settings-name">Display Name</label>
+              <input type="text" id="settings-name" placeholder="Your name" />
+            </div>
+            <div class="settings-item">
+              <label for="settings-company">Company Location</label>
+              <input type="text" id="settings-company" placeholder="Postal / place / MRT" />
+            </div>
+            <div class="settings-item">
+              <label for="settings-home">Home Location</label>
+              <input type="text" id="settings-home" placeholder="Postal / place / MRT" />
+            </div>
+            <div class="settings-item">
+              <label for="settings-commute-go">Go to work time</label>
+              <input type="time" id="settings-commute-go" />
+            </div>
+            <div class="settings-item">
+              <label for="settings-commute-back">Back home time</label>
+              <input type="time" id="settings-commute-back" />
+            </div>
+          </div>
+
+          <h2 class="subsection-title">Frequent Routes (max 3)</h2>
+          <div class="settings-routes" id="settings-routes-wrap">
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-1" placeholder="Route name (e.g. Home → Office)" />
+              <input type="text" id="settings-route-start-1" placeholder="Start" />
+              <input type="text" id="settings-route-end-1" placeholder="End" />
+            </div>
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-2" placeholder="Route name" />
+              <input type="text" id="settings-route-start-2" placeholder="Start" />
+              <input type="text" id="settings-route-end-2" placeholder="End" />
+            </div>
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-3" placeholder="Route name" />
+              <input type="text" id="settings-route-start-3" placeholder="Start" />
+              <input type="text" id="settings-route-end-3" placeholder="End" />
+            </div>
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="btn-dark" id="settings-save-profile-btn">SAVE PROFILE</button>
+            <button type="button" class="btn-dark" id="settings-save-routes-btn">SAVE LOCATIONS & ROUTES</button>
+          </div>
+        </form>
+
+        <section class="settings-password-card">
+          <h2 class="subsection-title">Change Password</h2>
+          <div class="settings-password-grid">
+            <input type="password" id="settings-password-current" placeholder="Current password" />
+            <input type="password" id="settings-password-new" placeholder="New password (Aa + 0-9, min 6)" />
+            <button type="button" class="btn-dark" id="settings-change-password-btn">UPDATE PASSWORD</button>
+          </div>
+        </section>
+
+        <section class="settings-danger-card">
+          <h2 class="subsection-title">Danger Zone</h2>
+          <p>Delete account will permanently remove your data.</p>
+          <button type="button" class="user-dropdown-item delete-account" id="settings-delete-account-btn">
+            <span class="icon-warning"></span> Delete Account
+          </button>
+        </section>
+        <p class="settings-feedback" id="settings-feedback"></p>
+      </section>
     </main>
 
     <!-- Dashboard -->
@@ -234,6 +319,7 @@
         <div class="map-toolbar">
           <button type="button" class="btn-dark"><span class="dot red"></span> LIVE MONITORING</button>
           <button type="button" class="btn-dark" id="map-toggle-incidents-btn"><span class="icon-warning red"></span> SHOW LTA INCIDENTS</button>
+          <button type="button" class="btn-dark" id="map-toggle-favorites-btn"><span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES</button>
           <button type="button" class="btn-dark"><span class="icon-plane"></span> SUBMIT FEEDBACK</button>
         </div>
         <div id="liveMap"></div>
@@ -255,8 +341,13 @@
           <div class="route-actions">
             <button type="button" class="pref-btn"><span class="icon-info"></span> PREFERENCE: FASTEST ROUTE</button>
             <button type="button" class="btn-calculate" id="route-calculate-btn">CALCULATE</button>
+            <button type="button" class="btn-dark" id="route-toggle-favorites-btn">SHOW COMMON PLACES/ROUTES</button>
           </div>
           <div class="route-planning-hint" id="route-planning-hint">Click CALCULATE to generate route plan.</div>
+          <div class="route-favorites-panel hidden" id="route-favorites-panel">
+            <h3>Common Places & Routes</h3>
+            <div id="route-favorites-list"></div>
+          </div>
           <div class="admin-sim-panel hidden" id="admin-sim-panel">
             <h3>Admin Simulation Controls</h3>
             <p>Toggle a standalone simulated route set (independent from user input).</p>
@@ -316,102 +407,154 @@
 
     <!-- Weather -->
     <main id="weather" class="page">
-  <section class="weather-awareness">
-    <h1 class="page-title">Weather Awareness</h1>
-    <p class="weather-desc">
-      Enter postal code, MRT Station, or Location for live weather data.
-    </p>
+      <section class="weather-awareness">
+        <h1 class="page-title">Weather Awareness</h1>
+        <p class="weather-desc">Enter postal code, MRT Station, or Location for live weather data.</p>
 
-    <div class="weather-search">
-      <input type="text" id="postalCode" placeholder="Enter location..." />
-      <button type="button" class="btn-search" id="searchBtn">🔍 SEARCH</button>
-    </div>
-  </section>
+        <div class="weather-search">
+          <input type="text" id="postalCode" placeholder="Enter location..." />
+          <button type="button" class="btn-search" id="searchBtn">🔍 SEARCH</button>
+          <button type="button" class="btn-save-loc" id="saveLocBtn" title="Save this location">🔖 Save</button>
+        </div>
 
-  <div class="weather-cards">
+        <div class="saved-locations" id="savedLocations">
+          <span class="saved-label">SAVED:</span>
+          <span class="saved-empty" id="savedEmpty">No saved locations yet.</span>
+        </div>
 
-    <!-- LOCATION DETAILS -->
-    <div class="weather-card">
-      <h3 class="weather-card-title">LOCATION DETAILS</h3>
-      <div class="detail-row">
-        <span class="icon-pin"></span>
-        <strong>FULL ADDRESS</strong><br/>
-        <span id="loc-address">--</span>
+        <div class="weather-timestamp" id="weatherTimestamp" style="display:none">
+          <span>🕐 Last updated: <strong id="lastUpdatedTime">--</strong></span>
+          <button type="button" class="btn-refresh-data" id="refreshDataBtn">↻ Refresh</button>
+        </div>
+      </section>
+
+      <div class="weather-cards">
+        <div class="weather-card">
+          <h3 class="weather-card-title">LOCATION DETAILS</h3>
+          <div class="detail-row">
+            <span class="icon-pin"></span>
+            <strong>FULL ADDRESS</strong><br/>
+            <span id="loc-address">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>POSTAL CODE</strong><br/>
+            <span id="loc-postal">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>COORDINATES</strong><br/>
+            <span id="loc-coords">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>BUILDING / LANDMARK</strong><br/>
+            <span id="loc-building">--</span>
+          </div>
+        </div>
+
+        <div class="weather-card">
+          <h3 class="weather-card-title">CURRENT STATUS</h3>
+          <div class="current-weather">
+            <span class="icon-cloud big"></span>
+            <span class="temp" id="weather-temp">--°C</span>
+          </div>
+          <p class="weather-condition" id="weather-desc">--</p>
+          <p class="feels-like" id="weather-feels">Feels like --°C</p>
+          <div class="weather-stats">
+            <div><strong>HUMIDITY</strong><br/><span id="weather-humidity">--%</span></div>
+            <div><strong>WIND</strong><br/><span id="weather-wind">-- m/s</span></div>
+            <div><strong>PRESSURE</strong><br/><span id="weather-pressure">-- hPa</span></div>
+            <div><strong>VISIBILITY</strong><br/><span id="weather-visibility">-- km</span></div>
+          </div>
+        </div>
+
+        <div class="weather-card advice-card">
+          <h3 class="weather-card-title">TRAVEL ADVICE</h3>
+          <div class="advice-grid" id="weather-advice">
+            <div class="advice-tip placeholder-tip">
+              <span class="advice-icon">📍</span>
+              <div class="advice-content">
+                <span class="advice-label">WAITING</span>
+                <span class="advice-text">Enter a location to get personalised travel advice.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="hourly-forecast">
+          <h2 class="subsection-title">HOURLY FORECAST (Next 24 Hours)</h2>
+          <div class="forecast-cards">
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-1">--</span>
+              <span class="forecast-temp" id="forecast-temp-1">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-1">--</span>
+              <span class="forecast-rain" id="forecast-rain-1"></span>
+            </div>
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-2">--</span>
+              <span class="forecast-temp" id="forecast-temp-2">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-2">--</span>
+              <span class="forecast-rain" id="forecast-rain-2"></span>
+            </div>
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-3">--</span>
+              <span class="forecast-temp" id="forecast-temp-3">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-3">--</span>
+              <span class="forecast-rain" id="forecast-rain-3"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="sun-section">
+          <h2 class="subsection-title">SUNRISE & SUNSET</h2>
+          <div class="sun-row">
+            <div class="sun-card">
+              <span class="sun-icon">🌅</span>
+              <div class="sun-label">SUNRISE</div>
+              <div class="sun-time" id="sun-rise">--:--</div>
+            </div>
+            <div class="sun-divider"></div>
+            <div class="sun-card">
+              <span class="sun-icon">🌇</span>
+              <div class="sun-label">SUNSET</div>
+              <div class="sun-time" id="sun-set">--:--</div>
+            </div>
+            <div class="sun-divider"></div>
+            <div class="sun-card">
+              <span class="sun-icon">☀️</span>
+              <div class="sun-label">DAYLIGHT</div>
+              <div class="sun-time" id="sun-daylight">-- hrs</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="twoday-forecast">
+          <h2 class="subsection-title">2-DAY FORECAST</h2>
+          <div class="twoday-cards">
+            <div class="twoday-card">
+              <div class="twoday-label" id="twoday-label-1">TODAY</div>
+              <div class="twoday-icon" id="twoday-icon-1">--</div>
+              <div class="twoday-desc" id="twoday-desc-1">--</div>
+              <div class="twoday-temps">
+                <span class="twoday-high" id="twoday-high-1">--°</span>
+                <span class="twoday-sep">/</span>
+                <span class="twoday-low" id="twoday-low-1">--°</span>
+              </div>
+              <div class="twoday-rain" id="twoday-rain-1">🌧️ --%</div>
+            </div>
+            <div class="twoday-card">
+              <div class="twoday-label" id="twoday-label-2">TOMORROW</div>
+              <div class="twoday-icon" id="twoday-icon-2">--</div>
+              <div class="twoday-desc" id="twoday-desc-2">--</div>
+              <div class="twoday-temps">
+                <span class="twoday-high" id="twoday-high-2">--°</span>
+                <span class="twoday-sep">/</span>
+                <span class="twoday-low" id="twoday-low-2">--°</span>
+              </div>
+              <div class="twoday-rain" id="twoday-rain-2">🌧️ --%</div>
+            </div>
+          </div>
+        </section>
       </div>
-      <div class="detail-row">
-        <strong>POSTAL CODE</strong><br/>
-        <span id="loc-postal">--</span>
-      </div>
-      <div class="detail-row">
-        <strong>COORDINATES</strong><br/>
-        <span id="loc-coords">--</span>
-      </div>
-      <div class="detail-row">
-        <strong>BUILDING / LANDMARK</strong><br/>
-        <span id="loc-building">--</span>
-      </div>
-    </div>
-
-    <!-- CURRENT STATUS -->
-    <div class="weather-card">
-      <h3 class="weather-card-title">CURRENT STATUS</h3>
-
-      <div class="current-weather">
-        <span class="icon-cloud big"></span>
-        <span class="temp" id="weather-temp">--°C</span>
-      </div>
-
-      <p class="weather-condition" id="weather-desc">--</p>
-      <p class="feels-like" id="weather-feels">Feels like --°C</p>
-
-      <div class="weather-stats">
-        <div><strong>HUMIDITY</strong><br/><span id="weather-humidity">--%</span></div>
-        <div><strong>WIND</strong><br/><span id="weather-wind">-- m/s</span></div>
-        <div><strong>PRESSURE</strong><br/><span id="weather-pressure">-- hPa</span></div>
-        <div><strong>VISIBILITY</strong><br/><span id="weather-visibility">-- km</span></div>
-      </div>
-    </div>
-
-    <!-- TRAVEL ADVICE -->
-    <div class="weather-card">
-      <h3 class="weather-card-title">TRAVEL ADVICE</h3>
-      <ul class="advice-list" id="weather-advice">
-        <li>Enter a location to get advice.</li>
-      </ul>
-    </div>
-    
-    <!-- HOURLY FORECAST -->
-<section class="hourly-forecast">
-  <h2 class="subsection-title">HOURLY FORECAST (Next 24 Hours)</h2>
-
-  <div class="forecast-cards">
-
-    <div class="forecast-card">
-      <span class="time" id="forecast-time-1">--</span>
-      <span class="forecast-temp" id="forecast-temp-1">--°C</span>
-      <span class="forecast-desc" id="forecast-desc-1">--</span>
-      <span class="forecast-rain" id="forecast-rain-1"></span>
-    </div>
-
-    <div class="forecast-card">
-      <span class="time" id="forecast-time-2">--</span>
-      <span class="forecast-temp" id="forecast-temp-2">--°C</span>
-      <span class="forecast-desc" id="forecast-desc-2">--</span>
-      <span class="forecast-rain" id="forecast-rain-2"></span>
-    </div>
-
-    <div class="forecast-card">
-      <span class="time" id="forecast-time-3">--</span>
-      <span class="forecast-temp" id="forecast-temp-3">--°C</span>
-      <span class="forecast-desc" id="forecast-desc-3">--</span>
-      <span class="forecast-rain" id="forecast-rain-3"></span>
-    </div>
-
-  </div>
-</section>
-
-  </div>
-</main>
+    </main>
 
     <!-- Alerts -->
     <main id="alerts" class="page">

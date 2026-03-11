@@ -77,6 +77,30 @@ function isStrongPassword(password) {
   return value.length >= 6 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /\d/.test(value);
 }
 
+function normalizeRouteItem(item, index) {
+  const name = String(item?.name || `Route ${index + 1}`).trim().slice(0, 80);
+  const start = String(item?.start || '').trim().slice(0, 160);
+  const end = String(item?.end || '').trim().slice(0, 160);
+  if (!start || !end) return null;
+  return { name: name || `Route ${index + 1}`, start, end };
+}
+
+function normalizeUserSettings(payload) {
+  const companyLocation = String(payload?.companyLocation || '').trim().slice(0, 160);
+  const homeLocation = String(payload?.homeLocation || '').trim().slice(0, 160);
+  const commuteToWorkTime = String(payload?.commuteToWorkTime || '').trim().slice(0, 10);
+  const commuteToHomeTime = String(payload?.commuteToHomeTime || '').trim().slice(0, 10);
+  const routesRaw = Array.isArray(payload?.frequentRoutes) ? payload.frequentRoutes.slice(0, 3) : [];
+  const frequentRoutes = routesRaw.map((r, i) => normalizeRouteItem(r, i)).filter(Boolean);
+  return {
+    companyLocation,
+    homeLocation,
+    commuteToWorkTime,
+    commuteToHomeTime,
+    frequentRoutes
+  };
+}
+
 function generateVerificationCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
@@ -158,6 +182,16 @@ async function initAuthDatabase() {
       attempts INTEGER NOT NULL DEFAULT 0,
       last_sent_at TIMESTAMPTZ NOT NULL,
       created_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS user_settings (
+      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+      company_location TEXT NOT NULL DEFAULT '',
+      home_location TEXT NOT NULL DEFAULT '',
+      commute_to_work_time TEXT NOT NULL DEFAULT '',
+      commute_to_home_time TEXT NOT NULL DEFAULT '',
+      frequent_routes JSONB NOT NULL DEFAULT '[]'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL
     );
   `);
 
@@ -499,6 +533,120 @@ app.delete('/api/auth/account', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('注销账户失败:', error.message);
     res.status(500).json({ error: '注销账户失败' });
+  }
+});
+
+app.get('/api/user/settings', requireAuth, async (req, res) => {
+  try {
+    const userQ = await pool.query(`SELECT id, name, email, role FROM users WHERE id = $1`, [req.session.user.id]);
+    const user = userQ.rows[0];
+    if (!user) return res.status(404).json({ error: '用户不存在' });
+    const settingsQ = await pool.query(
+      `
+      SELECT company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes
+      FROM user_settings
+      WHERE user_id = $1
+      `,
+      [user.id]
+    );
+    const row = settingsQ.rows[0];
+    const settings = row ? {
+      companyLocation: row.company_location || '',
+      homeLocation: row.home_location || '',
+      commuteToWorkTime: row.commute_to_work_time || '',
+      commuteToHomeTime: row.commute_to_home_time || '',
+      frequentRoutes: Array.isArray(row.frequent_routes) ? row.frequent_routes.slice(0, 3) : []
+    } : {
+      companyLocation: '',
+      homeLocation: '',
+      commuteToWorkTime: '',
+      commuteToHomeTime: '',
+      frequentRoutes: []
+    };
+    res.json({ user: toPublicUser(user), settings });
+  } catch (error) {
+    console.error('读取用户设置失败:', error.message);
+    res.status(500).json({ error: '读取用户设置失败' });
+  }
+});
+
+app.put('/api/user/settings', requireAuth, async (req, res) => {
+  try {
+    const settings = normalizeUserSettings(req.body || {});
+    await pool.query(
+      `
+      INSERT INTO user_settings (
+        user_id, company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes, updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+      ON CONFLICT(user_id) DO UPDATE SET
+        company_location = EXCLUDED.company_location,
+        home_location = EXCLUDED.home_location,
+        commute_to_work_time = EXCLUDED.commute_to_work_time,
+        commute_to_home_time = EXCLUDED.commute_to_home_time,
+        frequent_routes = EXCLUDED.frequent_routes,
+        updated_at = EXCLUDED.updated_at
+      `,
+      [
+        req.session.user.id,
+        settings.companyLocation,
+        settings.homeLocation,
+        settings.commuteToWorkTime,
+        settings.commuteToHomeTime,
+        JSON.stringify(settings.frequentRoutes),
+        nowIso()
+      ]
+    );
+    res.json({ ok: true, settings });
+  } catch (error) {
+    console.error('保存用户设置失败:', error.message);
+    res.status(500).json({ error: '保存用户设置失败' });
+  }
+});
+
+app.put('/api/user/name', requireAuth, async (req, res) => {
+  const name = String(req.body?.name || '').trim();
+  if (!name) return res.status(400).json({ error: '请输入姓名' });
+  if (name.length > 80) return res.status(400).json({ error: '姓名过长（最多 80 个字符）' });
+  try {
+    const updated = await pool.query(
+      `
+      UPDATE users
+      SET name = $1
+      WHERE id = $2
+      RETURNING id, name, email, role
+      `,
+      [name, req.session.user.id]
+    );
+    if (!updated.rows[0]) return res.status(404).json({ error: '用户不存在' });
+    res.json({ ok: true, user: toPublicUser(updated.rows[0]) });
+  } catch (error) {
+    console.error('更新姓名失败:', error.message);
+    res.status(500).json({ error: '更新姓名失败' });
+  }
+});
+
+app.put('/api/user/password', requireAuth, async (req, res) => {
+  const currentPassword = String(req.body?.currentPassword || '').trim();
+  const newPassword = String(req.body?.newPassword || '').trim();
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: '请输入当前密码和新密码' });
+  }
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({ error: '新密码需至少 6 位，并包含大小写英文字母和数字' });
+  }
+  try {
+    const result = await pool.query(`SELECT id, password_hash FROM users WHERE id = $1`, [req.session.user.id]);
+    const row = result.rows[0];
+    if (!row) return res.status(404).json({ error: '用户不存在' });
+    if (!verifyPassword(currentPassword, row.password_hash)) {
+      return res.status(401).json({ error: '当前密码错误' });
+    }
+    await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hashPassword(newPassword), req.session.user.id]);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('修改密码失败:', error.message);
+    res.status(500).json({ error: '修改密码失败' });
   }
 });
 
@@ -1474,7 +1622,9 @@ app.get('/api/weather/current', async (req, res) => {
       humidity: d.main?.humidity,
       wind: d.wind?.speed,
       pressure: d.main?.pressure,
-      visibility: ((d.visibility || 0) / 1000).toFixed(1)
+      visibility: ((d.visibility || 0) / 1000).toFixed(1),
+      sunrise: Number(d.sys?.sunrise) || null,
+      sunset: Number(d.sys?.sunset) || null
     });
   } catch (e) {
     res.status(500).json({ error: '获取天气失败', details: e.message });
@@ -1681,9 +1831,8 @@ async function startServer() {
     await pool.query('SELECT 1');
     await initAuthDatabase();
     app.listen(config.PORT, () => {
-      console.log(`新加坡交通监控应用已启动: http://localhost:${config.PORT}`);
       console.log(`使用 data.gov.sg Traffic Images API`);
-      console.log(`UI2 融合 Demo: http://localhost:${config.PORT}/ui2/`);
+      console.log(`新加坡交通监控系统已启动: http://localhost:${config.PORT}/ui2/`);
       console.log(`PostgreSQL 已连接`);
     });
   } catch (error) {

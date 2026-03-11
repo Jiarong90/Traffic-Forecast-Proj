@@ -1,21 +1,45 @@
-// FAST - 页面切换与登录状态管理
+// FAST - 页面切换、登录状态、Profile/Settings 管理
 (function () {
-  // 会话存储键：用于在 sessionStorage 中保存 token 和用户信息
-  var STORAGE_KEY = 'fast_auth';
-  var navTabs = document.querySelectorAll('.nav-tab');
-  var pages = document.querySelectorAll('.page');
-  var loginBtn = document.getElementById('header-login-btn');
-  var userMenuWrap = document.getElementById('user-menu-wrap');
-  var userDropdown = document.getElementById('user-dropdown');
-  var userDisplayName = document.getElementById('user-display-name');
-  var loginForm = document.getElementById('login-form');
-  var signupForm = document.getElementById('signup-form');
-  var signupFeedback = document.getElementById('signup-feedback');
-  var signupSendCodeBtn = document.getElementById('signup-send-code-btn');
+  var STORAGE_KEY = "fast_auth";
+  var navTabs = document.querySelectorAll(".nav-tab");
+  var pages = document.querySelectorAll(".page");
+  var loginBtn = document.getElementById("header-login-btn");
+  var userMenuWrap = document.getElementById("user-menu-wrap");
+  var userDropdown = document.getElementById("user-dropdown");
+  var userDisplayName = document.getElementById("user-display-name");
+  var menuProfileLink = document.getElementById("menu-profile-link");
+  var menuSettingsLink = document.getElementById("menu-settings-link");
+  var loginForm = document.getElementById("login-form");
+  var signupForm = document.getElementById("signup-form");
+  var signupFeedback = document.getElementById("signup-feedback");
+  var signupSendCodeBtn = document.getElementById("signup-send-code-btn");
   var signupCodeRequested = false;
   var signupCodeCooldownTimer = null;
   var signupCodeCooldownLeft = 0;
-  var signupSendCodeBtnDefaultText = signupSendCodeBtn ? signupSendCodeBtn.textContent : 'SEND CODE';
+  var signupSendCodeBtnDefaultText = signupSendCodeBtn ? signupSendCodeBtn.textContent : "SEND CODE";
+
+  var settingsFeedback = document.getElementById("settings-feedback");
+  var settingsEmailInput = document.getElementById("settings-email");
+  var settingsNameInput = document.getElementById("settings-name");
+  var settingsCompanyInput = document.getElementById("settings-company");
+  var settingsHomeInput = document.getElementById("settings-home");
+  var settingsCommuteGoInput = document.getElementById("settings-commute-go");
+  var settingsCommuteBackInput = document.getElementById("settings-commute-back");
+  var settingsSaveProfileBtn = document.getElementById("settings-save-profile-btn");
+  var settingsSaveRoutesBtn = document.getElementById("settings-save-routes-btn");
+  var settingsChangePasswordBtn = document.getElementById("settings-change-password-btn");
+  var settingsDeleteAccountBtn = document.getElementById("settings-delete-account-btn");
+  var settingsPasswordCurrentInput = document.getElementById("settings-password-current");
+  var settingsPasswordNewInput = document.getElementById("settings-password-new");
+  var profileNameEl = document.getElementById("profile-name");
+  var profileEmailEl = document.getElementById("profile-email");
+  var userSettingsCache = {
+    companyLocation: "",
+    homeLocation: "",
+    commuteToWorkTime: "",
+    commuteToHomeTime: "",
+    frequentRoutes: []
+  };
 
   // 停止“发送验证码”按钮的倒计时，并恢复可点击状态
   function stopSignupCodeCooldown() {
@@ -49,17 +73,17 @@
 
   // 前端邮箱校验：基础邮箱格式 + 屏蔽测试域名
   function isValidEmail(email) {
-    var value = String(email || '').trim().toLowerCase();
+    var value = String(email || "").trim().toLowerCase();
     var basic = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(value);
     if (!basic) return false;
-    var blockedDomains = ['example.com', 'test.com', 'localhost', 'local'];
-    var domain = value.split('@')[1] || '';
+    var blockedDomains = ["example.com", "test.com", "localhost", "local"];
+    var domain = value.split("@")[1] || "";
     return blockedDomains.indexOf(domain) === -1;
   }
 
   // 前端密码校验：至少 6 位，且包含大小写字母与数字
   function isValidPassword(password) {
-    var value = String(password || '');
+    var value = String(password || "");
     return value.length >= 6 && /[a-z]/.test(value) && /[A-Z]/.test(value) && /\d/.test(value);
   }
 
@@ -77,20 +101,103 @@
   function setStoredAuth(auth) {
     if (auth) sessionStorage.setItem(STORAGE_KEY, JSON.stringify(auth));
     else sessionStorage.removeItem(STORAGE_KEY);
-    window.dispatchEvent(new CustomEvent('fast-auth-changed', { detail: auth || null }));
+    window.dispatchEvent(new CustomEvent("fast-auth-changed", { detail: auth || null }));
+  }
+
+  function setSettingsFeedback(text, isError) {
+    if (!settingsFeedback) return;
+    settingsFeedback.textContent = text || "";
+    settingsFeedback.style.color = isError ? "#dc2626" : "#166534";
+  }
+
+  function setUserSettings(settings) {
+    userSettingsCache = {
+      companyLocation: String(settings?.companyLocation || ""),
+      homeLocation: String(settings?.homeLocation || ""),
+      commuteToWorkTime: String(settings?.commuteToWorkTime || ""),
+      commuteToHomeTime: String(settings?.commuteToHomeTime || ""),
+      frequentRoutes: Array.isArray(settings?.frequentRoutes) ? settings.frequentRoutes.slice(0, 3) : []
+    };
+    window.dispatchEvent(new CustomEvent("fast-settings-changed", { detail: userSettingsCache }));
+  }
+
+  window.getFastUserSettings = function () {
+    return userSettingsCache;
+  };
+
+  function readRouteRowsFromForm() {
+    var routes = [];
+    for (var i = 1; i <= 3; i += 1) {
+      var nameEl = document.getElementById("settings-route-name-" + i);
+      var startEl = document.getElementById("settings-route-start-" + i);
+      var endEl = document.getElementById("settings-route-end-" + i);
+      var name = (nameEl && nameEl.value || "").trim();
+      var start = (startEl && startEl.value || "").trim();
+      var end = (endEl && endEl.value || "").trim();
+      if (!start && !end && !name) continue;
+      if (!start || !end) {
+        throw new Error("Frequent route " + i + " needs both start and end.");
+      }
+      routes.push({
+        name: name || ("Route " + i),
+        start: start,
+        end: end
+      });
+    }
+    return routes.slice(0, 3);
+  }
+
+  function fillSettingsForm(user, settings) {
+    if (settingsEmailInput) settingsEmailInput.value = user?.email || "";
+    if (settingsNameInput) settingsNameInput.value = user?.name || "";
+    if (settingsCompanyInput) settingsCompanyInput.value = settings?.companyLocation || "";
+    if (settingsHomeInput) settingsHomeInput.value = settings?.homeLocation || "";
+    if (settingsCommuteGoInput) settingsCommuteGoInput.value = settings?.commuteToWorkTime || "";
+    if (settingsCommuteBackInput) settingsCommuteBackInput.value = settings?.commuteToHomeTime || "";
+    var routes = Array.isArray(settings?.frequentRoutes) ? settings.frequentRoutes.slice(0, 3) : [];
+    for (var i = 1; i <= 3; i += 1) {
+      var row = routes[i - 1] || {};
+      var nameEl = document.getElementById("settings-route-name-" + i);
+      var startEl = document.getElementById("settings-route-start-" + i);
+      var endEl = document.getElementById("settings-route-end-" + i);
+      if (nameEl) nameEl.value = row.name || "";
+      if (startEl) startEl.value = row.start || "";
+      if (endEl) endEl.value = row.end || "";
+    }
+  }
+
+  function renderProfile(user) {
+    if (profileNameEl) profileNameEl.textContent = user?.name || "--";
+    if (profileEmailEl) profileEmailEl.textContent = user?.email || "--";
+  }
+
+  async function loadUserSettingsFromServer() {
+    var auth = getStoredAuth();
+    if (!auth || !auth.token) {
+      setUserSettings({});
+      return;
+    }
+    const resp = await window.fastAuthFetch("/api/user/settings");
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Load settings failed");
+    if (data.user) {
+      setStoredAuth({ token: auth.token, user: data.user });
+      updateHeaderAuth();
+      renderProfile(data.user);
+    }
+    setUserSettings(data.settings || {});
+    fillSettingsForm(data.user || auth.user, data.settings || {});
   }
 
   window.getFastAuth = getStoredAuth;
-  // 统一封装带鉴权头的 fetch，减少重复拼 Authorization 的代码
   window.fastAuthFetch = function (url, options) {
     var auth = getStoredAuth();
     var opts = options || {};
     var headers = Object.assign({}, opts.headers || {});
-    if (auth && auth.token) headers.Authorization = 'Bearer ' + auth.token;
+    if (auth && auth.token) headers.Authorization = "Bearer " + auth.token;
     return fetch(url, Object.assign({}, opts, { headers: headers }));
   };
 
-  // 根据登录状态刷新顶部 UI（登录按钮、用户菜单、admin 样式）
   function updateHeaderAuth() {
     var auth = getStoredAuth();
     var user = auth && auth.user;
@@ -102,8 +209,12 @@
     document.body.classList.toggle('is-admin', !!(user && user.role === 'admin'));
   }
 
-  // 页面切换：只激活目标 page，并同步 hash
   function showPage(pageId) {
+    var auth = getStoredAuth();
+    var publicPages = ["login", "signup"];
+    if (!auth && publicPages.indexOf(pageId) === -1) {
+      pageId = "login";
+    }
     pages.forEach(function (p) {
       p.classList.toggle('active', p.id === pageId);
     });
@@ -113,12 +224,17 @@
     });
     if (history.replaceState) history.replaceState(null, '', '#' + pageId);
     if (userDropdown && userMenuWrap) userMenuWrap.classList.remove('open');
+    if (pageId === "profile") {
+      renderProfile((auth && auth.user) || null);
+    }
+    if (pageId === "settings") {
+      fillSettingsForm((auth && auth.user) || null, userSettingsCache);
+    }
   }
 
-  // 将 URL hash 映射为可用页面；非法值回退到 dashboard
   function getPageFromHash() {
     var hash = (window.location.hash || '#dashboard').slice(1);
-    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'alerts', 'alert-detail', 'login', 'signup'];
+    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'alerts', 'alert-detail', 'profile', 'settings', 'login', 'signup'];
     return valid.indexOf(hash) !== -1 ? hash : 'dashboard';
   }
 
@@ -133,8 +249,20 @@
     showPage(getPageFromHash());
   });
 
+  if (menuProfileLink) {
+    menuProfileLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      showPage("profile");
+    });
+  }
+  if (menuSettingsLink) {
+    menuSettingsLink.addEventListener("click", function (e) {
+      e.preventDefault();
+      showPage("settings");
+    });
+  }
+
   if (loginForm) {
-    // 登录提交流程：调用后端登录接口，成功后写入会话并跳转 Dashboard
     loginForm.addEventListener('submit', async function (e) {
       e.preventDefault();
       var emailEl = loginForm.querySelector('input[type=email]');
@@ -152,6 +280,11 @@
         if (!resp.ok) throw new Error(data.error || 'Login failed');
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
+        try {
+          await loadUserSettingsFromServer();
+        } catch (loadErr) {
+          console.error(loadErr);
+        }
         showPage('dashboard');
       } catch (err) {
         alert('Login failed: ' + err.message);
@@ -160,7 +293,6 @@
   }
 
   if (signupForm) {
-    // 请求验证码：前端先做字段校验，再请求后端发码并开启 60 秒倒计时
     async function requestSignupCode() {
       var nameInput = document.getElementById('signup-name');
       var emailInput = document.getElementById('signup-email');
@@ -219,7 +351,6 @@
     }
 
     signupForm.addEventListener('submit', async function (e) {
-      // 注册确认：若尚未发码会先触发发码；然后校验 6 位验证码并完成注册
       e.preventDefault();
       var nameInput = document.getElementById('signup-name');
       var emailInput = document.getElementById('signup-email');
@@ -266,6 +397,11 @@
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
         signupCodeRequested = false;
+        try {
+          await loadUserSettingsFromServer();
+        } catch (loadErr) {
+          console.error(loadErr);
+        }
         showPage('dashboard');
       } catch (err) {
         if (signupFeedback) signupFeedback.textContent = 'Sign up failed: ' + err.message;
@@ -274,7 +410,6 @@
 
     var signupEmailInput = document.getElementById('signup-email');
     var signupPasswordInput = document.getElementById('signup-password');
-    // 实时输入提示：边输入边给邮箱/密码格式提示，降低提交失败率
     function refreshSignupHint() {
       if (!signupFeedback) return;
       var email = signupEmailInput ? signupEmailInput.value.trim() : '';
@@ -334,7 +469,7 @@
     });
   }
 
-  var deleteAccountBtn = document.querySelector('.user-dropdown-item.delete-account');
+  var deleteAccountBtn = settingsDeleteAccountBtn;
   if (deleteAccountBtn) {
     deleteAccountBtn.addEventListener('click', async function (e) {
       e.preventDefault();
@@ -359,16 +494,103 @@
     });
   }
 
+  if (settingsSaveProfileBtn) {
+    settingsSaveProfileBtn.addEventListener("click", async function () {
+      var auth = getStoredAuth();
+      if (!auth || !auth.user) return;
+      const newName = (settingsNameInput && settingsNameInput.value || "").trim();
+      if (!newName) {
+        setSettingsFeedback("Please enter your name.", true);
+        return;
+      }
+      try {
+        const resp = await window.fastAuthFetch("/api/user/name", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: newName })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Update name failed");
+        setStoredAuth({ token: auth.token, user: data.user });
+        updateHeaderAuth();
+        renderProfile(data.user);
+        setSettingsFeedback("Profile updated.", false);
+      } catch (err) {
+        setSettingsFeedback("Profile update failed: " + err.message, true);
+      }
+    });
+  }
+
+  if (settingsSaveRoutesBtn) {
+    settingsSaveRoutesBtn.addEventListener("click", async function () {
+      try {
+        const frequentRoutes = readRouteRowsFromForm();
+        const payload = {
+          companyLocation: (settingsCompanyInput && settingsCompanyInput.value || "").trim(),
+          homeLocation: (settingsHomeInput && settingsHomeInput.value || "").trim(),
+          commuteToWorkTime: (settingsCommuteGoInput && settingsCommuteGoInput.value || "").trim(),
+          commuteToHomeTime: (settingsCommuteBackInput && settingsCommuteBackInput.value || "").trim(),
+          frequentRoutes: frequentRoutes
+        };
+        const resp = await window.fastAuthFetch("/api/user/settings", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Save settings failed");
+        setUserSettings(data.settings || payload);
+        setSettingsFeedback("Locations and routes saved.", false);
+      } catch (err) {
+        setSettingsFeedback("Save failed: " + err.message, true);
+      }
+    });
+  }
+
+  if (settingsChangePasswordBtn) {
+    settingsChangePasswordBtn.addEventListener("click", async function () {
+      const currentPassword = (settingsPasswordCurrentInput && settingsPasswordCurrentInput.value || "").trim();
+      const newPassword = (settingsPasswordNewInput && settingsPasswordNewInput.value || "").trim();
+      if (!currentPassword || !newPassword) {
+        setSettingsFeedback("Please fill both current and new password.", true);
+        return;
+      }
+      if (!isValidPassword(newPassword)) {
+        setSettingsFeedback("New password must contain uppercase, lowercase and number (min 6).", true);
+        return;
+      }
+      try {
+        const resp = await window.fastAuthFetch("/api/user/password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Update password failed");
+        if (settingsPasswordCurrentInput) settingsPasswordCurrentInput.value = "";
+        if (settingsPasswordNewInput) settingsPasswordNewInput.value = "";
+        setSettingsFeedback("Password updated.", false);
+      } catch (err) {
+        setSettingsFeedback("Password update failed: " + err.message, true);
+      }
+    });
+  }
+
   updateHeaderAuth();
   const auth = getStoredAuth();
   if (!auth && !['login', 'signup'].includes(getPageFromHash())) {
     showPage('login');
   } else {
     showPage(getPageFromHash());
+    if (auth) {
+      loadUserSettingsFromServer().catch(function (err) {
+        console.error(err);
+      });
+    }
   }
 })();
 
-// ================= 天气模块（最终版） =================
+// ================= 天气模块（UI_weather 融合版，继续走后端 API） =================
 
 const API_CONFIG = {
   weather: {
@@ -385,45 +607,115 @@ const API_CONFIG = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-
-  // 天气模块仅在 weather 页面相关输入存在时启用
   const input = document.getElementById("postalCode");
   const button = document.getElementById("searchBtn");
+  const saveBtn = document.getElementById("saveLocBtn");
+  const refreshBtn = document.getElementById("refreshDataBtn");
 
   if (!input || !button) return;
+
+  const SAVED_KEY = "fast_saved_locations";
+  let lastQuery = null;
+
+  function getSavedLocations() {
+    try {
+      return JSON.parse(sessionStorage.getItem(SAVED_KEY)) || [];
+    } catch (_) {
+      return [];
+    }
+  }
+
+  function setSavedLocations(locs) {
+    sessionStorage.setItem(SAVED_KEY, JSON.stringify(locs));
+  }
+
+  function renderSavedLocations() {
+    const locs = getSavedLocations();
+    const container = document.getElementById("savedLocations");
+    const emptyMsg = document.getElementById("savedEmpty");
+    if (!container) return;
+    container.querySelectorAll(".saved-chip").forEach((el) => el.remove());
+    if (locs.length === 0) {
+      if (emptyMsg) emptyMsg.style.display = "";
+      return;
+    }
+    if (emptyMsg) emptyMsg.style.display = "none";
+    locs.forEach((loc, i) => {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "saved-chip";
+      chip.innerHTML = `📍 ${loc.label} <span class="chip-remove" data-i="${i}">×</span>`;
+      chip.addEventListener("click", (e) => {
+        if (e.target.classList.contains("chip-remove")) {
+          const idx = parseInt(e.target.getAttribute("data-i"), 10);
+          const updated = getSavedLocations().filter((_, j) => j !== idx);
+          setSavedLocations(updated);
+          renderSavedLocations();
+          return;
+        }
+        input.value = loc.query;
+        fetchWeather();
+      });
+      container.appendChild(chip);
+    });
+  }
+
+  if (saveBtn) {
+    saveBtn.addEventListener("click", () => {
+      const query = input.value.trim();
+      if (!query) return alert("Enter a location first before saving.");
+      const locs = getSavedLocations();
+      if (locs.find((l) => l.query === query)) return alert("Location already saved!");
+      if (locs.length >= 4) return alert("Max 4 saved locations. Remove one first.");
+      const label = query.length > 18 ? `${query.slice(0, 18)}…` : query;
+      locs.push({ query, label });
+      setSavedLocations(locs);
+      renderSavedLocations();
+    });
+  }
 
   button.addEventListener("click", fetchWeather);
   input.addEventListener("keypress", (e) => {
     if (e.key === "Enter") fetchWeather();
   });
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", () => {
+      if (lastQuery) {
+        input.value = lastQuery;
+        fetchWeather();
+      }
+    });
+  }
+  renderSavedLocations();
 
-  // 天气总入口：地点解析 -> 当前天气 -> 预报 -> AI 建议 -> 更新 UI
   async function fetchWeather() {
-
     const query = input.value.trim();
     if (!query) return alert("Please enter postal code or location");
-
+    lastQuery = query;
+    button.textContent = "⏳ Loading...";
+    button.disabled = true;
     try {
-
       const location = await getLocation(query);
       const weather = await getCurrentWeather(location.latitude, location.longitude);
       const forecast = await getForecast(location.latitude, location.longitude);
-      const advice = await getGeminiAdvice(location, weather, forecast);
+      const advice = await getGeminiAdvice(location, weather, forecast.hourly);
 
       updateLocationUI(location);
       updateWeatherUI(weather);
-      updateForecastUI(forecast);
+      updateForecastUI(forecast.hourly);
       updateAdviceUI(advice);
-
+      updateSunUI(weather.sunrise, weather.sunset);
+      updateTwoDayUI(forecast.days);
+      updateTimestamp();
     } catch (err) {
       console.error(err);
       alert("Weather fetch failed");
+    } finally {
+      button.textContent = "🔍 SEARCH";
+      button.disabled = false;
     }
   }
 
-  // ================= 地点解析 =================
-
-  // 调用后端地理编码，支持邮编/地名/MRT
   async function getLocation(searchVal) {
     const res = await fetch(`/api/geocode?q=${encodeURIComponent(searchVal)}`);
     const r = await res.json();
@@ -437,53 +729,90 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // ================= 实时天气 =================
-
-  // 查询实时天气
   async function getCurrentWeather(lat, lon) {
     const url = `${API_CONFIG.weather.currentUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
     const res = await fetch(url);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Weather fetch failed");
-    return data;
+    return {
+      ...data,
+      sunrise: Number.isFinite(data.sunrise) ? data.sunrise : null,
+      sunset: Number.isFinite(data.sunset) ? data.sunset : null
+    };
   }
 
-  // ================= 24小时预报（3个时段） =================
-
-  // 查询未来时段预报（后端已裁剪为近 24h 的前 3 个点）
   async function getForecast(lat, lon) {
     const url = `${API_CONFIG.weather.forecastUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
     const res = await fetch(url);
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || "Forecast fetch failed");
 
-    return data.value || [];
+    const hourly = Array.isArray(data.value)
+      ? data.value
+      : Array.isArray(data.hourly)
+        ? data.hourly
+        : [];
+
+    return {
+      hourly,
+      days: buildTwoDaySummary(hourly)
+    };
   }
 
-  // ================= AI 出行建议 =================
+  function buildTwoDaySummary(hourly) {
+    const grouped = new Map();
+    hourly.forEach((item) => {
+      if (!item || !item.dt) return;
+      const key = new Date(item.dt * 1000).toISOString().slice(0, 10);
+      if (!grouped.has(key)) grouped.set(key, []);
+      grouped.get(key).push(item);
+    });
 
-  // 请求 AI 生成可读出行建议；失败时回退本地规则文本
+    const dayKeys = Array.from(grouped.keys()).sort().slice(0, 2);
+    const result = dayKeys.map((key, i) => {
+      const list = grouped.get(key) || [];
+      const temps = list.map((x) => Number(x.temp)).filter((n) => Number.isFinite(n));
+      const pops = list.map((x) => Number(x.pop)).filter((n) => Number.isFinite(n));
+      const mid = list[Math.floor(list.length / 2)] || {};
+      return {
+        label: i === 0 ? "TODAY" : "TOMORROW",
+        high: temps.length ? Math.round(Math.max(...temps)) : "--",
+        low: temps.length ? Math.round(Math.min(...temps)) : "--",
+        desc: String(mid.desc || "--"),
+        icon: weatherMainFromDesc(mid.desc),
+        pop: pops.length ? Math.max(...pops) : 0
+      };
+    });
+
+    while (result.length < 2) {
+      result.push({
+        label: result.length === 0 ? "TODAY" : "TOMORROW",
+        high: "--",
+        low: "--",
+        desc: "--",
+        icon: "Clouds",
+        pop: 0
+      });
+    }
+    return result;
+  }
+
+  function weatherMainFromDesc(desc) {
+    const text = String(desc || "").toLowerCase();
+    if (text.includes("thunder")) return "Thunderstorm";
+    if (text.includes("drizzle")) return "Drizzle";
+    if (text.includes("rain")) return "Rain";
+    if (text.includes("snow")) return "Snow";
+    if (text.includes("mist") || text.includes("fog") || text.includes("haze")) return "Mist";
+    if (text.includes("clear") || text.includes("sun")) return "Clear";
+    return "Clouds";
+  }
+
   async function getGeminiAdvice(location, weather, forecast) {
-
-    const future = forecast.map(f => {
-      const t = new Date(f.dt * 1000)
-        .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const future = forecast.map((f) => {
+      const t = new Date(f.dt * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       return `${t}: ${f.desc}, ${f.temp}°C, rain chance ${f.pop}%`;
     }).join("\n");
-
-    const prompt = `
-You are a Singapore travel advisor.
-Give 4 bullet points starting with "•".
-Location: ${location.address}
-Current: ${weather.desc}, ${weather.temp}°C, humidity ${weather.humidity}%, wind ${weather.wind} m/s
-Next hours:
-${future}
-Include:
-1) go out or not
-2) what to wear
-3) umbrella needed?
-4) driving tip
-`;
 
     const res = await fetch(API_CONFIG.ai.weatherAdviceUrl, {
       method: "POST",
@@ -494,84 +823,155 @@ Include:
         forecast
       })
     });
-
     if (!res.ok) return fallbackAdvice(weather, forecast);
-
     const data = await res.json();
     return data?.text || fallbackAdvice(weather, forecast);
   }
 
-  // AI 不可用时的兜底建议，保证页面总有可读结果
   function fallbackAdvice(weather, forecast) {
     let text = `• Now ${weather.temp}°C (${weather.desc}).\n`;
-    if (weather.temp > 30)
-      text += "• Quite hot, wear light clothes.\n";
-    if (forecast.some(f => f.pop > 35))
-      text += "• Possible rain, bring umbrella.\n";
+    if (weather.temp > 30) text += "• Quite hot, wear light clothes.\n";
+    if (forecast.some((f) => f.pop > 35)) text += "• Possible rain, bring umbrella.\n";
     text += "• Drive carefully if road wet.\n";
     return text;
   }
 
-  // ================= 更新天气界面 =================
-
-  // 刷新地点信息卡片
   function updateLocationUI(loc) {
     document.getElementById("loc-address").textContent = loc.address;
     document.getElementById("loc-postal").textContent = loc.postalCode;
-    document.getElementById("loc-coords").textContent =
-      `${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}`;
+    document.getElementById("loc-coords").textContent = `${loc.latitude.toFixed(6)}, ${loc.longitude.toFixed(6)}`;
     document.getElementById("loc-building").textContent = loc.buildingName;
   }
 
-  // 刷新当前天气卡片
   function updateWeatherUI(w) {
-
-    document.getElementById("weather-temp").textContent = w.temp + "°C";
-    document.getElementById("weather-desc").textContent = w.desc.toUpperCase();
-    document.getElementById("weather-feels").textContent =
-      `Feels like ${w.feels}°C`;
-
-    document.getElementById("weather-humidity").textContent = w.humidity + "%";
-    document.getElementById("weather-wind").textContent = w.wind + " m/s";
-    document.getElementById("weather-pressure").textContent = w.pressure + " hPa";
-    document.getElementById("weather-visibility").textContent = w.visibility + " km";
+    document.getElementById("weather-temp").textContent = `${w.temp}°C`;
+    document.getElementById("weather-desc").textContent = String(w.desc || "--").toUpperCase();
+    document.getElementById("weather-feels").textContent = `Feels like ${w.feels}°C`;
+    document.getElementById("weather-humidity").textContent = `${w.humidity}%`;
+    document.getElementById("weather-wind").textContent = `${w.wind} m/s`;
+    document.getElementById("weather-pressure").textContent = `${w.pressure} hPa`;
+    document.getElementById("weather-visibility").textContent = `${w.visibility} km`;
   }
 
-  // 刷新 3 个预报卡片
-  function updateForecastUI(list) {
+  function updateForecastUI(hourly) {
+    for (let i = 0; i < 3; i += 1) {
+      const item = hourly[i];
+      const idx = i + 1;
+      const timeEl = document.getElementById(`forecast-time-${idx}`);
+      const tempEl = document.getElementById(`forecast-temp-${idx}`);
+      const descEl = document.getElementById(`forecast-desc-${idx}`);
+      const rainEl = document.getElementById(`forecast-rain-${idx}`);
+      if (!item) {
+        timeEl.textContent = "--";
+        tempEl.textContent = "--°C";
+        descEl.textContent = "--";
+        rainEl.textContent = "";
+        continue;
+      }
+      const time = new Date(item.dt * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      timeEl.textContent = time;
+      tempEl.textContent = `${item.temp}°C`;
+      descEl.textContent = String(item.desc || "--").toUpperCase();
+      rainEl.textContent = item.pop > 30 ? `🌧️ ${item.pop}%` : "";
+    }
+  }
 
-    list.forEach((f, i) => {
+  function parseAdviceText(text) {
+    const lines = String(text || "")
+      .split("\n")
+      .map((line) => line.replace(/^•\s?/, "").trim())
+      .filter(Boolean);
+    const categories = ["Outdoor Conditions", "Attire", "Rain Advisory", "Road Safety"];
+    return categories.map((category, idx) => ({
+      category,
+      tip: lines[idx] || "No extra advice for now.",
+      level: idx === 2 && /rain|storm|thunder|umbrella/i.test(lines[idx] || "") ? "warning" : "good"
+    }));
+  }
 
-      const index = i + 1;
-
-      const time = new Date(f.dt * 1000)
-        .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-      document.getElementById(`forecast-time-${index}`).textContent = time;
-      document.getElementById(`forecast-temp-${index}`).textContent = f.temp + "°C";
-      document.getElementById(`forecast-desc-${index}`).textContent =
-        f.desc.toUpperCase();
-
-      document.getElementById(`forecast-rain-${index}`).textContent =
-        f.pop > 30 ? `🌧️ ${f.pop}%` : "";
+  function updateAdviceUI(text) {
+    const container = document.getElementById("weather-advice");
+    if (!container) return;
+    container.innerHTML = "";
+    const tips = parseAdviceText(text);
+    const META = {
+      "Outdoor Conditions": { icon: "🚶" },
+      "Attire": { icon: "👕" },
+      "Rain Advisory": { icon: "☂️" },
+      "Road Safety": { icon: "🚗" }
+    };
+    tips.forEach((tip) => {
+      const meta = META[tip.category] || { icon: "💡" };
+      const div = document.createElement("div");
+      div.className = `advice-tip advice-${tip.level}`;
+      div.setAttribute("data-cat", tip.category);
+      div.innerHTML = `
+        <span class="advice-icon">${meta.icon}</span>
+        <div class="advice-content">
+          <span class="advice-label">${tip.category.toUpperCase()}</span>
+          <span class="advice-text">${tip.tip}</span>
+        </div>
+        <span class="advice-badge">${tip.level.toUpperCase()}</span>
+      `;
+      container.appendChild(div);
     });
   }
 
-  // 将 AI 文本按行拆分成列表渲染
-  function updateAdviceUI(text) {
-
-    const list = document.getElementById("weather-advice");
-    list.innerHTML = "";
-
-    text.split("\n")
-      .filter(line => line.trim())
-      .forEach(line => {
-        const li = document.createElement("li");
-        li.textContent = line.replace(/^•\s?/, "");
-        list.appendChild(li);
-      });
+  function updateSunUI(sunriseTs, sunsetTs) {
+    const riseEl = document.getElementById("sun-rise");
+    const setEl = document.getElementById("sun-set");
+    const daylightEl = document.getElementById("sun-daylight");
+    if (!riseEl || !setEl || !daylightEl) return;
+    if (!Number.isFinite(sunriseTs) || !Number.isFinite(sunsetTs) || sunsetTs <= sunriseTs) {
+      riseEl.textContent = "--:--";
+      setEl.textContent = "--:--";
+      daylightEl.textContent = "-- hrs";
+      return;
+    }
+    const fmt = (ts) => new Date(ts * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const diffMs = (sunsetTs - sunriseTs) * 1000;
+    const hrs = Math.floor(diffMs / 3600000);
+    const mins = Math.floor((diffMs % 3600000) / 60000);
+    riseEl.textContent = fmt(sunriseTs);
+    setEl.textContent = fmt(sunsetTs);
+    daylightEl.textContent = `${hrs}h ${mins}m`;
   }
 
+  function getWeatherEmoji(iconMain) {
+    const map = {
+      Thunderstorm: "⛈️",
+      Drizzle: "🌦️",
+      Rain: "🌧️",
+      Snow: "❄️",
+      Mist: "🌫️",
+      Fog: "🌫️",
+      Haze: "🌫️",
+      Clear: "☀️",
+      Clouds: "☁️"
+    };
+    return map[iconMain] || "🌤️";
+  }
+
+  function updateTwoDayUI(days) {
+    for (let i = 0; i < 2; i += 1) {
+      const day = days[i] || {};
+      const n = i + 1;
+      document.getElementById(`twoday-label-${n}`).textContent = day.label || (n === 1 ? "TODAY" : "TOMORROW");
+      document.getElementById(`twoday-icon-${n}`).textContent = getWeatherEmoji(day.icon);
+      document.getElementById(`twoday-desc-${n}`).textContent = String(day.desc || "--").toUpperCase();
+      document.getElementById(`twoday-high-${n}`).textContent = Number.isFinite(day.high) ? `${day.high}°` : "--°";
+      document.getElementById(`twoday-low-${n}`).textContent = Number.isFinite(day.low) ? `${day.low}°` : "--°";
+      document.getElementById(`twoday-rain-${n}`).textContent = day.pop > 0 ? `🌧️ ${day.pop}% rain chance` : "☀️ No rain expected";
+    }
+  }
+
+  function updateTimestamp() {
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    const el = document.getElementById("lastUpdatedTime");
+    const wrap = document.getElementById("weatherTimestamp");
+    if (el) el.textContent = time;
+    if (wrap) wrap.style.display = "flex";
+  }
 });
 
 // ================= 摄像头 + 路径规划整合模块 =================
@@ -613,13 +1013,16 @@ Include:
     mapIncidentsVisible: false,
     mapLiveIncidents: [],
     dashboardIncidents: [],
+    favoriteOverlayVisible: false,
+    favoritePlannerPanelVisible: false,
     alertDismissedIds: new Set(),
     selectedAlertIncidentId: null,
     alertAiCache: new Map(),
     userLocation: null,
     alertLocationReady: false,
     alertIncidentById: new Map(),
-    alertsInfoFeed: null
+    alertsInfoFeed: null,
+    favoriteMapLayer: null
   };
 
   // 读取当前登录用户（来自前面 auth 模块的 sessionStorage 封装）
@@ -1002,6 +1405,7 @@ Include:
       }).addTo(state.liveMap);
       state.liveLayer = L.layerGroup().addTo(state.liveMap);
       state.liveIncidentLayer = L.layerGroup().addTo(state.liveMap);
+      state.favoriteMapLayer = L.layerGroup().addTo(state.liveMap);
     }
 
     if (!state.plannerMap && document.getElementById("plannerMap")) {
@@ -1083,6 +1487,172 @@ Include:
     btn.innerHTML = state.mapIncidentsVisible
       ? `<span class="icon-warning red"></span> HIDE LTA INCIDENTS`
       : `<span class="icon-warning red"></span> SHOW LTA INCIDENTS`;
+  }
+
+  function getCurrentUserSettings() {
+    try {
+      return window.getFastUserSettings ? (window.getFastUserSettings() || {}) : {};
+    } catch (_) {
+      return {};
+    }
+  }
+
+  function getFrequentPlaces(settings) {
+    const places = [];
+    const company = String(settings?.companyLocation || "").trim();
+    const home = String(settings?.homeLocation || "").trim();
+    if (company) places.push({ id: "company", label: "Company", query: company });
+    if (home) places.push({ id: "home", label: "Home", query: home });
+    return places;
+  }
+
+  function getFrequentRoutes(settings) {
+    return (Array.isArray(settings?.frequentRoutes) ? settings.frequentRoutes : [])
+      .slice(0, 3)
+      .map((r, i) => ({
+        id: `f-route-${i + 1}`,
+        name: String(r?.name || `Route ${i + 1}`).trim() || `Route ${i + 1}`,
+        start: String(r?.start || "").trim(),
+        end: String(r?.end || "").trim()
+      }))
+      .filter((r) => r.start && r.end);
+  }
+
+  function renderMapFavoritesToggleButton() {
+    const btn = document.getElementById("map-toggle-favorites-btn");
+    if (!btn) return;
+    btn.innerHTML = state.favoriteOverlayVisible
+      ? `<span class="icon-pin"></span> HIDE COMMON PLACES/ROUTES`
+      : `<span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES`;
+  }
+
+  function renderRouteFavoritesToggleButton() {
+    const btn = document.getElementById("route-toggle-favorites-btn");
+    if (!btn) return;
+    btn.textContent = state.favoritePlannerPanelVisible
+      ? "HIDE COMMON PLACES/ROUTES"
+      : "SHOW COMMON PLACES/ROUTES";
+  }
+
+  function renderRouteFavoritesPanel() {
+    const panel = document.getElementById("route-favorites-panel");
+    const list = document.getElementById("route-favorites-list");
+    if (!panel || !list) return;
+    panel.classList.toggle("hidden", !state.favoritePlannerPanelVisible);
+    if (!state.favoritePlannerPanelVisible) return;
+    const settings = getCurrentUserSettings();
+    const places = getFrequentPlaces(settings);
+    const routes = getFrequentRoutes(settings);
+    const hasData = places.length || routes.length;
+    if (!hasData) {
+      list.innerHTML = `<div class="route-favorite-item"><div><strong>No common data</strong><div class="meta">Configure in Settings first.</div></div></div>`;
+      return;
+    }
+
+    const placeHtml = places.map((p) => `
+      <div class="route-favorite-item">
+        <div>
+          <strong>${escapeHtml(p.label)}</strong>
+          <div class="meta">${escapeHtml(p.query)}</div>
+        </div>
+        <div>
+          <button type="button" data-fav-place-start="${escapeHtml(p.query)}">Set Start</button>
+          <button type="button" data-fav-place-end="${escapeHtml(p.query)}">Set End</button>
+        </div>
+      </div>
+    `).join("");
+    const routeHtml = routes.map((r) => `
+      <div class="route-favorite-item">
+        <div>
+          <strong>${escapeHtml(r.name)}</strong>
+          <div class="meta">${escapeHtml(r.start)} → ${escapeHtml(r.end)}</div>
+        </div>
+        <div>
+          <button type="button" data-fav-route-plan="${r.id}">Plan Now</button>
+        </div>
+      </div>
+    `).join("");
+    list.innerHTML = placeHtml + routeHtml;
+
+    list.querySelectorAll("[data-fav-place-start]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-fav-place-start") || "";
+        const startEl = document.getElementById("route-start-postal");
+        if (startEl) startEl.value = val;
+      });
+    });
+    list.querySelectorAll("[data-fav-place-end]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const val = btn.getAttribute("data-fav-place-end") || "";
+        const endEl = document.getElementById("route-end-postal");
+        if (endEl) endEl.value = val;
+      });
+    });
+    list.querySelectorAll("[data-fav-route-plan]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-fav-route-plan");
+        const route = routes.find((r) => r.id === id);
+        if (!route) return;
+        const startEl = document.getElementById("route-start-postal");
+        const endEl = document.getElementById("route-end-postal");
+        if (startEl) startEl.value = route.start;
+        if (endEl) endEl.value = route.end;
+        await calculateRoutes();
+      });
+    });
+  }
+
+  async function drawFavoriteOverlayOnMap() {
+    if (!state.favoriteMapLayer) return;
+    state.favoriteMapLayer.clearLayers();
+    if (!state.favoriteOverlayVisible) return;
+    const settings = getCurrentUserSettings();
+    const places = getFrequentPlaces(settings);
+    const routes = getFrequentRoutes(settings);
+
+    for (const place of places) {
+      try {
+        const geo = await geocodeLocation(place.query);
+        const marker = L.circleMarker([geo.lat, geo.lon], {
+          radius: 7,
+          color: "#fff",
+          weight: 2,
+          fillColor: "#0ea5e9",
+          fillOpacity: 0.95
+        }).addTo(state.favoriteMapLayer);
+        marker.bindPopup(`<strong>${escapeHtml(place.label)}</strong><br/>${escapeHtml(place.query)}`);
+      } catch (_) {}
+    }
+
+    for (const route of routes) {
+      try {
+        const [startGeo, endGeo] = await Promise.all([
+          geocodeLocation(route.start),
+          geocodeLocation(route.end)
+        ]);
+        const plans = await fetchRoutePlansFromPython(startGeo, endGeo, 0.03);
+        const best = plans[0];
+        if (!best || !Array.isArray(best.coords) || best.coords.length < 2) continue;
+        L.polyline(best.coords.map((c) => [c[0], c[1]]), {
+          color: "#7c3aed",
+          weight: 4,
+          opacity: 0.7,
+          dashArray: "6 6"
+        }).bindPopup(`${escapeHtml(route.name)}<br/>${escapeHtml(route.start)} → ${escapeHtml(route.end)}`).addTo(state.favoriteMapLayer);
+      } catch (_) {}
+    }
+  }
+
+  async function toggleMapFavoritesOverlay() {
+    state.favoriteOverlayVisible = !state.favoriteOverlayVisible;
+    renderMapFavoritesToggleButton();
+    await drawFavoriteOverlayOnMap();
+  }
+
+  function toggleRouteFavoritesPanel() {
+    state.favoritePlannerPanelVisible = !state.favoritePlannerPanelVisible;
+    renderRouteFavoritesToggleButton();
+    renderRouteFavoritesPanel();
   }
 
   // 在 Map View 绘制 LTA 实时事故点
@@ -2339,6 +2909,23 @@ Include:
         }
       });
     }
+    const mapFavoritesBtn = document.getElementById("map-toggle-favorites-btn");
+    if (mapFavoritesBtn) {
+      mapFavoritesBtn.addEventListener("click", async () => {
+        mapFavoritesBtn.disabled = true;
+        try {
+          await toggleMapFavoritesOverlay();
+        } finally {
+          mapFavoritesBtn.disabled = false;
+        }
+      });
+    }
+    const routeFavoritesBtn = document.getElementById("route-toggle-favorites-btn");
+    if (routeFavoritesBtn) {
+      routeFavoritesBtn.addEventListener("click", () => {
+        toggleRouteFavoritesPanel();
+      });
+    }
     const incidentSourceBtn = document.getElementById("admin-incident-source-btn");
     if (incidentSourceBtn) {
       incidentSourceBtn.addEventListener("click", async () => {
@@ -2419,6 +3006,9 @@ Include:
       if (isAdmin()) await loadAdminSimulationConfig();
       renderIncidentSourceButton();
       renderMapIncidentToggleButton();
+      renderMapFavoritesToggleButton();
+      renderRouteFavoritesToggleButton();
+      renderRouteFavoritesPanel();
       state.cameras = await fetchCameras();
       updateDashboardStats();
       try {
@@ -2431,6 +3021,7 @@ Include:
       }
       await renderAdminUsersPanel();
       renderLiveMapAndList();
+      if (state.favoriteOverlayVisible) await drawFavoriteOverlayOnMap();
       if (state.mapIncidentsVisible) drawLiveIncidentMarkers(state.mapLiveIncidents);
       if (isAdmin()) renderStandaloneSimulationInfo(null);
       const currentPage = (window.location.hash || "#dashboard").slice(1);
@@ -2460,6 +3051,14 @@ Include:
     if (usersPanel) usersPanel.classList.toggle("hidden", !isAdmin());
     if (!isAdmin()) state.incidentDataSource = "live";
     renderIncidentSourceButton();
+    if (!window.getFastAuth || !window.getFastAuth()) {
+      state.favoriteOverlayVisible = false;
+      state.favoritePlannerPanelVisible = false;
+      if (state.favoriteMapLayer) state.favoriteMapLayer.clearLayers();
+    }
+    renderMapFavoritesToggleButton();
+    renderRouteFavoritesToggleButton();
+    renderRouteFavoritesPanel();
     if (isAdmin()) {
       await loadAdminSimulationConfig();
       await renderAdminUsersPanel();
@@ -2481,6 +3080,13 @@ Include:
     }
     renderAlertsPanels();
     refreshAlertsInfoFeed();
+  });
+
+  window.addEventListener("fast-settings-changed", async () => {
+    renderRouteFavoritesPanel();
+    if (state.favoriteOverlayVisible) {
+      await drawFavoriteOverlayOnMap();
+    }
   });
 
   // 模块真实启动点

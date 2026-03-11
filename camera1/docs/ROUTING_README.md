@@ -1,4 +1,4 @@
-# ROUTING README（当前可运行版本）
+# ROUTING README（当前可运行版本）开发者可运行手册
 
 本文件用于快速让开发者在当前项目中跑通导航功能（`/ui2`），并理解与导航相关的后端与 Python 计算链路。
 
@@ -97,3 +97,6 @@ curl -X POST http://localhost:3000/api/route-plan \
 1. 将 Python 计算改为常驻服务（FastAPI）以减少子进程开销。
 2. 增加路线级缓存（按起终点网格化 key）。
 3. 接入更细粒度道路限制（单行、临时封路、施工管制）。
+
+
+
