@@ -1012,6 +1012,7 @@ document.addEventListener("DOMContentLoaded", () => {
     incidentMeta: null,
     mapIncidentsVisible: false,
     mapLiveIncidents: [],
+    mapIncidentElapsedTimer: null,
     dashboardIncidents: [],
     favoriteOverlayVisible: false,
     favoritePlannerPanelVisible: false,
@@ -1154,13 +1155,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return count;
   }
 
-  // 从摄像头聚合结果中提取“信号点位”数据，用于更真实的红绿灯计数
+  // 从摄像头聚合结果中提取“signal point”数据，用于更真实的红绿灯计数
   function getTrafficSignalPoints() {
     return (state.cameras || [])
       .filter((c) => {
         const source = String(c.source || "").toLowerCase();
         const name = String(c.name || "");
-        return source.includes("signal") || name.includes("信号点位");
+        return source.includes("signal") || name.includes("signal point");
       })
       .map((c) => ({
         id: String(c.id || `${c.lat},${c.lon}`),
@@ -1261,20 +1262,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return plans;
   }
 
-  // 找到某点在路线折线中的最近索引，用于判断“前方事件/附近事件”
-  function nearestCoordIndex(coords, lat, lon) {
-    let idx = 0;
-    let best = Infinity;
-    for (let i = 0; i < coords.length; i++) {
-      const d = haversine(lat, lon, coords[i][0], coords[i][1]);
-      if (d < best) {
-        best = d;
-        idx = i;
-      }
-    }
-    return idx;
-  }
-
   // 计算点到路线的最短距离（简化为到顶点最短距离）
   function distanceToRouteMeters(routeCoords, lat, lon) {
     let best = Infinity;
@@ -1337,21 +1324,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 事件筛选：仅保留“用户附近”或“路线前方”事件，减少噪声
-  function analyzeEvents(events, userLoc, routeCoords) {
-    const progressIdx = userLoc ? nearestCoordIndex(routeCoords, userLoc.lat, userLoc.lon) : 0;
-    const aheadMax = Math.min(routeCoords.length - 1, progressIdx + Math.floor(routeCoords.length * 0.55));
-    return events
-      .map((evt) => {
-        const nearUserMeters = userLoc ? haversine(userLoc.lat, userLoc.lon, evt.lat, evt.lon) : Infinity;
-        const eventIdx = nearestCoordIndex(routeCoords, evt.lat, evt.lon);
-        const isNearUser = nearUserMeters <= 1200;
-        const isAhead = eventIdx >= progressIdx && eventIdx <= aheadMax;
-        return { ...evt, nearUserMeters, isNearUser, isAhead, isRelevant: isNearUser || isAhead };
-      })
-      .filter(e => e.isRelevant);
-  }
-
   // 给事件附上附近摄像头（最多 2 个），用于详情展示证据
   function attachEventCameras(events, cameras) {
     return events.map((evt) => {
@@ -1364,21 +1336,75 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 将事件延误映射到每条路线，产出推荐路线与延误评分
-  function evaluateRoutesByEvents(routeOptions, events, startGeo, endGeo) {
+  // 后端 Python：路线事件筛选（优先）
+  async function analyzeEventsViaBackend(events, userLoc, routeCoords) {
+    const resp = await fetch("/api/route-events/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        events: Array.isArray(events) ? events : [],
+        userLoc: userLoc || null,
+        routeCoords: Array.isArray(routeCoords) ? routeCoords : []
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Route event analyze failed");
+    return Array.isArray(data.value) ? data.value : [];
+  }
+
+  // 后端 Python：路线事件评分/拥堵评估（优先）
+  async function evaluateRoutesByEventsViaBackend(routeOptions, events) {
+    const resp = await fetch("/api/route-events/evaluate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        routes: (routeOptions || []).map((r) => ({
+          id: r.id,
+          estMinutes: r.estMinutes,
+          coords: Array.isArray(r.coords) ? r.coords : []
+        })),
+        events: Array.isArray(events) ? events : []
+      })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Route event evaluate failed");
+
     const evaluations = new Map();
-    for (const route of routeOptions) {
-      const coords = getRouteCoords(route, startGeo, endGeo);
-      const hits = events.filter(evt => distanceToRouteMeters(coords, evt.lat, evt.lon) <= 350);
-      const delay = hits.reduce((sum, h) => sum + h.delayMin, 0);
-      const score = route.estMinutes + delay * 0.7 + hits.length * 2;
-      evaluations.set(route.id, { hitCount: hits.length, eventDelayMin: delay, score, hits });
-    }
-    let best = routeOptions[0];
-    for (const r of routeOptions) {
-      if ((evaluations.get(r.id)?.score ?? Infinity) < (evaluations.get(best.id)?.score ?? Infinity)) best = r;
-    }
-    return { evaluations, recommendedRouteId: best.id };
+    const rows = Array.isArray(data.evaluations) ? data.evaluations : [];
+    rows.forEach((it) => {
+      const routeId = it.routeId;
+      if (!routeId) return;
+      evaluations.set(routeId, {
+        hitCount: Number(it.hitCount) || 0,
+        eventDelayMin: Number(it.eventDelayMin) || 0,
+        score: Number(it.score) || Infinity,
+        hits: Array.isArray(it.hits) ? it.hits : []
+      });
+    });
+    const fallbackId = routeOptions?.[0]?.id || null;
+    return {
+      evaluations,
+      recommendedRouteId: data.recommendedRouteId || fallbackId,
+      currentFastestId: data.currentFastestId || fallbackId
+    };
+  }
+
+  // 根据评估结果计算“当前Fastest by time路线”（兼容本地/后端两种评估结果）
+  function deriveCurrentFastestId(routeOptions, evaluation) {
+    const routes = Array.isArray(routeOptions) ? routeOptions : [];
+    if (!routes.length) return null;
+    const evalMap = evaluation?.evaluations;
+    let fastestId = routes[0].id;
+    let bestMinutes = Infinity;
+    routes.forEach((p) => {
+      const e = evalMap?.get?.(p.id) || { eventDelayMin: 0 };
+      const total = Number(p.estMinutes || 0) + (Number(e.eventDelayMin || 0) * 0.7);
+      if (total < bestMinutes) {
+        bestMinutes = total;
+        fastestId = p.id;
+      }
+    });
+    return fastestId;
   }
 
   // 获取浏览器定位（失败时返回 null，不中断主流程）
@@ -1672,9 +1698,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }).addTo(state.liveIncidentLayer);
       marker.bindPopup(`
         <div style="font-size:12px;max-width:280px;">
-          <strong>${escapeHtml(it.message || it.type || "Traffic incident")}</strong><br/>
-          <span>Area: ${escapeHtml(it.area || "Unknown")}</span><br/>
-          <span>Reported: ${escapeHtml(formatIncidentTime(it.createdAt))}</span>
+          <div><strong>Incident Type: </strong>${escapeHtml(it.type || "Traffic incident")}</div>
+          <div><strong>Location: </strong>${escapeHtml(it.area || "Unknown")}</div>
+          <div><strong>Elapsed Time: </strong>${escapeHtml(getIncidentElapsedText(it))}</div>
+          <div><strong>Estimated Clear Time: </strong>${escapeHtml(getIncidentEstimatedClearText(it))}</div>
+          <div><strong>Estimated Impact Time: </strong>${escapeHtml(getIncidentDurationText(it))}</div>
         </div>
       `);
     });
@@ -1694,6 +1722,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (state.mapIncidentsVisible) {
       state.mapIncidentsVisible = false;
       state.liveIncidentLayer.clearLayers();
+      if (state.mapIncidentElapsedTimer) {
+        clearInterval(state.mapIncidentElapsedTimer);
+        state.mapIncidentElapsedTimer = null;
+      }
       renderMapIncidentToggleButton();
       return;
     }
@@ -1701,6 +1733,11 @@ document.addEventListener("DOMContentLoaded", () => {
     state.mapLiveIncidents = incidents;
     state.mapIncidentsVisible = true;
     drawLiveIncidentMarkers(incidents);
+    if (state.mapIncidentElapsedTimer) clearInterval(state.mapIncidentElapsedTimer);
+    state.mapIncidentElapsedTimer = setInterval(() => {
+      if (!state.mapIncidentsVisible) return;
+      drawLiveIncidentMarkers(state.mapLiveIncidents);
+    }, 60 * 1000);
     renderMapIncidentToggleButton();
   }
 
@@ -1817,7 +1854,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const latestRule = feed?.latestRule || null;
 
     if (!weeklyNews.length) {
-      weeklyListEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>最近7天暂无可用事故新闻。</strong></div></div>`;
+      weeklyListEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>No traffic incident news available for the past 7 days.</strong></div></div>`;
     } else {
       weeklyListEl.innerHTML = weeklyNews.map((item, idx) => `
         <div class="alert-card">
@@ -1831,7 +1868,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (!latestRule) {
-      latestRuleEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>暂无最新交通规则更新。</strong></div></div>`;
+      latestRuleEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>No latest traffic rule updates available.</strong></div></div>`;
       return;
     }
     latestRuleEl.innerHTML = `
@@ -1851,8 +1888,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const weeklyListEl = document.getElementById("alerts-weekly-news-list");
     const latestRuleEl = document.getElementById("alerts-latest-rule");
     if (!weeklyListEl || !latestRuleEl) return;
-    weeklyListEl.innerHTML = `<p style="margin:0;">加载近7天事故新闻中...</p>`;
-    latestRuleEl.innerHTML = `<p style="margin:0;">加载最新交通规则中...</p>`;
+    weeklyListEl.innerHTML = `<p style="margin:0;">Loading traffic incident news for the past 7 days...</p>`;
+    latestRuleEl.innerHTML = `<p style="margin:0;">Loading latest traffic rules...</p>`;
     try {
       const res = await fetch(API_CONFIG.alerts.trafficInfoFeedUrl);
       const data = await res.json();
@@ -1861,7 +1898,7 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAlertsInfoFeed(data);
     } catch (err) {
       console.error("Traffic info feed failed:", err.message);
-      weeklyListEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>资讯加载失败</strong><span class="alert-meta">${escapeHtml(err.message)}</span></div></div>`;
+      weeklyListEl.innerHTML = `<div class="alert-card"><div class="alert-body"><strong>Failed to load information</strong><span class="alert-meta">${escapeHtml(err.message)}</span></div></div>`;
       latestRuleEl.innerHTML = "";
     }
   }
@@ -1879,6 +1916,53 @@ document.addEventListener("DOMContentLoaded", () => {
       return `${Math.round(minV)}-${Math.round(maxV)} mins`;
     }
     return "N/A";
+  }
+
+  function getIncidentStartTimestamp(incident) {
+    const msg = String(incident?.message || "");
+    const m = msg.match(/^\((\d{1,2})\/(\d{1,2})\)\s*(\d{1,2}):(\d{2})/);
+    if (m) {
+      const day = Number(m[1]);
+      const month = Number(m[2]);
+      const hour = Number(m[3]);
+      const minute = Number(m[4]);
+      const now = new Date();
+      const year = now.getFullYear();
+      if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
+        const ts = new Date(year, month - 1, day, hour, minute, 0, 0).getTime();
+        if (Number.isFinite(ts)) {
+          // 若解析出来是未来时间，按上一年处理（跨年边界容错）
+          if (ts > Date.now() + 60 * 1000) {
+            return new Date(year - 1, month - 1, day, hour, minute, 0, 0).getTime();
+          }
+          return ts;
+        }
+      }
+    }
+    const createdTs = new Date(incident?.createdAt || "").getTime();
+    return Number.isFinite(createdTs) ? createdTs : NaN;
+  }
+
+  function getIncidentElapsedText(incident) {
+    const startTs = getIncidentStartTimestamp(incident);
+    if (!Number.isFinite(startTs)) return "N/A";
+    const diffMs = Math.max(0, Date.now() - startTs);
+    const totalMin = Math.floor(diffMs / 60000);
+    const hour = Math.floor(totalMin / 60);
+    const minute = totalMin % 60;
+    return hour > 0 ? `${hour}h ${minute}m` : `${minute}m`;
+  }
+
+  function getIncidentEstimatedClearText(incident) {
+    const createdTs = getIncidentStartTimestamp(incident);
+    const minV = Number(incident?.estimatedDurationMin);
+    const maxV = Number(incident?.estimatedDurationMax);
+    if (!Number.isFinite(createdTs) || !Number.isFinite(minV) || !Number.isFinite(maxV)) return "N/A";
+    const minTime = new Date(createdTs + Math.max(0, minV) * 60000);
+    const maxTime = new Date(createdTs + Math.max(0, maxV) * 60000);
+    const fmt = (d) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (Math.round(minV) === Math.round(maxV)) return fmt(minTime);
+    return `${fmt(minTime)} - ${fmt(maxTime)}`;
   }
 
   // Alerts 的“附近事故”逻辑只请求一次定位，避免频繁弹权限/消耗性能
@@ -1942,7 +2026,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return best;
   }
 
-  // 管理员模拟模式下：提取当前选中模拟路线对应的事故列表
+  // 管理员模拟模式下：提取当前选中Simulated Route对应的事故列表
   function getSelectedSimRouteIncidentsForAlerts() {
     const sim = state.adminSimulationData;
     if (!state.adminSimulationVisible || !sim || !Array.isArray(sim.routes) || !sim.routes.length) return [];
@@ -1950,7 +2034,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const route = sim.routes.find((r) => r.id === routeId);
     if (!route || !Array.isArray(route.incidents) || !route.incidents.length) return [];
     const routeIndex = Math.max(0, sim.routes.findIndex((r) => r.id === route.id));
-    const routeName = `模拟路线 ${String.fromCharCode(65 + routeIndex)}`;
+    const routeName = `Simulated Route ${String.fromCharCode(65 + routeIndex)}`;
 
     return route.incidents.map((evt, idx) => {
       const cam = getNearestCameraForPoint(Number(evt.lat), Number(evt.lon));
@@ -2000,7 +2084,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Alerts 主渲染入口：
-  // - 决定 Pinned 来源（模拟路线 / 当前规划路线 / 附近事故）
+  // - 决定 Pinned 来源（Simulated Route / 当前规划路线 / 附近事故）
   // - 渲染全部事故列表
   // - 维护详情页索引 map
   function renderAlertsPanels() {
@@ -2017,7 +2101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let badgeText = "";
     if (state.adminSimulationVisible) {
       pinned = getSelectedSimRouteIncidentsForAlerts();
-      badgeText = "模拟路线";
+      badgeText = "Simulated Route";
     } else if (state.selectedRouteId && state.routeContext) {
       pinned = getSelectedPlannedRouteIncidentsForAlerts();
       badgeText = "ROUTE";
@@ -2104,9 +2188,9 @@ document.addEventListener("DOMContentLoaded", () => {
         <div class="alert-detail-item"><span class="k">LOCATION</span><span class="v" id="detail-location">${escapeHtml(incident.area || "Unknown area")}</span></div>
         <div class="alert-detail-item"><span class="k">REPORTED TIME</span><span class="v" id="detail-time">${escapeHtml(formatIncidentTime(incident.createdAt))}</span></div>
         <div class="alert-detail-item"><span class="k">EST. SPREAD</span><span class="v">${escapeHtml(getIncidentSpreadText(incident))}</span></div>
-        <div class="alert-detail-item"><span class="k">EST. DURATION</span><span class="v">${escapeHtml(getIncidentDurationText(incident))}</span></div>
+        <div class="alert-detail-item"><span class="k">Estimated Impact Time</span><span class="v">${escapeHtml(getIncidentDurationText(incident))}</span></div>
         <div class="alert-detail-item"><span class="k">POSSIBLE REASON (AI)</span><span class="v" id="detail-reason">Generating summary...</span></div>
-        <div class="alert-detail-item"><span class="k">POSSIBLE DURATION (AI)</span><span class="v" id="detail-duration">Generating summary...</span></div>
+        <div class="alert-detail-item"><span class="k">Estimated Clear Time (AI)</span><span class="v" id="detail-duration">Generating summary...</span></div>
       </div>
       ${incident.cameraName || incident.imageLink ? `
       <div class="alert-detail-camera">
@@ -2155,10 +2239,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const show = isAdmin();
     btn.classList.toggle("hidden", !show);
     if (!show) return;
-    btn.textContent = state.incidentDataSource === "mock" ? "DATA: 模拟事故" : "DATA: LTA LIVE";
+    btn.textContent = state.incidentDataSource === "mock" ? "DATA: SIMULATED INCIDENTS" : "DATA: LTA LIVE";
     btn.title = state.incidentDataSource === "mock"
-      ? "当前展示管理员模拟事故数据（含消失判定）"
-      : "当前展示 LTA 实时事故数据";
+      ? "Currently showing admin simulated incidents (with disappearance logic)"
+      : "Currently showing LTA live incidents";
   }
 
   function renderIncidentUpdatesList() {
@@ -2198,7 +2282,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hint && state.incidentMeta?.source === "mock") {
       const step = Number.isFinite(Number(state.incidentMeta.pollStep)) ? ` · Sim step ${state.incidentMeta.pollStep}` : "";
       const resolved = Number.isFinite(Number(state.incidentMeta.resolvedCount)) ? ` · Resolved this step: ${state.incidentMeta.resolvedCount}` : "";
-      hint.textContent = `Last updated: ${new Date().toLocaleString("en-SG", { hour12: true })} · 模拟数据${step}${resolved}`;
+      hint.textContent = `Last updated: ${new Date().toLocaleString("en-SG", { hour12: true })} · Simulated data${step}${resolved}`;
     }
   }
 
@@ -2247,7 +2331,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="evidence-card">
         ${it.imageLink
           ? `<img src="${it.imageLink}" alt="${it.message || "incident"}" loading="lazy" />`
-          : `<div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#64748b;font-size:12px;">无附近摄像头图片</div>`}
+          : `<div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#64748b;font-size:12px;">No nearby camera image</div>`}
         <div class="evidence-card-body">
           <div class="evidence-card-title">${it.type || "Traffic incident"}</div>
           <div class="evidence-card-meta">${it.area || "Unknown area"}</div>
@@ -2356,11 +2440,11 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const strategyName = route.id === "fastest"
-      ? "时间优先策略"
+      ? "Time-priority strategy"
       : route.id === "fewerLights"
-        ? "少红绿灯策略"
-        : "均衡策略";
-    setText("route-detail-title", `模拟 ${strategyName}`);
+        ? "Fewer-signals strategy"
+        : "Balanced strategy";
+    setText("route-detail-title", `Simulated ${strategyName}`);
     setText("route-detail-time", `${Math.round(route.simulatedEtaMin)} mins`);
     setText("route-detail-distance", `${route.distanceKm.toFixed(1)} km`);
     setText("route-detail-delay", `+${Math.round(route.incidentDelayMin)} mins`);
@@ -2400,13 +2484,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const sorted = enriched.slice().sort((a, b) => a.totalMinutes - b.totalMinutes);
 
     function getStatusTag(item) {
-      if (Math.abs(item.totalMinutes - minTotal) < 1e-6) return "时间最短";
-      if (Math.abs(item.r.totalDist - minDist) < 1e-6) return "距离最短";
-      if (item.r.trafficLights === minLights) return "红绿灯最少";
+      if (Math.abs(item.totalMinutes - minTotal) < 1e-6) return "Fastest by time";
+      if (Math.abs(item.r.totalDist - minDist) < 1e-6) return "Shortest distance";
+      if (item.r.trafficLights === minLights) return "Fewest traffic signals";
       const dev = Math.abs(item.totalMinutes - avgTotal);
       const minDev = Math.min(...sorted.map(x => Math.abs(x.totalMinutes - avgTotal)));
-      if (Math.abs(dev - minDev) < 1e-6) return "综合平均";
-      return "综合路线";
+      if (Math.abs(dev - minDev) < 1e-6) return "Balanced average";
+      return "Balanced route";
     }
 
     container.innerHTML = sorted.map((item, idx) => {
@@ -2542,7 +2626,10 @@ document.addEventListener("DOMContentLoaded", () => {
       })
     });
     const data = await resp.json();
-    if (!resp.ok) throw new Error(data.error || "Python route-plan failed");
+    if (!resp.ok) {
+      const detail = data?.details ? `: ${data.details}` : "";
+      throw new Error((data.error || "Python route-plan failed") + detail);
+    }
     const routes = Array.isArray(data.routes) ? data.routes : [];
     return routes
       .map((r) => ({
@@ -2601,7 +2688,7 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         id: "sim-congestion-1",
         routeId: shortestRoute.id,
-        label: "模拟拥堵",
+        label: "Simulated congestion",
         lat: congestionPoint[0],
         lon: congestionPoint[1],
         delayMin: 12,
@@ -2609,13 +2696,13 @@ document.addEventListener("DOMContentLoaded", () => {
         color: "#ef4444",
         area: "SIM Corridor A",
         createdAt: new Date(simNow).toISOString(),
-        message: "前方两车追尾占用1条车道，导致车辆排队回堵",
-        reason: "两车追尾占道，通行能力下降"
+        message: "Two-vehicle rear-end collision ahead occupying one lane, causing queue spillback.",
+        reason: "Rear-end collision is blocking a lane, reducing road capacity."
       },
       {
         id: "sim-roadwork-1",
         routeId: shortestRoute.id,
-        label: "模拟施工",
+        label: "Simulated roadwork",
         lat: shortestCoords[Math.max(1, idx - 1)][0],
         lon: shortestCoords[Math.max(1, idx - 1)][1],
         delayMin: 4,
@@ -2623,13 +2710,13 @@ document.addEventListener("DOMContentLoaded", () => {
         color: "#a855f7",
         area: "SIM Corridor A",
         createdAt: new Date(simNow + 60 * 1000).toISOString(),
-        message: "道路养护临时封闭慢车道，需并线通过",
-        reason: "道路养护导致车道收窄"
+        message: "Road maintenance temporarily closes the slow lane; merge is required.",
+        reason: "Road maintenance narrows lane width."
       },
       {
         id: "sim-breakdown-1",
         routeId: shortestRoute.id,
-        label: "模拟故障车",
+        label: "Simulated broken-down vehicle",
         lat: shortestCoords[Math.min(shortestCoords.length - 2, idx + 1)][0],
         lon: shortestCoords[Math.min(shortestCoords.length - 2, idx + 1)][1],
         delayMin: 6,
@@ -2637,8 +2724,8 @@ document.addEventListener("DOMContentLoaded", () => {
         color: "#f59e0b",
         area: "SIM Corridor A",
         createdAt: new Date(simNow + 2 * 60 * 1000).toISOString(),
-        message: "故障车辆停靠应急带，间歇影响主线汇入",
-        reason: "故障车引发瓶颈波动"
+        message: "Broken-down vehicle on shoulder intermittently affects mainline merge.",
+        reason: "Broken-down vehicle causes bottleneck fluctuations."
       }
     ];
 
@@ -2695,28 +2782,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const strategyName = (id) => {
-      if (id === "fastest") return "时间优先策略";
-      if (id === "fewerLights") return "少红绿灯策略";
-      return "均衡策略";
+      if (id === "fastest") return "Time-priority strategy";
+      if (id === "fewerLights") return "Fewer-signals strategy";
+      return "Balanced strategy";
     };
 
     target.innerHTML = sim.routes.map((r, idx) => {
       const tags = [];
-      if (r.id === sim.notes.fastestByTimeId) tags.push("时间最短");
-      if (r.id === sim.notes.shortestByDistanceId) tags.push("路径最短");
-      if (!tags.length) tags.push("备选路线");
+      if (r.id === sim.notes.fastestByTimeId) tags.push("Fastest by time");
+      if (r.id === sim.notes.shortestByDistanceId) tags.push("Shortest distance");
+      if (!tags.length) tags.push("Alternative route");
       const incidentText = r.incidents.length
         ? r.incidents.map(i => `${i.label}(+${i.delayMin}m, ${formatIncidentTime(i.createdAt)}): ${i.reason}`).join(" · ")
         : "No major incidents";
       const selected = r.id === state.adminSimulationSelectedRouteId;
       return `
         <div class="admin-sim-card ${selected ? "selected" : ""}" data-sim-route-id="${r.id}">
-          <h4>#${idx + 1} 模拟路线 ${String.fromCharCode(65 + idx)}</h4>
-          <p>策略: ${strategyName(r.id)}</p>
-          <p>状态: ${tags.join(" / ")}</p>
-          <p>距离: ${r.distanceKm.toFixed(1)} km · 红绿灯: ${r.lights}</p>
-          <p>基础时间: ${Math.round(r.baseEtaMin)} mins · 延误: +${Math.round(r.incidentDelayMin)} mins · 模拟总时间: ${Math.round(r.simulatedEtaMin)} mins</p>
-          <p>事故/路况: ${incidentText}</p>
+          <h4>#${idx + 1} Simulated Route ${String.fromCharCode(65 + idx)}</h4>
+          <p>Strategy: ${strategyName(r.id)}</p>
+          <p>Status: ${tags.join(" / ")}</p>
+          <p>Distance: ${r.distanceKm.toFixed(1)} km · Signals: ${r.lights}</p>
+          <p>Base time: ${Math.round(r.baseEtaMin)} mins · Delay: +${Math.round(r.incidentDelayMin)} mins · Simulated total time: ${Math.round(r.simulatedEtaMin)} mins</p>
+          <p>Incidents/Road status: ${incidentText}</p>
         </div>
       `;
     }).join("");
@@ -2733,7 +2820,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 在地图绘制模拟路线、模拟起终点与模拟事故点
+  // 在地图绘制Simulated Route、模拟起终点与模拟事故点
   function drawStandaloneSimulation(sim) {
     if (!state.adminSimulationLayer || !state.plannerMap) return;
     state.adminSimulationLayer.clearLayers();
@@ -2819,7 +2906,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (btn) btn.disabled = true;
     const startedAt = Date.now();
-    if (hintEl) hintEl.textContent = "Planning route... estimated time 5-15 seconds.";
+    let waitSeconds = 0;
+    let waitTimer = null;
+    if (hintEl) {
+      hintEl.textContent = `Planning route, estimated 10-20 seconds. You have waited ${waitSeconds} seconds.`;
+      waitTimer = setInterval(() => {
+        waitSeconds += 1;
+        hintEl.textContent = `Planning route, estimated 10-20 seconds. You have waited ${waitSeconds} seconds.`;
+      }, 1000);
+    }
     try {
       const [userLoc, startGeo, endGeo] = await Promise.all([getUserLocation(), geocodeLocation(startQuery), geocodeLocation(endQuery)]);
       const plans = await fetchRoutePlansFromPython(startGeo, endGeo, 0.03);
@@ -2828,19 +2923,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const defaultRoute = plans.find(r => r.id === "fastest") || plans[0];
       const baseCoords = getRouteCoords(defaultRoute, startGeo, endGeo);
       const realtimeCameras = state.cameras.filter(c => c.hasRealtimeImage);
-      const relevantEvents = analyzeEvents(buildSyntheticEvents(baseCoords, state.adminSimulationConfig), userLoc, baseCoords);
+      const syntheticEvents = buildSyntheticEvents(baseCoords, state.adminSimulationConfig);
+      const relevantEvents = await analyzeEventsViaBackend(syntheticEvents, userLoc, baseCoords);
       const eventsWithCameras = attachEventCameras(relevantEvents, realtimeCameras);
-      const evaluation = evaluateRoutesByEvents(plans, eventsWithCameras, startGeo, endGeo);
-      let currentFastestId = plans[0].id;
-      let fastestMinutes = Infinity;
-      for (const p of plans) {
-        const e = evaluation.evaluations.get(p.id) || { eventDelayMin: 0 };
-        const total = p.estMinutes + e.eventDelayMin * 0.7;
-        if (total < fastestMinutes) {
-          fastestMinutes = total;
-          currentFastestId = p.id;
-        }
-      }
+      const evaluation = await evaluateRoutesByEventsViaBackend(plans, eventsWithCameras);
+      const currentFastestId = evaluation.currentFastestId || deriveCurrentFastestId(plans, evaluation) || plans[0].id;
 
       state.routePlans = plans;
       state.routeContext = {
@@ -2861,12 +2948,14 @@ document.addEventListener("DOMContentLoaded", () => {
         showSimulationRouteDetails(state.adminSimulationData, state.adminSimulationSelectedRouteId);
       }
       renderAlertsPanels();
-      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
-      if (hintEl) hintEl.textContent = `Route planning completed in ${elapsed}s. 3 routes are sorted by ETA.`;
+      const elapsedSeconds = Math.max(waitSeconds, Math.ceil((Date.now() - startedAt) / 1000));
+      if (hintEl) hintEl.textContent = `Route planning completed. You waited ${elapsedSeconds} seconds. 3 routes are sorted by ETA.`;
     } catch (err) {
       alert(`Route calculation failed: ${err.message}`);
-      if (hintEl) hintEl.textContent = `Route planning failed: ${err.message}`;
+      const elapsedSeconds = Math.max(waitSeconds, Math.ceil((Date.now() - startedAt) / 1000));
+      if (hintEl) hintEl.textContent = `Route planning failed after ${elapsedSeconds} seconds: ${err.message}`;
     } finally {
+      if (waitTimer) clearInterval(waitTimer);
       if (btn) btn.disabled = false;
     }
   }
@@ -2936,7 +3025,7 @@ document.addEventListener("DOMContentLoaded", () => {
           await refreshDashboardIncidents();
         } catch (err) {
           console.error(err);
-          alert(`切换事故数据源失败: ${err.message}`);
+          alert(`Failed to switch incident data source: ${err.message}`);
         }
       });
     }

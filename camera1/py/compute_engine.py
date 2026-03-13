@@ -165,6 +165,57 @@ def enrich_incidents_with_cameras(payload):
     return {"value": output}
 
 
+# -------------------- 事故标准化（多源字段 -> 统一结构） --------------------
+def normalize_incidents(payload):
+    """
+    将 LTA/data.gov/mock 的事故字段统一为同一结构，并补齐影响估算。
+
+    输入：
+    - payload.list: 原始事故数组
+    - payload.prefix: ID 前缀（如 lta / dgov）
+    - payload.defaultCreatedAt: 默认时间（可选）
+
+    输出：
+    - value: [{id, message, type, lat, lon, createdAt, estimatedDurationMin, estimatedDurationMax, spreadRadiusKm}]
+    """
+    items = payload.get("list") or []
+    prefix = str(payload.get("prefix") or "incident")
+    default_created_at = payload.get("defaultCreatedAt")
+    out = []
+
+    for idx, x in enumerate(items):
+        if not isinstance(x, dict):
+            continue
+
+        message = x.get("Message") or x.get("message") or x.get("Description") or x.get("Type") or ""
+        lat = to_float(x.get("Latitude", x.get("latitude", x.get("Lat"))))
+        lon = to_float(x.get("Longitude", x.get("longitude", x.get("Lon"))))
+        if lat is None or lon is None:
+            continue
+
+        impact = build_impact_meta({
+            "type": x.get("Type") or x.get("type"),
+            "message": message,
+            "estimatedDurationMin": x.get("estimatedDurationMin", x.get("estimated_impact_min", x.get("EstimatedImpactMin"))),
+            "estimatedDurationMax": x.get("estimatedDurationMax", x.get("estimated_impact_max", x.get("EstimatedImpactMax"))),
+            "spreadRadiusKm": x.get("spreadRadiusKm", x.get("spread_radius_km", x.get("SpreadRadiusKm"))),
+        })
+
+        out.append({
+            "id": x.get("IncidentID") or x.get("id") or f"{prefix}-incident-{idx + 1}",
+            "message": message,
+            "type": x.get("Type") or x.get("type") or "Incident",
+            "lat": lat,
+            "lon": lon,
+            "createdAt": x.get("CreatedAt") or x.get("Created") or x.get("updated_at") or default_created_at,
+            "estimatedDurationMin": impact["estimatedDurationMin"],
+            "estimatedDurationMax": impact["estimatedDurationMax"],
+            "spreadRadiusKm": impact["spreadRadiusKm"],
+        })
+
+    return {"value": out}
+
+
 # -------------------- 路网构图与 A* --------------------
 def node_key(lat, lon):
     """节点归一化 key：保留 4 位小数，约 10m 级别合并。"""
@@ -354,6 +405,123 @@ def count_lights_by_degree(path_keys, nodes):
     return cnt
 
 
+def nearest_coord_index(coords, lat, lon):
+    """找到给定点在路线坐标数组中的最近索引。"""
+    best_i = 0
+    best_d = float("inf")
+    for i, c in enumerate(coords or []):
+        d = haversine(lat, lon, c[0], c[1])
+        if d < best_d:
+            best_d = d
+            best_i = i
+    return best_i
+
+
+def analyze_events_for_route(payload):
+    """
+    事件相关性筛选（与前端原逻辑对齐）：
+    - 用户1.2km内 或
+    - 路线前方区间内
+    """
+    events = payload.get("events") or []
+    route_coords = payload.get("routeCoords") or []
+    user_loc = payload.get("userLoc")
+    if not isinstance(route_coords, list) or len(route_coords) < 2:
+        return {"value": []}
+
+    user_lat = to_float((user_loc or {}).get("lat"))
+    user_lon = to_float((user_loc or {}).get("lon"))
+    has_user = user_lat is not None and user_lon is not None
+
+    progress_idx = nearest_coord_index(route_coords, user_lat, user_lon) if has_user else 0
+    ahead_max = min(len(route_coords) - 1, progress_idx + int(len(route_coords) * 0.55))
+    out = []
+    for evt in events:
+        lat = to_float(evt.get("lat"))
+        lon = to_float(evt.get("lon"))
+        if lat is None or lon is None:
+            continue
+        near_user_m = haversine(user_lat, user_lon, lat, lon) if has_user else float("inf")
+        event_idx = nearest_coord_index(route_coords, lat, lon)
+        is_near_user = near_user_m <= 1200 if has_user else False
+        is_ahead = event_idx >= progress_idx and event_idx <= ahead_max
+        if is_near_user or is_ahead:
+            item = dict(evt)
+            item["nearUserMeters"] = near_user_m if math.isfinite(near_user_m) else None
+            item["isNearUser"] = bool(is_near_user)
+            item["isAhead"] = bool(is_ahead)
+            item["isRelevant"] = True
+            out.append(item)
+    return {"value": out}
+
+
+def evaluate_route_events(payload):
+    """
+    路线事件评分/拥堵评估（迁移自前端）。
+
+    输入：
+    - routes: [{id, estMinutes, coords}]
+    - events: [{lat, lon, delayMin, ...}]
+
+    输出：
+    - recommendedRouteId
+    - evaluations: [{routeId, hitCount, eventDelayMin, score, hits}]
+    - currentFastestId
+    """
+    routes = payload.get("routes") or []
+    events = payload.get("events") or []
+    if not isinstance(routes, list) or not routes:
+        return {"recommendedRouteId": None, "evaluations": [], "currentFastestId": None}
+
+    evaluations = []
+    recommended_route_id = None
+    best_score = float("inf")
+    current_fastest_id = None
+    best_total = float("inf")
+
+    for route in routes:
+        route_id = route.get("id")
+        coords = route.get("coords") or []
+        est_minutes = to_float(route.get("estMinutes"))
+        if not route_id or est_minutes is None or not isinstance(coords, list) or len(coords) < 2:
+            continue
+
+        hits = []
+        delay_sum = 0.0
+        for evt in events:
+            e_lat = to_float(evt.get("lat"))
+            e_lon = to_float(evt.get("lon"))
+            if e_lat is None or e_lon is None:
+                continue
+            d = distance_to_route(coords, e_lat, e_lon)
+            if d <= 350:
+                hits.append(evt)
+                delay_sum += to_float(evt.get("delayMin")) or 0.0
+
+        score = est_minutes + delay_sum * 0.7 + len(hits) * 2
+        total_minutes = est_minutes + delay_sum * 0.7
+        evaluations.append({
+            "routeId": route_id,
+            "hitCount": len(hits),
+            "eventDelayMin": delay_sum,
+            "score": score,
+            "hits": hits
+        })
+
+        if score < best_score:
+            best_score = score
+            recommended_route_id = route_id
+        if total_minutes < best_total:
+            best_total = total_minutes
+            current_fastest_id = route_id
+
+    return {
+        "recommendedRouteId": recommended_route_id,
+        "evaluations": evaluations,
+        "currentFastestId": current_fastest_id
+    }
+
+
 def calc_path_distance(path_keys, nodes, start, end):
     """计算完整路径总长度（米），包含起点接入与终点接出。"""
     total = 0.0
@@ -493,6 +661,12 @@ def main():
 
     if args.op == "enrich_incidents_with_cameras":
         result = enrich_incidents_with_cameras(payload)
+    elif args.op == "normalize_incidents":
+        result = normalize_incidents(payload)
+    elif args.op == "analyze_events_for_route":
+        result = analyze_events_for_route(payload)
+    elif args.op == "evaluate_route_events":
+        result = evaluate_route_events(payload)
     elif args.op == "plan_routes":
         result = plan_routes(payload)
     else:

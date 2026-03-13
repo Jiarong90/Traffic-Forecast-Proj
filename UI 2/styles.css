@@ -8,8 +8,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .header { display: flex; align-items: center; justify-content: space-between; padding: 12px 24px; border-bottom: 1px solid #e0e0e0; gap: 16px; flex-wrap: wrap; }
 .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.25rem; }
 .brand-logo-img {
-  width: 92px;
-  height: 40px;
+  width: 128px;
+  height: 52px;
+  max-height: 52px;
   object-fit: contain;
   display: block;
 }

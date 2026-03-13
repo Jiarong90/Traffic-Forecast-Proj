@@ -262,18 +262,18 @@ async function requireAuth(req, res, next) {
   try {
     const token = getBearerToken(req);
     const session = await resolveSession(token);
-    if (!session) return res.status(401).json({ error: '请先登录' });
+    if (!session) return res.status(401).json({ error: 'Please log in first' });
     req.session = session;
     next();
   } catch (error) {
-    console.error('鉴权失败:', error.message);
-    res.status(500).json({ error: '鉴权失败' });
+    console.error('Authentication failed:', error.message);
+    res.status(500).json({ error: 'Authentication failed' });
   }
 }
 
 function requireAdmin(req, res, next) {
   if (!req.session?.user || req.session.user.role !== 'admin') {
-    return res.status(403).json({ error: '仅管理员可操作' });
+    return res.status(403).json({ error: 'Admin only' });
   }
   next();
 }
@@ -292,16 +292,16 @@ async function getSimulationConfig() {
 }
 
 function validateSimulationConfig(config) {
-  if (!config || typeof config !== 'object') return '配置格式错误';
-  if (!Array.isArray(config.events)) return 'events 必须是数组';
-  if (typeof config.enabled !== 'boolean') return 'enabled 必须为布尔值';
-  if (config.events.length > 12) return 'events 最多 12 条';
+  if (!config || typeof config !== 'object') return 'Invalid config format';
+  if (!Array.isArray(config.events)) return 'events must be an array';
+  if (typeof config.enabled !== 'boolean') return 'enabled must be a boolean';
+  if (config.events.length > 12) return 'maximum 12 events';
   for (const evt of config.events) {
-    if (typeof evt !== 'object') return 'event 项必须为对象';
-    if (typeof evt.label !== 'string' || !evt.label.trim()) return 'event.label 必填';
-    if (!Number.isFinite(Number(evt.ratio)) || Number(evt.ratio) <= 0 || Number(evt.ratio) >= 1) return 'event.ratio 必须在 0~1 之间';
-    if (!Number.isFinite(Number(evt.delayMin)) || Number(evt.delayMin) < 1 || Number(evt.delayMin) > 60) return 'event.delayMin 必须在 1~60';
-    if (!Number.isFinite(Number(evt.severity)) || Number(evt.severity) < 1 || Number(evt.severity) > 3) return 'event.severity 必须在 1~3';
+    if (typeof evt !== 'object') return 'event item must be an object';
+    if (typeof evt.label !== 'string' || !evt.label.trim()) return 'event.label is required';
+    if (!Number.isFinite(Number(evt.ratio)) || Number(evt.ratio) <= 0 || Number(evt.ratio) >= 1) return 'event.ratio must be between 0 and 1';
+    if (!Number.isFinite(Number(evt.delayMin)) || Number(evt.delayMin) < 1 || Number(evt.delayMin) > 60) return 'event.delayMin must be between 1 and 60';
+    if (!Number.isFinite(Number(evt.severity)) || Number(evt.severity) < 1 || Number(evt.severity) > 3) return 'event.severity must be between 1 and 3';
   }
   return null;
 }
@@ -361,7 +361,7 @@ function createRateLimiter({ windowMs, maxRequests, keySuffix = '' }) {
     if (entry.count > maxRequests) {
       const retryAfter = Math.max(1, Math.ceil((entry.resetAt - now) / 1000));
       res.setHeader('Retry-After', String(retryAfter));
-      return res.status(429).json({ error: '请求过于频繁，请稍后重试' });
+      return res.status(429).json({ error: 'Too many requests, please try again later' });
     }
     next();
   };
@@ -385,17 +385,17 @@ app.use('/api/auth', createRateLimiter({ windowMs: RATE_LIMIT_WINDOW_MS, maxRequ
 
 async function issueSignupCode({ name, email, password }) {
   if (!name || !email || !password) {
-    return { status: 400, body: { error: 'name/email/password 均为必填' } };
+    return { status: 400, body: { error: 'name/email/password are required' } };
   }
   if (!isUsableEmail(email)) {
-    return { status: 400, body: { error: '请输入可用邮箱地址（后续用于邮件通知）' } };
+    return { status: 400, body: { error: 'Please enter a valid usable email address (for future email notifications)' } };
   }
   if (!isStrongPassword(password)) {
-    return { status: 400, body: { error: '密码需至少6位，且包含大写字母、小写字母和数字' } };
+    return { status: 400, body: { error: 'Password must be at least 6 chars and include uppercase, lowercase and number' } };
   }
 
   const exists = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
-  if (exists.rows[0]) return { status: 409, body: { error: '邮箱已被注册' } };
+  if (exists.rows[0]) return { status: 409, body: { error: 'Email is already registered' } };
 
   const code = generateVerificationCode();
   const codeHash = hashVerificationCode(code);
@@ -419,7 +419,7 @@ async function issueSignupCode({ name, email, password }) {
   );
 
   const mailResult = await sendVerificationEmail(email, code, name);
-  const body = { ok: true, message: '验证码已发送，请查收邮箱' };
+  const body = { ok: true, message: 'Verification code sent, please check your email' };
   if (mailResult.devCode) body.devCode = mailResult.devCode;
   return { status: 200, body };
 }
@@ -432,8 +432,8 @@ app.post('/api/auth/signup/request-code', async (req, res) => {
     const result = await issueSignupCode({ name, email, password });
     res.status(result.status).json(result.body);
   } catch (error) {
-    console.error('发送验证码失败:', error.message);
-    res.status(500).json({ error: '发送验证码失败' });
+    console.error('Failed to send verification code:', error.message);
+    res.status(500).json({ error: 'Failed to send verification code' });
   }
 });
 
@@ -441,14 +441,14 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const code = String(req.body?.code || '').trim();
   if (!email || !code) {
-    return res.status(400).json({ error: 'email/code 均为必填' });
+    return res.status(400).json({ error: 'email/code are required' });
   }
   if (!/^\d{6}$/.test(code)) {
-    return res.status(400).json({ error: '验证码格式错误，应为6位数字' });
+    return res.status(400).json({ error: 'Invalid verification code format, it must be 6 digits' });
   }
   try {
     const existingUser = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
-    if (existingUser.rows[0]) return res.status(409).json({ error: '邮箱已被注册，请先注销账户再复用邮箱测试' });
+    if (existingUser.rows[0]) return res.status(409).json({ error: 'Email already registered, delete the account before reusing this email for testing' });
 
     const verResult = await pool.query(
       `
@@ -459,16 +459,16 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
       [email]
     );
     const ver = verResult.rows[0];
-    if (!ver) return res.status(400).json({ error: '请先发送验证码' });
+    if (!ver) return res.status(400).json({ error: 'Please request a verification code first' });
     if (new Date(ver.expires_at).getTime() < Date.now()) {
-      return res.status(400).json({ error: '验证码已过期，请重新发送' });
+      return res.status(400).json({ error: 'Verification code expired, please resend' });
     }
     if (ver.attempts >= 8) {
-      return res.status(429).json({ error: '验证码尝试次数过多，请重新发送' });
+      return res.status(429).json({ error: 'Too many code attempts, please resend' });
     }
     if (hashVerificationCode(code) !== ver.code_hash) {
       await pool.query(`UPDATE signup_verifications SET attempts = attempts + 1 WHERE email = $1`, [email]);
-      return res.status(400).json({ error: '验证码错误' });
+      return res.status(400).json({ error: 'Verification code is incorrect' });
     }
 
     const client = await pool.connect();
@@ -495,13 +495,13 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
       client.release();
     }
   } catch (error) {
-    console.error('验证码注册失败:', error.message);
-    res.status(500).json({ error: '验证码注册失败' });
+    console.error('Verification signup failed:', error.message);
+    res.status(500).json({ error: 'Verification signup failed' });
   }
 });
 
 app.post('/api/auth/signup', async (req, res) => {
-  res.status(410).json({ error: '请使用 /api/auth/signup/request-code 和 /api/auth/signup/verify-code 完成注册' });
+  res.status(410).json({ error: 'Please use /api/auth/signup/request-code and /api/auth/signup/verify-code to complete signup' });
 });
 
 app.post('/api/auth/signup/resend-code', async (req, res) => {
@@ -512,27 +512,27 @@ app.post('/api/auth/signup/resend-code', async (req, res) => {
     const result = await issueSignupCode({ name, email, password });
     res.status(result.status).json(result.body);
   } catch (error) {
-    console.error('重发验证码失败:', error.message);
-    res.status(500).json({ error: '重发验证码失败' });
+    console.error('Failed to resend verification code:', error.message);
+    res.status(500).json({ error: 'Failed to resend verification code' });
   }
 });
 
 app.delete('/api/auth/account', requireAuth, async (req, res) => {
   const password = String(req.body?.password || '').trim();
-  if (!password) return res.status(400).json({ error: '请输入当前密码确认注销' });
+  if (!password) return res.status(400).json({ error: 'Enter current password to confirm account deletion' });
   try {
     const result = await pool.query(`SELECT id, password_hash FROM users WHERE id = $1`, [req.session.user.id]);
     const row = result.rows[0];
-    if (!row) return res.status(404).json({ error: '账户不存在' });
-    if (!verifyPassword(password, row.password_hash)) return res.status(401).json({ error: '密码错误，无法注销' });
+    if (!row) return res.status(404).json({ error: 'Account does not exist' });
+    if (!verifyPassword(password, row.password_hash)) return res.status(401).json({ error: 'Incorrect password, unable to delete account' });
     await pool.query(
       `DELETE FROM users WHERE id = $1`,
       [req.session.user.id]
     );
-    res.json({ ok: true, message: '账户已注销，可使用同邮箱重新注册测试' });
+    res.json({ ok: true, message: 'Account deleted, you can re-register using the same email for testing' });
   } catch (error) {
-    console.error('注销账户失败:', error.message);
-    res.status(500).json({ error: '注销账户失败' });
+    console.error('Failed to delete account:', error.message);
+    res.status(500).json({ error: 'Failed to delete account' });
   }
 });
 
@@ -540,7 +540,7 @@ app.get('/api/user/settings', requireAuth, async (req, res) => {
   try {
     const userQ = await pool.query(`SELECT id, name, email, role FROM users WHERE id = $1`, [req.session.user.id]);
     const user = userQ.rows[0];
-    if (!user) return res.status(404).json({ error: '用户不存在' });
+    if (!user) return res.status(404).json({ error: 'User does not exist' });
     const settingsQ = await pool.query(
       `
       SELECT company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes
@@ -565,8 +565,8 @@ app.get('/api/user/settings', requireAuth, async (req, res) => {
     };
     res.json({ user: toPublicUser(user), settings });
   } catch (error) {
-    console.error('读取用户设置失败:', error.message);
-    res.status(500).json({ error: '读取用户设置失败' });
+    console.error('Failed to load user settings:', error.message);
+    res.status(500).json({ error: 'Failed to load user settings' });
   }
 });
 
@@ -599,15 +599,15 @@ app.put('/api/user/settings', requireAuth, async (req, res) => {
     );
     res.json({ ok: true, settings });
   } catch (error) {
-    console.error('保存用户设置失败:', error.message);
-    res.status(500).json({ error: '保存用户设置失败' });
+    console.error('Failed to save user settings:', error.message);
+    res.status(500).json({ error: 'Failed to save user settings' });
   }
 });
 
 app.put('/api/user/name', requireAuth, async (req, res) => {
   const name = String(req.body?.name || '').trim();
-  if (!name) return res.status(400).json({ error: '请输入姓名' });
-  if (name.length > 80) return res.status(400).json({ error: '姓名过长（最多 80 个字符）' });
+  if (!name) return res.status(400).json({ error: 'Please enter a name' });
+  if (name.length > 80) return res.status(400).json({ error: 'Name is too long (max 80 chars)' });
   try {
     const updated = await pool.query(
       `
@@ -618,11 +618,11 @@ app.put('/api/user/name', requireAuth, async (req, res) => {
       `,
       [name, req.session.user.id]
     );
-    if (!updated.rows[0]) return res.status(404).json({ error: '用户不存在' });
+    if (!updated.rows[0]) return res.status(404).json({ error: 'User does not exist' });
     res.json({ ok: true, user: toPublicUser(updated.rows[0]) });
   } catch (error) {
-    console.error('更新姓名失败:', error.message);
-    res.status(500).json({ error: '更新姓名失败' });
+    console.error('Failed to update name:', error.message);
+    res.status(500).json({ error: 'Failed to update name' });
   }
 });
 
@@ -630,30 +630,30 @@ app.put('/api/user/password', requireAuth, async (req, res) => {
   const currentPassword = String(req.body?.currentPassword || '').trim();
   const newPassword = String(req.body?.newPassword || '').trim();
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ error: '请输入当前密码和新密码' });
+    return res.status(400).json({ error: 'Please enter current and new password' });
   }
   if (!isStrongPassword(newPassword)) {
-    return res.status(400).json({ error: '新密码需至少 6 位，并包含大小写英文字母和数字' });
+    return res.status(400).json({ error: 'New password must be at least 6 chars and include uppercase, lowercase and number' });
   }
   try {
     const result = await pool.query(`SELECT id, password_hash FROM users WHERE id = $1`, [req.session.user.id]);
     const row = result.rows[0];
-    if (!row) return res.status(404).json({ error: '用户不存在' });
+    if (!row) return res.status(404).json({ error: 'User does not exist' });
     if (!verifyPassword(currentPassword, row.password_hash)) {
-      return res.status(401).json({ error: '当前密码错误' });
+      return res.status(401).json({ error: 'Current password is incorrect' });
     }
     await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hashPassword(newPassword), req.session.user.id]);
     res.json({ ok: true });
   } catch (error) {
-    console.error('修改密码失败:', error.message);
-    res.status(500).json({ error: '修改密码失败' });
+    console.error('Failed to change password:', error.message);
+    res.status(500).json({ error: 'Failed to change password' });
   }
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const email = String(req.body?.email || '').trim().toLowerCase();
   const password = String(req.body?.password || '').trim();
-  if (!email || !password) return res.status(400).json({ error: 'email/password 必填' });
+  if (!email || !password) return res.status(400).json({ error: 'email/password are required' });
   try {
     const result = await pool.query(
       `
@@ -665,18 +665,18 @@ app.post('/api/auth/login', async (req, res) => {
     );
     const row = result.rows[0];
     if (!row || !verifyPassword(password, row.password_hash)) {
-      return res.status(401).json({ error: '邮箱或密码错误' });
+      return res.status(401).json({ error: 'Incorrect email or password' });
     }
     const verified = await pool.query(`SELECT email_verified FROM users WHERE id = $1`, [row.id]);
     if (!verified.rows[0]?.email_verified) {
-      return res.status(403).json({ error: '邮箱未验证，请完成验证码注册流程' });
+      return res.status(403).json({ error: 'Email not verified, please complete verification signup flow' });
     }
 
     const token = await createSession(row.id);
     res.json({ token, user: toPublicUser(row) });
   } catch (error) {
-    console.error('登录失败:', error.message);
-    res.status(500).json({ error: '登录失败' });
+    console.error('Login failed:', error.message);
+    res.status(500).json({ error: 'Login failed' });
   }
 });
 
@@ -689,8 +689,8 @@ app.post('/api/auth/logout', requireAuth, async (req, res) => {
     await pool.query(`DELETE FROM sessions WHERE token = $1`, [req.session.token]);
     res.json({ ok: true });
   } catch (error) {
-    console.error('退出失败:', error.message);
-    res.status(500).json({ error: '退出失败' });
+    console.error('Logout failed:', error.message);
+    res.status(500).json({ error: 'Logout failed' });
   }
 });
 
@@ -698,8 +698,8 @@ app.get('/api/admin/simulation-config', requireAuth, requireAdmin, async (req, r
   try {
     res.json({ config: await getSimulationConfig() });
   } catch (error) {
-    console.error('读取模拟配置失败:', error.message);
-    res.status(500).json({ error: '读取模拟配置失败' });
+    console.error('Failed to load simulation config:', error.message);
+    res.status(500).json({ error: 'Failed to load simulation config' });
   }
 });
 
@@ -718,8 +718,8 @@ app.put('/api/admin/simulation-config', requireAuth, requireAdmin, async (req, r
     );
     res.json({ ok: true, config });
   } catch (e) {
-    console.error('保存模拟配置失败:', e.message);
-    res.status(500).json({ error: '保存模拟配置失败' });
+    console.error('Failed to save simulation config:', e.message);
+    res.status(500).json({ error: 'Failed to save simulation config' });
   }
 });
 
@@ -741,8 +741,8 @@ app.get('/api/admin/users/summary', requireAuth, requireAdmin, async (req, res) 
       newUsers7d: new7dQ.rows[0].new_7d
     });
   } catch (error) {
-    console.error('读取用户统计失败:', error.message);
-    res.status(500).json({ error: '读取用户统计失败' });
+    console.error('Failed to load user statistics:', error.message);
+    res.status(500).json({ error: 'Failed to load user statistics' });
   }
 });
 
@@ -762,8 +762,8 @@ app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
     const total = await pool.query(`SELECT COUNT(*)::int AS total FROM users`);
     res.json({ total: total.rows[0].total, limit, offset, value: rows.rows });
   } catch (error) {
-    console.error('读取用户列表失败:', error.message);
-    res.status(500).json({ error: '读取用户列表失败' });
+    console.error('Failed to load user list:', error.message);
+    res.status(500).json({ error: 'Failed to load user list' });
   }
 });
 
@@ -788,7 +788,7 @@ function downsample(items, maxCount) {
 
 async function callGeminiText(prompt) {
   if (!GEMINI_API_KEY) {
-    throw new Error('GEMINI_API_KEY 未配置');
+    throw new Error('GEMINI_API_KEY not configured');
   }
   const resp = await fetch(`${GEMINI_API_URL}?key=${encodeURIComponent(GEMINI_API_KEY)}`, {
     method: 'POST',
@@ -798,7 +798,7 @@ async function callGeminiText(prompt) {
     })
   });
   if (!resp.ok) {
-    throw new Error(`Gemini API 错误: ${resp.status}`);
+    throw new Error(`Gemini API error: ${resp.status}`);
   }
   const data = await resp.json();
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
@@ -833,7 +833,7 @@ function parseRssItems(xml) {
 
 async function fetchRss(url) {
   const resp = await fetch(url, { headers: { accept: 'application/rss+xml, application/xml, text/xml' } });
-  if (!resp.ok) throw new Error(`RSS 获取失败: ${resp.status}`);
+  if (!resp.ok) throw new Error(`RSS fetch failed: ${resp.status}`);
   const xml = await resp.text();
   return parseRssItems(xml);
 }
@@ -842,7 +842,7 @@ async function fetchTrafficImageCameras() {
   const cameras = await withCache('data-gov-traffic-images', 45 * 1000, async () => {
     const response = await fetch(TRAFFIC_IMAGES_API);
     if (!response.ok) {
-      throw new Error(`data.gov.sg API 错误: ${response.status}`);
+      throw new Error(`data.gov.sg API error: ${response.status}`);
     }
     const data = await response.json();
     return (data.items || [])
@@ -851,7 +851,7 @@ async function fetchTrafficImageCameras() {
         Latitude: cam.location?.latitude,
         Longitude: cam.location?.longitude,
         ImageLink: cam.image,
-        Name: `LTA 交通摄像头 ${cam.camera_id}`,
+        Name: `LTA Traffic Camera ${cam.camera_id}`,
         Source: 'data.gov.sg Traffic Images',
         HasRealtimeImage: true
       })));
@@ -1023,7 +1023,7 @@ async function fetchMockIncidentsWithResolution() {
 
 async function fetchTrafficIncidentsRaw() {
   return withCache('data-gov-traffic-incidents', INCIDENT_SOURCE_TTL_MS, async () => {
-    async function parseList(list, prefix) {
+    async function parseListLocal(list, prefix) {
       return (list || [])
         .map((x, idx) => {
           const message = x.Message || x.message || x.Description || x.Type || '';
@@ -1052,6 +1052,21 @@ async function fetchTrafficIncidentsRaw() {
         .filter(Boolean);
     }
 
+    async function parseList(list, prefix) {
+      try {
+        const result = await runPythonCompute('normalize_incidents', {
+          list: Array.isArray(list) ? list : [],
+          prefix,
+          defaultCreatedAt: nowIso()
+        }, 10000);
+        if (Array.isArray(result?.value)) return result.value;
+        throw new Error('Python normalize_incidents returned invalid format');
+      } catch (err) {
+        console.warn(`Python incident normalization fell back to Node.js: ${err.message}`);
+        return parseListLocal(list, prefix);
+      }
+    }
+
     if (LTA_ACCOUNT_KEY) {
       try {
         const ltaResp = await fetch(LTA_TRAFFIC_INCIDENTS_API, {
@@ -1066,7 +1081,7 @@ async function fetchTrafficIncidentsRaw() {
     }
 
     const response = await fetch(TRAFFIC_INCIDENTS_API);
-    if (!response.ok) throw new Error(`data.gov.sg incidents API 错误: ${response.status}`);
+    if (!response.ok) throw new Error(`data.gov.sg incidents API error: ${response.status}`);
     const data = await response.json();
     return parseList((data.value || data.items || data || []), 'dgov');
   });
@@ -1084,7 +1099,7 @@ async function runPythonCompute(op, payload, timeoutMs = 12000) {
       if (settled) return;
       settled = true;
       child.kill('SIGKILL');
-      reject(new Error(`Python 计算超时: ${op}`));
+      reject(new Error(`Python compute timeout: ${op}`));
     }, timeoutMs);
 
     child.stdout.on('data', (chunk) => {
@@ -1097,20 +1112,20 @@ async function runPythonCompute(op, payload, timeoutMs = 12000) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
-      reject(new Error(`Python 启动失败: ${err.message}`));
+      reject(new Error(`Python startup failed: ${err.message}`));
     });
     child.on('close', (code) => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       if (code !== 0) {
-        return reject(new Error(`Python 计算失败(code=${code}): ${stderr.trim() || 'unknown error'}`));
+        return reject(new Error(`Python compute failed(code=${code}): ${stderr.trim() || 'unknown error'}`));
       }
       try {
         const parsed = JSON.parse(stdout || '{}');
         resolve(parsed);
       } catch (parseErr) {
-        reject(new Error(`Python 输出解析失败: ${parseErr.message}`));
+        reject(new Error(`Python output parse failed: ${parseErr.message}`));
       }
     });
 
@@ -1213,9 +1228,9 @@ async function attachNearestRealtimeCamera(incidents, cameras) {
     };
     const result = await runPythonCompute('enrich_incidents_with_cameras', payload, 10000);
     if (Array.isArray(result?.value)) return result.value;
-    throw new Error('Python 返回数据格式无效');
+    throw new Error('Python returned invalid data format');
   } catch (err) {
-    console.warn(`Python 事故匹配回退到 Node.js: ${err.message}`);
+    console.warn(`Python incident matching fell back to Node.js: ${err.message}`);
     return attachNearestRealtimeCameraLocal(incidents, cameras);
   }
 }
@@ -1235,10 +1250,10 @@ async function loadLtaSignalGeoJsonCameras() {
           CameraID: `lta-signal-${uniq}`,
           Latitude: lat,
           Longitude: lon,
-          Name: p.TYP_NAM ? `LTA 信号点位 (${p.TYP_NAM})` : `LTA 信号点位 ${uniq}`,
+          Name: p.TYP_NAM ? `LTA signal point (${p.TYP_NAM})` : `LTA signal point ${uniq}`,
           Source: 'LTA Traffic Signal GeoJSON',
           HasRealtimeImage: false,
-          Note: '无实时图片（仅公开点位）'
+          Note: 'No realtime image (public point only)'
         };
       });
   });
@@ -1275,16 +1290,16 @@ async function fetchSpfRedLightCameras() {
       });
     }
     if (!pollResp.ok) {
-      throw new Error(`SPF 数据集接口错误: ${pollResp.status}`);
+      throw new Error(`SPF dataset API error: ${pollResp.status}`);
     }
     const pollData = await pollResp.json();
     const fileUrl = pollData?.data?.url;
     if (!fileUrl) {
-      throw new Error('SPF 数据集未返回下载地址');
+      throw new Error('SPF dataset did not return download URL');
     }
     const fileResp = await fetch(fileUrl);
     if (!fileResp.ok) {
-      throw new Error(`SPF 数据文件下载失败: ${fileResp.status}`);
+      throw new Error(`SPF dataset file download failed: ${fileResp.status}`);
     }
     const kml = await fileResp.text();
     const points = downsample(parseKmlCoordinates(kml), MAX_SPF_POINTS);
@@ -1292,10 +1307,10 @@ async function fetchSpfRedLightCameras() {
       CameraID: `spf-redlight-${idx + 1}`,
       Latitude: p.lat,
       Longitude: p.lon,
-      Name: p.name ? `SPF 红灯摄像头 (${p.name})` : `SPF 红灯摄像头 ${idx + 1}`,
+      Name: p.name ? `SPF red-light camera (${p.name})` : `SPF red-light camera ${idx + 1}`,
       Source: 'Singapore Police Force Red Light Cameras',
       HasRealtimeImage: false,
-      Note: '无实时图片（仅公开点位）'
+      Note: 'No realtime image (public point only)'
     }));
   });
 }
@@ -1316,7 +1331,7 @@ out body;
       body: 'data=' + encodeURIComponent(query)
     });
     if (!resp.ok) {
-      throw new Error(`Overpass API 错误: ${resp.status}`);
+      throw new Error(`Overpass API error: ${resp.status}`);
     }
     const data = await resp.json();
     const elements = downsample((data.elements || []), MAX_OSM_POINTS);
@@ -1326,10 +1341,10 @@ out body;
         CameraID: `osm-camera-${el.id || idx}`,
         Latitude: el.lat,
         Longitude: el.lon,
-        Name: el.tags?.name || `OSM 公开摄像头点位 ${el.id || idx}`,
+        Name: el.tags?.name || `OSM public camera point ${el.id || idx}`,
         Source: 'OpenStreetMap Camera Nodes',
         HasRealtimeImage: false,
-        Note: '无实时图片（仅公开点位）'
+        Note: 'No realtime image (public point only)'
       }));
   });
 }
@@ -1340,8 +1355,8 @@ app.get('/api/traffic-images', async (req, res) => {
     const cameras = await fetchTrafficImageCameras();
     res.json({ value: cameras });
   } catch (error) {
-    console.error('获取交通摄像头数据失败:', error.message);
-    res.status(500).json({ error: '获取摄像头数据失败', details: error.message });
+    console.error('Failed to load traffic camera data:', error.message);
+    res.status(500).json({ error: 'Failed to load camera data', details: error.message });
   }
 });
 
@@ -1419,7 +1434,7 @@ app.get('/api/incidents', async (req, res) => {
       fetchTrafficImageCameras()
     ]);
     if (incidentsResult.status !== 'fulfilled') {
-      throw new Error(incidentsResult.reason?.message || '事故数据源不可用');
+      throw new Error(incidentsResult.reason?.message || 'Incident data source unavailable');
     }
     const incidents = incidentsResult.value || [];
     const cameras = camerasResult.status === 'fulfilled'
@@ -1430,7 +1445,7 @@ app.get('/api/incidents', async (req, res) => {
       warnings.push({
         source: 'dataGovTrafficImages',
         fallback: realtimeCameraFallback.value?.length ? 'stale-cache' : 'no-camera-data',
-        error: camerasResult.reason?.message || '摄像头源不可用'
+        error: camerasResult.reason?.message || 'Camera source unavailable'
       });
     }
 
@@ -1452,8 +1467,8 @@ app.get('/api/incidents', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('获取实时事故失败:', error.message);
-    res.status(500).json({ error: '获取实时事故失败', details: error.message });
+    console.error('Failed to load live incidents:', error.message);
+    res.status(500).json({ error: 'Failed to load live incidents', details: error.message });
   }
 });
 
@@ -1472,10 +1487,10 @@ app.get('/api/traffic-info-feed', async (req, res) => {
       const accidentItems = settled[0].status === 'fulfilled' ? settled[0].value : [];
       const ruleItems = settled[1].status === 'fulfilled' ? settled[1].value : [];
       if (settled[0].status !== 'fulfilled') {
-        warnings.push({ source: 'weeklyNews', error: settled[0].reason?.message || '事故新闻源不可用' });
+        warnings.push({ source: 'weeklyNews', error: settled[0].reason?.message || 'Incident news source unavailable' });
       }
       if (settled[1].status !== 'fulfilled') {
-        warnings.push({ source: 'latestRule', error: settled[1].reason?.message || '规则新闻源不可用' });
+        warnings.push({ source: 'latestRule', error: settled[1].reason?.message || 'Rules news source unavailable' });
       }
 
       const weeklyNews = (accidentItems || [])
@@ -1499,12 +1514,12 @@ app.get('/api/traffic-info-feed', async (req, res) => {
     });
     res.json(feed);
   } catch (error) {
-    console.error('获取交通资讯流失败:', error.message);
+    console.error('Failed to load traffic info feed:', error.message);
     res.status(500).json({
       weeklyNews: [],
       latestRule: null,
       generatedAt: nowIso(),
-      warnings: [{ source: 'feed', error: error.message || '交通资讯流获取失败' }]
+      warnings: [{ source: 'feed', error: error.message || 'Traffic info feed fetch failed' }]
     });
   }
 });
@@ -1513,7 +1528,7 @@ app.get('/api/traffic-info-feed', async (req, res) => {
 app.get('/api/geocode', async (req, res) => {
   const query = (req.query.q || req.query.location || req.query.postal || '').trim();
   if (!query) {
-    return res.status(400).json({ error: '请输入起点/终点（邮编或地名）' });
+    return res.status(400).json({ error: 'Please enter start/destination (postal code or place)' });
   }
   const isPostal = /^\d{6}$/.test(query);
   const maybeMrt = /mrt|station/i.test(query);
@@ -1598,22 +1613,22 @@ app.get('/api/geocode', async (req, res) => {
       continue;
     }
   }
-  res.status(404).json({ error: `未找到地点 "${query}"，请尝试邮编或更完整地名` });
+  res.status(404).json({ error: `Location \"${query}\" not found, try postal code or a more complete place name` });
 });
 
 app.get('/api/weather/current', async (req, res) => {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return res.status(400).json({ error: 'lat/lon 参数无效' });
+    return res.status(400).json({ error: 'Invalid lat/lon parameters' });
   }
   if (!OPENWEATHER_API_KEY) {
-    return res.status(500).json({ error: 'OPENWEATHER_API_KEY 未配置' });
+    return res.status(500).json({ error: 'OPENWEATHER_API_KEY not configured' });
   }
   try {
     const url = `${OPENWEATHER_CURRENT_API}?lat=${lat}&lon=${lon}&units=metric&appid=${encodeURIComponent(OPENWEATHER_API_KEY)}`;
     const r = await fetch(url);
-    if (!r.ok) throw new Error(`OpenWeather API 错误: ${r.status}`);
+    if (!r.ok) throw new Error(`OpenWeather API error: ${r.status}`);
     const d = await r.json();
     res.json({
       temp: Math.round(d.main?.temp),
@@ -1627,7 +1642,7 @@ app.get('/api/weather/current', async (req, res) => {
       sunset: Number(d.sys?.sunset) || null
     });
   } catch (e) {
-    res.status(500).json({ error: '获取天气失败', details: e.message });
+    res.status(500).json({ error: 'Failed to fetch weather', details: e.message });
   }
 });
 
@@ -1635,16 +1650,16 @@ app.get('/api/weather/forecast', async (req, res) => {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return res.status(400).json({ error: 'lat/lon 参数无效' });
+    return res.status(400).json({ error: 'Invalid lat/lon parameters' });
   }
   if (!OPENWEATHER_API_KEY) {
-    return res.status(500).json({ error: 'OPENWEATHER_API_KEY 未配置' });
+    return res.status(500).json({ error: 'OPENWEATHER_API_KEY not configured' });
   }
   try {
     const now = Date.now();
     const url = `${OPENWEATHER_FORECAST_API}?lat=${lat}&lon=${lon}&units=metric&appid=${encodeURIComponent(OPENWEATHER_API_KEY)}`;
     const r = await fetch(url);
-    if (!r.ok) throw new Error(`OpenWeather Forecast API 错误: ${r.status}`);
+    if (!r.ok) throw new Error(`OpenWeather Forecast API error: ${r.status}`);
     const d = await r.json();
     const value = (d.list || [])
       .filter(item => {
@@ -1661,7 +1676,7 @@ app.get('/api/weather/forecast', async (req, res) => {
       }));
     res.json({ value });
   } catch (e) {
-    res.status(500).json({ error: '获取天气预报失败', details: e.message });
+    res.status(500).json({ error: 'Failed to fetch weather forecast', details: e.message });
   }
 });
 
@@ -1670,7 +1685,7 @@ app.post('/api/ai/weather-advice', async (req, res) => {
   const weather = req.body?.weather || {};
   const forecast = Array.isArray(req.body?.forecast) ? req.body.forecast : [];
   if (!location?.display || !weather?.desc) {
-    return res.status(400).json({ error: 'location/weather 参数缺失' });
+    return res.status(400).json({ error: 'Missing location/weather parameters' });
   }
   const future = forecast.map((f) => {
     const t = new Date((f.dt || 0) * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -1693,7 +1708,7 @@ Include:
     const text = await callGeminiText(prompt);
     res.json({ text });
   } catch (e) {
-    res.status(500).json({ error: 'AI 建议生成失败', details: e.message });
+    res.status(500).json({ error: 'AI advice generation failed', details: e.message });
   }
 });
 
@@ -1739,7 +1754,7 @@ Keep each value within 1 sentence.`;
       duration: parsed.duration || '30-90 minutes (estimated)'
     });
   } catch (e) {
-    res.status(500).json({ error: 'AI 事故摘要生成失败', details: e.message });
+    res.status(500).json({ error: 'AI incident summary generation failed', details: e.message });
   }
 });
 
@@ -1751,13 +1766,31 @@ async function fetchRoadNetworkByBbox(s, w, n, e) {
 );
 out body geom;
   `.trim();
-  const resp = await fetch(OVERPASS_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: 'data=' + encodeURIComponent(overpassQuery)
-  });
-  if (!resp.ok) throw new Error(`Overpass API 错误: ${resp.status}`);
-  return resp.json();
+  const endpoints = [
+    OVERPASS_API,
+    'https://overpass.kumi.systems/api/interpreter',
+    'https://lz4.overpass-api.de/api/interpreter'
+  ];
+  let lastErr = null;
+  for (const endpoint of endpoints) {
+    try {
+      const resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(overpassQuery)
+      });
+      if (!resp.ok) throw new Error(`Overpass API error: ${resp.status} (${endpoint})`);
+      const data = await resp.json();
+      if (!Array.isArray(data?.elements) || !data.elements.length) {
+        throw new Error(`Overpass returned empty road network (${endpoint})`);
+      }
+      return data;
+    } catch (err) {
+      lastErr = err;
+      continue;
+    }
+  }
+  throw lastErr || new Error('Failed to fetch Overpass road network');
 }
 
 // Python 后端路线规划（A*），返回 3 条路线：时间优先/少红绿灯/均衡
@@ -1770,7 +1803,7 @@ app.post('/api/route-plan', async (req, res) => {
     const endLat = toNumber(end.lat);
     const endLon = toNumber(end.lon);
     if (!Number.isFinite(startLat) || !Number.isFinite(startLon) || !Number.isFinite(endLat) || !Number.isFinite(endLon)) {
-      return res.status(400).json({ error: 'start/end 坐标无效，需传入 {start:{lat,lon}, end:{lat,lon}}' });
+      return res.status(400).json({ error: 'Invalid start/end coordinates, expected {start:{lat,lon}, end:{lat,lon}}' });
     }
 
     const padding = Math.max(0.01, Math.min(0.08, toNumber(req.body?.paddingDeg) || 0.02));
@@ -1795,7 +1828,7 @@ app.post('/api/route-plan', async (req, res) => {
     }, 15000);
 
     if (!Array.isArray(pyResult?.routes) || !pyResult.routes.length) {
-      return res.status(404).json({ error: '未找到可用路线' });
+      return res.status(404).json({ error: 'No available route found' });
     }
     res.json({
       routes: pyResult.routes,
@@ -1806,7 +1839,46 @@ app.post('/api/route-plan', async (req, res) => {
       }
     });
   } catch (e) {
-    res.status(500).json({ error: 'Python 路线规划失败', details: e.message });
+    console.error('Python route planning failure details:', e.message);
+    res.status(500).json({ error: 'Python route planning failed', details: e.message });
+  }
+});
+
+// 路线事件相关性筛选（Python）
+app.post('/api/route-events/analyze', async (req, res) => {
+  try {
+    const routeCoords = Array.isArray(req.body?.routeCoords) ? req.body.routeCoords : [];
+    const events = Array.isArray(req.body?.events) ? req.body.events : [];
+    const userLoc = req.body?.userLoc || null;
+    const pyResult = await runPythonCompute('analyze_events_for_route', {
+      routeCoords,
+      events,
+      userLoc
+    }, 10000);
+    res.json({
+      value: Array.isArray(pyResult?.value) ? pyResult.value : []
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Python route-event analyze failed', details: e.message });
+  }
+});
+
+// 路线事件评分/拥堵评估（Python）
+app.post('/api/route-events/evaluate', async (req, res) => {
+  try {
+    const routes = Array.isArray(req.body?.routes) ? req.body.routes : [];
+    const events = Array.isArray(req.body?.events) ? req.body.events : [];
+    const pyResult = await runPythonCompute('evaluate_route_events', {
+      routes,
+      events
+    }, 10000);
+    res.json({
+      recommendedRouteId: pyResult?.recommendedRouteId || null,
+      currentFastestId: pyResult?.currentFastestId || null,
+      evaluations: Array.isArray(pyResult?.evaluations) ? pyResult.evaluations : []
+    });
+  } catch (e) {
+    res.status(500).json({ error: 'Python route-event evaluate failed', details: e.message });
   }
 });
 
@@ -1815,14 +1887,14 @@ app.get('/api/roads', async (req, res) => {
   const { minLat, minLon, maxLat, maxLon } = req.query;
   const bbox = [minLat, minLon, maxLat, maxLon].map(parseFloat);
   if (bbox.some(isNaN)) {
-    return res.status(400).json({ error: '无效的边界框' });
+    return res.status(400).json({ error: 'Invalid bounding box' });
   }
   const [s, w, n, e] = bbox;
   try {
     const data = await fetchRoadNetworkByBbox(s, w, n, e);
     res.json(data);
   } catch (e) {
-    res.status(500).json({ error: '获取道路数据失败', details: e.message });
+    res.status(500).json({ error: 'Failed to load road data', details: e.message });
   }
 });
 
@@ -1831,12 +1903,12 @@ async function startServer() {
     await pool.query('SELECT 1');
     await initAuthDatabase();
     app.listen(config.PORT, () => {
-      console.log(`使用 data.gov.sg Traffic Images API`);
-      console.log(`新加坡交通监控系统已启动: http://localhost:${config.PORT}/ui2/`);
-      console.log(`PostgreSQL 已连接`);
+      console.log(`Using data.gov.sg Traffic Images API`);
+      console.log(`Singapore Traffic Monitoring System started: http://localhost:${config.PORT}/ui2/`);
+      console.log(`PostgreSQL connected`);
     });
   } catch (error) {
-    console.error('❌ 启动失败，无法连接 PostgreSQL:', error.message);
+    console.error('❌ Startup failed, unable to connect PostgreSQL:', error.message);
     process.exit(1);
   }
 }

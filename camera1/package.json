@@ -1,7 +1,7 @@
 {
   "name": "singapore-traffic-cameras",
   "version": "1.0.0",
-  "description": "新加坡交通监控摄像头实时查看",
+  "description": "Singapore traffic monitoring camera live viewer",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
