@@ -33,6 +33,18 @@ const pool = new Pool({
   connectionString: DATABASE_URL
 });
 
+/**
+ * 默认模拟配置（管理员可在前端切换/更新）
+ *
+ * 字段含义：
+ * - enabled: 是否启用该配置
+ * - events[].ratio: 事件在线路上的相对位置（0~1）
+ * - events[].delayMin: 该事件对路线造成的基准延误（分钟）
+ * - events[].severity: 严重等级（1~3）
+ *
+ * 说明：
+ * - 该配置仅用于“模拟路线/模拟事故”功能，不影响 LTA 实时事故数据。
+ */
 const DEFAULT_SIMULATION_CONFIG = {
   enabled: false,
   events: [
@@ -917,6 +929,78 @@ function buildIncidentImpactMeta(raw) {
   };
 }
 
+function getImpactFromIncidentRow(row) {
+  return buildIncidentImpactMeta({
+    type: row.Type || row.type,
+    message: row.Message || row.message,
+    estimated_impact_min: row.estimated_impact_min,
+    estimated_impact_max: row.estimated_impact_max
+  });
+}
+
+function buildMockIncidentRecord(row, now, overrides = {}) {
+  const impact = getImpactFromIncidentRow(row);
+  return {
+    id: String(row.incident_id || row.id || '').trim(),
+    type: row.Type || row.type || 'Incident',
+    message: row.Message || row.message || 'Mock incident',
+    lat: toNumber(row.Latitude ?? row.lat),
+    lon: toNumber(row.Longitude ?? row.lon),
+    createdAt: now,
+    riskLevel: row.risk_level || 'Medium',
+    lifecycleState: overrides.lifecycleState || 'Active',
+    source: 'mock',
+    estimatedDurationMin: impact.estimatedDurationMin,
+    estimatedDurationMax: impact.estimatedDurationMax,
+    spreadRadiusKm: impact.spreadRadiusKm,
+    notes: overrides.notes ?? (row.notes || '')
+  };
+}
+
+async function normalizeIncidentListLocal(list, prefix, defaultCreatedAt = nowIso()) {
+  return (list || [])
+    .map((x, idx) => {
+      const message = x.Message || x.message || x.Description || x.Type || '';
+      const lat = toNumber(x.Latitude ?? x.latitude ?? x.Lat);
+      const lon = toNumber(x.Longitude ?? x.longitude ?? x.Lon);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+      const impact = buildIncidentImpactMeta({
+        type: x.Type || x.type,
+        message,
+        estimated_impact_min: x.estimated_impact_min ?? x.EstimatedImpactMin,
+        estimated_impact_max: x.estimated_impact_max ?? x.EstimatedImpactMax,
+        spread_radius_km: x.spread_radius_km ?? x.SpreadRadiusKm
+      });
+      return {
+        id: x.IncidentID || x.id || `${prefix}-incident-${idx + 1}`,
+        message,
+        type: x.Type || x.type || 'Incident',
+        lat,
+        lon,
+        createdAt: x.CreatedAt || x.Created || x.updated_at || defaultCreatedAt,
+        estimatedDurationMin: impact.estimatedDurationMin,
+        estimatedDurationMax: impact.estimatedDurationMax,
+        spreadRadiusKm: impact.spreadRadiusKm
+      };
+    })
+    .filter(Boolean);
+}
+
+async function normalizeIncidentList(list, prefix) {
+  try {
+    const result = await runPythonCompute('normalize_incidents', {
+      list: Array.isArray(list) ? list : [],
+      prefix,
+      defaultCreatedAt: nowIso()
+    }, 10000);
+    if (Array.isArray(result?.value)) return result.value;
+    throw new Error('Python normalize_incidents returned invalid format');
+  } catch (err) {
+    console.warn(`Python incident normalization fell back to Node.js: ${err.message}`);
+    return normalizeIncidentListLocal(list, prefix);
+  }
+}
+
 async function loadMockIncidentSpecs() {
   return withCache('incident-mock-specs', 60 * 1000, async () => {
     const raw = await fs.readFile(INCIDENT_MOCK_PATH, 'utf-8');
@@ -952,27 +1036,7 @@ async function fetchMockIncidentsWithResolution() {
       const nearEnd = !alwaysPresent && step >= Math.max(0, presentUntil - 1);
       const lifecycleState = nearEnd ? 'Clearing' : 'Active';
       if (lifecycleState === 'Clearing') clearingNow += 1;
-      const impact = buildIncidentImpactMeta({
-        type: row.Type || row.type,
-        message: row.Message || row.message,
-        estimated_impact_min: row.estimated_impact_min,
-        estimated_impact_max: row.estimated_impact_max
-      });
-      active.push({
-        id,
-        type: row.Type || row.type || 'Incident',
-        message: row.Message || row.message || 'Mock incident',
-        lat: toNumber(row.Latitude ?? row.lat),
-        lon: toNumber(row.Longitude ?? row.lon),
-        createdAt: now,
-        riskLevel: row.risk_level || 'Medium',
-        lifecycleState,
-        source: 'mock',
-        estimatedDurationMin: impact.estimatedDurationMin,
-        estimatedDurationMax: impact.estimatedDurationMax,
-        spreadRadiusKm: impact.spreadRadiusKm,
-        notes: row.notes || ''
-      });
+      active.push(buildMockIncidentRecord(row, now, { lifecycleState }));
     } else {
       next.absentStreak = (next.absentStreak || 0) + 1;
       if (next.absentStreak >= spec.absentPolls) {
@@ -981,26 +1045,12 @@ async function fetchMockIncidentsWithResolution() {
         next.resolvedAt = now;
       } else if (!next.resolved) {
         clearingNow += 1;
-        const impact = buildIncidentImpactMeta({
-          type: row.Type || row.type,
-          message: row.Message || row.message,
-          estimated_impact_min: row.estimated_impact_min,
-          estimated_impact_max: row.estimated_impact_max
-        });
         active.push({
-          id,
-          type: row.Type || row.type || 'Incident',
-          message: `[Clearing check] ${row.Message || row.message || 'Mock incident'}`,
-          lat: toNumber(row.Latitude ?? row.lat),
-          lon: toNumber(row.Longitude ?? row.lon),
-          createdAt: now,
-          riskLevel: row.risk_level || 'Medium',
-          lifecycleState: 'Clearing',
-          source: 'mock',
-          estimatedDurationMin: impact.estimatedDurationMin,
-          estimatedDurationMax: impact.estimatedDurationMax,
-          spreadRadiusKm: impact.spreadRadiusKm,
-          notes: `${row.notes || ''}; missing ${next.absentStreak}/${spec.absentPolls}`
+          ...buildMockIncidentRecord(row, now, {
+            lifecycleState: 'Clearing',
+            notes: `${row.notes || ''}; missing ${next.absentStreak}/${spec.absentPolls}`
+          }),
+          message: `[Clearing check] ${row.Message || row.message || 'Mock incident'}`
         });
       }
     }
@@ -1022,51 +1072,21 @@ async function fetchMockIncidentsWithResolution() {
 }
 
 async function fetchTrafficIncidentsRaw() {
+  /**
+   * 实时事故数据拉取与标准化入口
+   *
+   * 数据源优先级：
+   * 1) LTA DataMall（若配置了 LTA_ACCOUNT_KEY 且返回可用）
+   * 2) data.gov.sg 公开事故接口
+   *
+   * 标准化策略：
+   * - 优先调用 Python op: normalize_incidents 统一字段和影响范围
+   * - Python 异常时回退 parseListLocal（Node 本地实现）
+   *
+   * 缓存策略：
+   * - 通过 withCache 控制拉取频率，避免过于频繁访问上游接口
+   */
   return withCache('data-gov-traffic-incidents', INCIDENT_SOURCE_TTL_MS, async () => {
-    async function parseListLocal(list, prefix) {
-      return (list || [])
-        .map((x, idx) => {
-          const message = x.Message || x.message || x.Description || x.Type || '';
-          const lat = toNumber(x.Latitude ?? x.latitude ?? x.Lat);
-          const lon = toNumber(x.Longitude ?? x.longitude ?? x.Lon);
-          if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-          const impact = buildIncidentImpactMeta({
-            type: x.Type || x.type,
-            message,
-            estimated_impact_min: x.estimated_impact_min ?? x.EstimatedImpactMin,
-            estimated_impact_max: x.estimated_impact_max ?? x.EstimatedImpactMax,
-            spread_radius_km: x.spread_radius_km ?? x.SpreadRadiusKm
-          });
-          return {
-            id: x.IncidentID || x.id || `${prefix}-incident-${idx + 1}`,
-            message,
-            type: x.Type || x.type || 'Incident',
-            lat,
-            lon,
-            createdAt: x.CreatedAt || x.Created || x.updated_at || new Date().toISOString(),
-            estimatedDurationMin: impact.estimatedDurationMin,
-            estimatedDurationMax: impact.estimatedDurationMax,
-            spreadRadiusKm: impact.spreadRadiusKm
-          };
-        })
-        .filter(Boolean);
-    }
-
-    async function parseList(list, prefix) {
-      try {
-        const result = await runPythonCompute('normalize_incidents', {
-          list: Array.isArray(list) ? list : [],
-          prefix,
-          defaultCreatedAt: nowIso()
-        }, 10000);
-        if (Array.isArray(result?.value)) return result.value;
-        throw new Error('Python normalize_incidents returned invalid format');
-      } catch (err) {
-        console.warn(`Python incident normalization fell back to Node.js: ${err.message}`);
-        return parseListLocal(list, prefix);
-      }
-    }
-
     if (LTA_ACCOUNT_KEY) {
       try {
         const ltaResp = await fetch(LTA_TRAFFIC_INCIDENTS_API, {
@@ -1074,7 +1094,7 @@ async function fetchTrafficIncidentsRaw() {
         });
         if (ltaResp.ok) {
           const ltaData = await ltaResp.json();
-          const ltaIncidents = await parseList(ltaData?.value, 'lta');
+          const ltaIncidents = await normalizeIncidentList(ltaData?.value, 'lta');
           if (ltaIncidents.length > 0) return ltaIncidents;
         }
       } catch (_) {}
@@ -1083,11 +1103,23 @@ async function fetchTrafficIncidentsRaw() {
     const response = await fetch(TRAFFIC_INCIDENTS_API);
     if (!response.ok) throw new Error(`data.gov.sg incidents API error: ${response.status}`);
     const data = await response.json();
-    return parseList((data.value || data.items || data || []), 'dgov');
+    return normalizeIncidentList((data.value || data.items || data || []), 'dgov');
   });
 }
 
 async function runPythonCompute(op, payload, timeoutMs = 12000) {
+  /**
+   * 统一 Python 子进程调用器
+   *
+   * 职责：
+   * - 负责把 payload 通过 stdin 传入 Python
+   * - 收集 stdout/stderr 并解析 JSON
+   * - 对超时、启动失败、非 0 退出码做统一错误包装
+   *
+   * 为什么统一：
+   * - 路由规划、事故标准化、事件评估都复用这一套调用协议
+   * - 便于后续替换为 HTTP 微服务时集中改造
+   */
   return new Promise((resolve, reject) => {
     const child = spawn(PYTHON_BIN, [PY_ENGINE_PATH, '--op', op], {
       stdio: ['pipe', 'pipe', 'pipe']
@@ -1221,6 +1253,17 @@ function attachNearestRealtimeCameraLocal(incidents, cameras) {
 }
 
 async function attachNearestRealtimeCamera(incidents, cameras) {
+  /**
+   * 事故点 -> 最近实时摄像头匹配
+   *
+   * 当前策略：
+   * - 优先 Python enrich_incidents_with_cameras（同一路径下复用统一规则）
+   * - Python 不可用时回退 Node 本地匹配（attachNearestRealtimeCameraLocal）
+   *
+   * 这样可以保证：
+   * - 线上稳定性（Python 挂了也不至于整个接口不可用）
+   * - 逻辑一致性（正常情况下都以 Python 规则为准）
+   */
   try {
     const payload = {
       incidents: Array.isArray(incidents) ? incidents : [],
@@ -1475,6 +1518,23 @@ app.get('/api/incidents', async (req, res) => {
 // Alerts 右侧资讯流：近 7 天事故新闻 + 最新交通规则更新
 app.get('/api/traffic-info-feed', async (req, res) => {
   try {
+    /**
+     * 新闻专栏数据聚合（Alerts 右栏）
+     *
+     * “交通相关”判断方式：
+     * - 不是对全文做机器学习分类，而是通过 RSS 查询词先做主题过滤
+     *   NEWS_ACCIDENT_RSS: Singapore traffic accident when:7d
+     *   NEWS_RULE_RSS:     Singapore LTA traffic rule update
+     *
+     * “最近一周”判断方式：
+     * - 对每条新闻 publishedAt 转时间戳
+     * - 满足 ts >= now-7天 且 ts <= now+10分钟（容忍源站时区微偏差）
+     *
+     * 返回结构：
+     * - weeklyNews: 最近7天事故新闻（最多20条，按时间倒序）
+     * - latestRule: 最新一条规则更新新闻
+     * - warnings:   某一上游源失败时的告警信息
+     */
     const feed = await withCache('traffic-info-feed', 15 * 60 * 1000, async () => {
       const nowMs = Date.now();
       const weekAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000;
@@ -1526,6 +1586,18 @@ app.get('/api/traffic-info-feed', async (req, res) => {
 
 // 地点转坐标（支持邮编或地名；优先 OneMap，邮编时补充 postcode.dabase.com）
 app.get('/api/geocode', async (req, res) => {
+  /**
+   * 地理编码入口（起点/终点文本 -> 坐标）
+   *
+   * 设计目标：
+   * - 同时支持邮编、地名、MRT 站名
+   * - 与天气模块统一 OneMap 优先策略
+   *
+   * 数据源优先顺序：
+   * 1) OneMap（主源）
+   * 2) postcode.dabase.com（仅邮编）
+   * 3) Nominatim（兜底）
+   */
   const query = (req.query.q || req.query.location || req.query.postal || '').trim();
   if (!query) {
     return res.status(400).json({ error: 'Please enter start/destination (postal code or place)' });
@@ -1616,16 +1688,30 @@ app.get('/api/geocode', async (req, res) => {
   res.status(404).json({ error: `Location \"${query}\" not found, try postal code or a more complete place name` });
 });
 
-app.get('/api/weather/current', async (req, res) => {
+function readWeatherCoordsOrSendError(req, res) {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return res.status(400).json({ error: 'Invalid lat/lon parameters' });
+    res.status(400).json({ error: 'Invalid lat/lon parameters' });
+    return null;
   }
+  return { lat, lon };
+}
+
+function ensureWeatherApiKeyOrSendError(res) {
   if (!OPENWEATHER_API_KEY) {
-    return res.status(500).json({ error: 'OPENWEATHER_API_KEY not configured' });
+    res.status(500).json({ error: 'OPENWEATHER_API_KEY not configured' });
+    return false;
   }
+  return true;
+}
+
+app.get('/api/weather/current', async (req, res) => {
+  const coords = readWeatherCoordsOrSendError(req, res);
+  if (!coords) return;
+  if (!ensureWeatherApiKeyOrSendError(res)) return;
   try {
+    const { lat, lon } = coords;
     const url = `${OPENWEATHER_CURRENT_API}?lat=${lat}&lon=${lon}&units=metric&appid=${encodeURIComponent(OPENWEATHER_API_KEY)}`;
     const r = await fetch(url);
     if (!r.ok) throw new Error(`OpenWeather API error: ${r.status}`);
@@ -1647,15 +1733,11 @@ app.get('/api/weather/current', async (req, res) => {
 });
 
 app.get('/api/weather/forecast', async (req, res) => {
-  const lat = parseFloat(req.query.lat);
-  const lon = parseFloat(req.query.lon);
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
-    return res.status(400).json({ error: 'Invalid lat/lon parameters' });
-  }
-  if (!OPENWEATHER_API_KEY) {
-    return res.status(500).json({ error: 'OPENWEATHER_API_KEY not configured' });
-  }
+  const coords = readWeatherCoordsOrSendError(req, res);
+  if (!coords) return;
+  if (!ensureWeatherApiKeyOrSendError(res)) return;
   try {
+    const { lat, lon } = coords;
     const now = Date.now();
     const url = `${OPENWEATHER_FORECAST_API}?lat=${lat}&lon=${lon}&units=metric&appid=${encodeURIComponent(OPENWEATHER_API_KEY)}`;
     const r = await fetch(url);
@@ -1759,6 +1841,14 @@ Keep each value within 1 sentence.`;
 });
 
 async function fetchRoadNetworkByBbox(s, w, n, e) {
+  /**
+   * 拉取指定 bbox 的道路网络（供 /api/route-plan 使用）
+   *
+   * 容错策略：
+   * - 按 endpoint 列表依次重试（官方 + 镜像）
+   * - 任一端返回可用 elements 即立即返回
+   * - 全部失败时抛最后一次错误，便于上层展示详情
+   */
   const overpassQuery = `
 [out:json][timeout:25];
 (
@@ -1796,6 +1886,18 @@ out body geom;
 // Python 后端路线规划（A*），返回 3 条路线：时间优先/少红绿灯/均衡
 app.post('/api/route-plan', async (req, res) => {
   try {
+    /**
+     * Python 路线规划总入口
+     *
+     * 流程：
+     * 1) 校验前端传入起终点坐标
+     * 2) 拉取 bbox 路网 + 信号点
+     * 3) 调用 Python plan_routes 产出 3 条候选路线
+     * 4) 返回 routes + 元信息（引擎、信号点数、生成时间）
+     *
+     * 注意：
+     * - 这里只负责“基础路线生成”，事件评估在 /api/route-events/* 完成
+     */
     const start = req.body?.start || {};
     const end = req.body?.end || {};
     const startLat = toNumber(start.lat);
@@ -1847,6 +1949,12 @@ app.post('/api/route-plan', async (req, res) => {
 // 路线事件相关性筛选（Python）
 app.post('/api/route-events/analyze', async (req, res) => {
   try {
+    /**
+     * 路线事件筛选（Python）
+     *
+     * 输入：routeCoords + events + userLoc
+     * 输出：与当前路线阶段相关的事件（用于后续评分）
+     */
     const routeCoords = Array.isArray(req.body?.routeCoords) ? req.body.routeCoords : [];
     const events = Array.isArray(req.body?.events) ? req.body.events : [];
     const userLoc = req.body?.userLoc || null;
@@ -1866,6 +1974,15 @@ app.post('/api/route-events/analyze', async (req, res) => {
 // 路线事件评分/拥堵评估（Python）
 app.post('/api/route-events/evaluate', async (req, res) => {
   try {
+    /**
+     * 路线事件评分（Python）
+     *
+     * 输入：候选路线 + 事件列表
+     * 输出：
+     * - recommendedRouteId（综合推荐）
+     * - currentFastestId（考虑事件延误后的当前最快）
+     * - evaluations（每条路线命中与评分明细）
+     */
     const routes = Array.isArray(req.body?.routes) ? req.body.routes : [];
     const events = Array.isArray(req.body?.events) ? req.body.events : [];
     const pyResult = await runPythonCompute('evaluate_route_events', {

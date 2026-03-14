@@ -2,15 +2,32 @@
 """
 Python 计算引擎（供 Node.js 后端子进程调用）
 
-本文件目前提供两个计算能力：
-1) enrich_incidents_with_cameras：
-   对事故点匹配最近实时摄像头，并补齐事故影响字段（扩散半径/持续时长）。
-2) plan_routes：
-   基于 OSM 路网做 A* 寻路，输出 3 条策略路线（时间优先/少红绿灯/均衡）。
+设计目标（为什么存在这个文件）：
+1) 把“重计算、可纯函数化”的逻辑从 Node.js 中拆出，降低 JS 层复杂度。
+2) 让路径规划、事故匹配、事件评分等计算在同一个 Python 进程模型下可复用。
+3) 保持输入/输出都是 JSON，便于后续替换为独立微服务而不改上层接口。
+
+当前支持的 op 一览：
+1) enrich_incidents_with_cameras
+   - 输入：incidents + cameras
+   - 输出：每条事故附带最近摄像头证据 + 影响范围/持续时间字段
+2) normalize_incidents
+   - 输入：多源事故原始字段（LTA/data.gov/mock）
+   - 输出：统一事故结构（字段标准化 + 影响估算）
+3) analyze_events_for_route
+   - 输入：事件列表 + 当前路线坐标 + 用户位置
+   - 输出：与当前路线阶段相关的事件（附近或前方）
+4) evaluate_route_events
+   - 输入：路线候选 + 事件列表
+   - 输出：每条路线命中事件数、延误、评分、推荐路线、当前最快路线
+5) plan_routes
+   - 输入：OSM 路网 + 起终点 + 信号点
+   - 输出：3 条策略路线（时间优先/少红绿灯/均衡）
 
 调用方式：
-- Node.js 会以 `python3 compute_engine.py --op <op_name>` 方式启动此脚本。
-- 通过 stdin 输入 JSON payload，通过 stdout 输出 JSON 结果。
+- Node.js 以 `python3 compute_engine.py --op <op_name>` 启动该脚本。
+- 通过 stdin 传入 JSON payload，通过 stdout 返回 JSON。
+- 任何异常会写入 stderr，并以非 0 退出码返回给 Node.js。
 """
 
 import argparse
@@ -112,10 +129,14 @@ def enrich_incidents_with_cameras(payload):
     """
     输入 incidents + cameras，输出匹配后的事故列表。
 
-    关键规则：
+    关键规则（与前端展示直接相关）：
     - 每条事故找最近实时摄像头
     - 最近距离 超过两公里 视为无可用摄像头
     - 为每条事故补齐 area / spread / duration 等字段
+
+    说明：
+    - 这里的“最近”是直线距离（haversine），不是道路网络距离。
+    - 2km 阈值是“证据有效性”保守边界，避免误把过远摄像头当作证据。
     """
     incidents = payload.get("incidents") or []
     cameras = payload.get("cameras") or []
@@ -177,6 +198,11 @@ def normalize_incidents(payload):
 
     输出：
     - value: [{id, message, type, lat, lon, createdAt, estimatedDurationMin, estimatedDurationMax, spreadRadiusKm}]
+
+    说明：
+    - 该函数不做外部网络请求，仅处理输入数据本身。
+    - 若源数据缺少影响字段，会回退到 infer_impact_by_type 的规则估算。
+    - 该 op 是“事故数据进入系统后的第一层清洗标准化”。
     """
     items = payload.get("list") or []
     prefix = str(payload.get("prefix") or "incident")
@@ -308,9 +334,13 @@ def a_star(nodes, start_key, end_key, cost_fn):
     """
     A* 主过程。
 
-    - g：起点到当前点的已知最小代价
+    - g：起点到当前点的已知最小代价（实际累计）
     - h：当前点到终点的启发式估计（直线距离/50kmh）
-    - f = g + h
+    - f = g + h：用于优先队列排序
+
+    说明：
+    - 这里的 h 使用“可接受启发”（低估真实成本）思路，保证路径可行性。
+    - 当 end_key 不可达时返回空数组，由上层做兜底处理。
     """
     g = {start_key: 0.0}
     prev = {start_key: None}
@@ -467,6 +497,12 @@ def evaluate_route_events(payload):
     - recommendedRouteId
     - evaluations: [{routeId, hitCount, eventDelayMin, score, hits}]
     - currentFastestId
+
+    评分模型说明（与 UI 排序一致）：
+    - score = estMinutes + delaySum * 0.7 + hitCount * 2
+    - recommendedRouteId 基于 score 最小
+    - currentFastestId 基于 (estMinutes + delaySum*0.7) 最小
+    这样可同时满足“综合推荐”与“当前最快”两个视角。
     """
     routes = payload.get("routes") or []
     events = payload.get("events") or []
@@ -558,6 +594,15 @@ def plan_routes(payload):
 
     输出：
     - routes: 3 条策略路线（若可达）
+
+    路线策略说明：
+    - fastest：主要最小化基础时间
+    - fewerLights：提高路口惩罚权重，尽量减少信号灯干预
+    - balanced：在时间与路口惩罚之间取中间权重
+
+    去重策略说明：
+    - 对每条路径生成边签名（signature）
+    - 签名重复的候选会被丢弃，避免 3 条路线只是颜色不同
     """
     roads = payload.get("roads") or {}
     start = payload.get("start") or {}
@@ -651,7 +696,15 @@ def plan_routes(payload):
 
 # -------------------- CLI 入口 --------------------
 def main():
-    """命令行入口：读取 stdin JSON，根据 --op 执行并输出 JSON。"""
+    """
+    命令行入口。
+
+    执行流程：
+    1) 读取 --op
+    2) 从 stdin 读取 JSON payload
+    3) 分发到对应 op
+    4) 将结果 JSON 序列化输出到 stdout
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--op", required=True)
     args = parser.parse_args()

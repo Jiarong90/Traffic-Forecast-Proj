@@ -1,4 +1,8 @@
 // FAST - 页面切换、登录状态、Profile/Settings 管理
+// 说明：
+// 1) 本自执行模块负责登录/注册/登出、右上角用户菜单、Profile/Settings 数据读写。
+// 2) 会话信息保存在 sessionStorage，并通过自定义事件通知其他模块（地图、告警）同步刷新。
+// 3) 该模块不做复杂业务计算，主要承担 UI 状态与后端接口之间的编排。
 (function () {
   var STORAGE_KEY = "fast_auth";
   var navTabs = document.querySelectorAll(".nav-tab");
@@ -104,12 +108,14 @@
     window.dispatchEvent(new CustomEvent("fast-auth-changed", { detail: auth || null }));
   }
 
+  // Settings 页面统一反馈入口：成功/失败都通过同一块提示区域显示
   function setSettingsFeedback(text, isError) {
     if (!settingsFeedback) return;
     settingsFeedback.textContent = text || "";
     settingsFeedback.style.color = isError ? "#dc2626" : "#166534";
   }
 
+  // 更新内存中的用户偏好缓存，并广播事件让路径规划/地图模块更新“常用地点/路线”
   function setUserSettings(settings) {
     userSettingsCache = {
       companyLocation: String(settings?.companyLocation || ""),
@@ -125,6 +131,7 @@
     return userSettingsCache;
   };
 
+  // 从设置页读取最多 3 条常用路线；如果某一行只填了起点/终点之一则直接报错阻止保存
   function readRouteRowsFromForm() {
     var routes = [];
     for (var i = 1; i <= 3; i += 1) {
@@ -147,6 +154,7 @@
     return routes.slice(0, 3);
   }
 
+  // 将“当前用户 + 设置”回填到 Settings 表单，保证刷新页面后输入框状态可恢复
   function fillSettingsForm(user, settings) {
     if (settingsEmailInput) settingsEmailInput.value = user?.email || "";
     if (settingsNameInput) settingsNameInput.value = user?.name || "";
@@ -166,11 +174,16 @@
     }
   }
 
+  // Profile 页面仅展示基础信息（名称 + 邮箱）
   function renderProfile(user) {
     if (profileNameEl) profileNameEl.textContent = user?.name || "--";
     if (profileEmailEl) profileEmailEl.textContent = user?.email || "--";
   }
 
+  // 拉取服务端用户设置并同步到：
+  // 1) 本地 auth（后端可能返回更新后的 user）
+  // 2) 本地 settings 缓存
+  // 3) Profile/Settings 的页面显示
   async function loadUserSettingsFromServer() {
     var auth = getStoredAuth();
     if (!auth || !auth.token) {
@@ -198,6 +211,7 @@
     return fetch(url, Object.assign({}, opts, { headers: headers }));
   };
 
+  // 根据登录态刷新头部：登录按钮、用户菜单、管理员样式标记（body.is-admin）
   function updateHeaderAuth() {
     var auth = getStoredAuth();
     var user = auth && auth.user;
@@ -209,6 +223,7 @@
     document.body.classList.toggle('is-admin', !!(user && user.role === 'admin'));
   }
 
+  // 页面切换总入口：处理未登录拦截、tab 高亮、hash 同步、Profile/Settings 自动回填
   function showPage(pageId) {
     var auth = getStoredAuth();
     var publicPages = ["login", "signup"];
@@ -293,6 +308,7 @@
   }
 
   if (signupForm) {
+    // 注册第一步：请求验证码。仅在 name/email/password 基础校验通过后发起请求。
     async function requestSignupCode() {
       var nameInput = document.getElementById('signup-name');
       var emailInput = document.getElementById('signup-email');
@@ -410,6 +426,7 @@
 
     var signupEmailInput = document.getElementById('signup-email');
     var signupPasswordInput = document.getElementById('signup-password');
+    // 输入时即时提示邮箱/密码格式问题，减少提交后报错
     function refreshSignupHint() {
       if (!signupFeedback) return;
       var email = signupEmailInput ? signupEmailInput.value.trim() : '';
@@ -592,6 +609,7 @@
 
 // ================= 天气模块（UI_weather 融合版，继续走后端 API） =================
 
+// 所有前端调用的后端 API 路由集中在这里，避免散落硬编码
 const API_CONFIG = {
   weather: {
     currentUrl: "/api/weather/current",
@@ -606,6 +624,10 @@ const API_CONFIG = {
   }
 };
 
+// 天气模块入口：
+// - 支持邮编/地名查询
+// - 保存常用地点
+// - 展示当前天气、短时预报、两日摘要和 AI 建议
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("postalCode");
   const button = document.getElementById("searchBtn");
@@ -617,6 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const SAVED_KEY = "fast_saved_locations";
   let lastQuery = null;
 
+  // 从 sessionStorage 读取天气页“已保存地点”
   function getSavedLocations() {
     try {
       return JSON.parse(sessionStorage.getItem(SAVED_KEY)) || [];
@@ -625,10 +648,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 写回已保存地点（仅用于当前浏览器会话）
   function setSavedLocations(locs) {
     sessionStorage.setItem(SAVED_KEY, JSON.stringify(locs));
   }
 
+  // 渲染已保存地点的“快捷 chip”，支持点击查询与单条删除
   function renderSavedLocations() {
     const locs = getSavedLocations();
     const container = document.getElementById("savedLocations");
@@ -688,6 +713,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   renderSavedLocations();
 
+  // 天气查询主流程：
+  // 1) 地理编码 -> 2) 当前天气 -> 3) 预报 -> 4) AI 建议 -> 5) 批量更新 UI
   async function fetchWeather() {
     const query = input.value.trim();
     if (!query) return alert("Please enter postal code or location");
@@ -716,6 +743,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 统一地理编码入口：兼容邮编、地名、MRT 等输入
   async function getLocation(searchVal) {
     const res = await fetch(`/api/geocode?q=${encodeURIComponent(searchVal)}`);
     const r = await res.json();
@@ -729,6 +757,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // 获取当前天气（后端已处理第三方 API key 与容错）
   async function getCurrentWeather(lat, lon) {
     const url = `${API_CONFIG.weather.currentUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
     const res = await fetch(url);
@@ -741,6 +770,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // 获取小时级预报，并兼容后端不同字段结构（value/hourly）
   async function getForecast(lat, lon) {
     const url = `${API_CONFIG.weather.forecastUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`;
     const res = await fetch(url);
@@ -759,6 +789,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
+  // 将小时预报聚合成“今天/明天”两张摘要卡（高低温、天气描述、降雨概率）
   function buildTwoDaySummary(hourly) {
     const grouped = new Map();
     hourly.forEach((item) => {
@@ -808,6 +839,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return "Clouds";
   }
 
+  // 调用后端 AI 建议接口；失败时走本地 fallback，保证页面总能展示建议文本
   async function getGeminiAdvice(location, weather, forecast) {
     const future = forecast.map((f) => {
       const t = new Date(f.dt * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -876,6 +908,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 将 AI 返回的自然语言拆分为结构化提示，便于卡片化展示
   function parseAdviceText(text) {
     const lines = String(text || "")
       .split("\n")
@@ -889,6 +922,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }));
   }
 
+  // 根据结构化提示渲染建议卡片（类别、图标、风险等级）
   function updateAdviceUI(text) {
     const container = document.getElementById("weather-advice");
     if (!container) return;
@@ -917,6 +951,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 渲染日出/日落与白天时长；若缺失数据则显示占位值
   function updateSunUI(sunriseTs, sunsetTs) {
     const riseEl = document.getElementById("sun-rise");
     const setEl = document.getElementById("sun-set");
@@ -952,6 +987,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return map[iconMain] || "🌤️";
   }
 
+  // 渲染今日/明日两日概览卡
   function updateTwoDayUI(days) {
     for (let i = 0; i < 2; i += 1) {
       const day = days[i] || {};
@@ -965,6 +1001,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 更新时间戳（仅代表本页面数据刷新时间）
   function updateTimestamp() {
     const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     const el = document.getElementById("lastUpdatedTime");
@@ -1046,178 +1083,8 @@ document.addEventListener("DOMContentLoaded", () => {
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
-  // 对经纬度做 4 位小数归一化，减少 OSM 节点碎片
-  function nodeKey(lat, lon) {
-    return `${Math.round(lat * 10000)},${Math.round(lon * 10000)}`;
-  }
-
-  // 从 Overpass 道路数据构建图（节点 + 双向边 + 度数）
-  function buildGraph(roads) {
-    const nodes = new Map();
-    function ensureNode(lat, lon) {
-      const key = nodeKey(lat, lon);
-      if (!nodes.has(key)) nodes.set(key, { key, lat, lon, edges: [], degree: 0 });
-      return nodes.get(key);
-    }
-    for (const el of (roads.elements || [])) {
-      if (el.type !== "way" || !Array.isArray(el.geometry) || el.geometry.length < 2) continue;
-      for (let i = 0; i < el.geometry.length - 1; i++) {
-        const a = el.geometry[i];
-        const b = el.geometry[i + 1];
-        const n1 = ensureNode(a.lat, a.lon);
-        const n2 = ensureNode(b.lat, b.lon);
-        const distMeters = haversine(a.lat, a.lon, b.lat, b.lon);
-        if (distMeters < 2) continue;
-        const baseHours = (distMeters / 1000) / 40;
-        n1.edges.push({ to: n2, weight: baseHours });
-        n2.edges.push({ to: n1, weight: baseHours });
-        n1.degree += 1;
-        n2.degree += 1;
-      }
-    }
-    return nodes;
-  }
-
-  // 在图中查找最近道路节点（限制 600m，避免误接入）
-  function nearestNode(nodes, lat, lon) {
-    let best = null;
-    let bestDist = Infinity;
-    for (const n of nodes.values()) {
-      const d = haversine(lat, lon, n.lat, n.lon);
-      if (d < bestDist && d < 600) {
-        bestDist = d;
-        best = n;
-      }
-    }
-    return best;
-  }
-
-  // 前端保留的 A* 实现（当前主流程已切后端 Python，这里主要供兼容/模拟）
-  function aStar(startNode, endNode, costFn) {
-    const open = new Map([[startNode.key, startNode]]);
-    const g = new Map([[startNode.key, 0]]);
-    const f = new Map([[startNode.key, haversine(startNode.lat, startNode.lon, endNode.lat, endNode.lon) / 1000 / 50]]);
-    const prev = new Map();
-
-    while (open.size > 0) {
-      let current = null;
-      let minF = Infinity;
-      for (const n of open.values()) {
-        const score = f.get(n.key) ?? Infinity;
-        if (score < minF) {
-          minF = score;
-          current = n;
-        }
-      }
-      if (!current) break;
-      if (current.key === endNode.key) break;
-      open.delete(current.key);
-
-      for (const edge of current.edges) {
-        const tentative = (g.get(current.key) ?? Infinity) + costFn(edge, current);
-        if (tentative < (g.get(edge.to.key) ?? Infinity)) {
-          prev.set(edge.to.key, current);
-          g.set(edge.to.key, tentative);
-          const h = haversine(edge.to.lat, edge.to.lon, endNode.lat, endNode.lon) / 1000 / 50;
-          f.set(edge.to.key, tentative + h);
-          open.set(edge.to.key, edge.to);
-        }
-      }
-    }
-
-    const path = [];
-    let cur = endNode;
-    while (cur) {
-      path.unshift(cur);
-      cur = prev.get(cur.key);
-    }
-    return path.length >= 2 ? path : [];
-  }
-
-  function edgeKey(a, b) {
-    return a < b ? `${a}|${b}` : `${b}|${a}`;
-  }
-
-  function buildPathEdgeSet(path) {
-    const used = new Set();
-    for (let i = 0; i < path.length - 1; i++) {
-      used.add(edgeKey(path[i].key, path[i + 1].key));
-    }
-    return used;
-  }
-
-  // 备用红绿灯估算：以路口度数 >= 3 作为“有信号”近似
-  function countTrafficLightsByDegree(path) {
-    let count = 0;
-    for (let i = 1; i < path.length - 1; i++) {
-      if ((path[i].degree || 0) >= 3) count += 1;
-    }
-    return count;
-  }
-
-  // 从摄像头聚合结果中提取“signal point”数据，用于更真实的红绿灯计数
-  function getTrafficSignalPoints() {
-    return (state.cameras || [])
-      .filter((c) => {
-        const source = String(c.source || "").toLowerCase();
-        const name = String(c.name || "");
-        return source.includes("signal") || name.includes("signal point");
-      })
-      .map((c) => ({
-        id: String(c.id || `${c.lat},${c.lon}`),
-        lat: Number(c.lat),
-        lon: Number(c.lon)
-      }))
-      .filter((p) => Number.isFinite(p.lat) && Number.isFinite(p.lon));
-  }
-
-  // 真实信号点计数：路线附近命中 + 聚类去重，避免一个路口被重复计算
-  function countTrafficLightsBySignals(routeCoords, signalPoints, matchRadiusM = 35, dedupeRadiusM = 65) {
-    if (!Array.isArray(routeCoords) || routeCoords.length < 2 || !Array.isArray(signalPoints) || !signalPoints.length) {
-      return 0;
-    }
-
-    const hits = [];
-    for (const sig of signalPoints) {
-      if (!Number.isFinite(sig.lat) || !Number.isFinite(sig.lon)) continue;
-      const d = distanceToRouteMeters(routeCoords, sig.lat, sig.lon);
-      if (d <= matchRadiusM) hits.push(sig);
-    }
-    if (!hits.length) return 0;
-
-    // 将同一路口附近的多个信号点聚合为 1 个，避免重复计数
-    const clusters = [];
-    for (const sig of hits) {
-      let merged = false;
-      for (const c of clusters) {
-        if (haversine(sig.lat, sig.lon, c.lat, c.lon) <= dedupeRadiusM) {
-          c.count += 1;
-          c.lat = (c.lat * (c.count - 1) + sig.lat) / c.count;
-          c.lon = (c.lon * (c.count - 1) + sig.lon) / c.count;
-          merged = true;
-          break;
-        }
-      }
-      if (!merged) clusters.push({ lat: sig.lat, lon: sig.lon, count: 1 });
-    }
-    return clusters.length;
-  }
-
-  // 计算路径总长度（米），包含起点到首节点与末节点到终点
-  function calcPathDistance(path, startGeo, endGeo) {
-    let total = 0;
-    let prev = { lat: startGeo.lat, lon: startGeo.lon };
-    for (const n of path) {
-      total += haversine(prev.lat, prev.lon, n.lat, n.lon);
-      prev = n;
-    }
-    total += haversine(prev.lat, prev.lon, endGeo.lat, endGeo.lon);
-    return total;
-  }
-
-  // 统一获取可绘制坐标：
-  // - 新版优先使用后端 /api/route-plan 返回的 coords
-  // - 兼容旧版 path（节点数组）回退计算
+  // 路径规划计算已统一迁移到后端（Node + Python）。
+  // 前端仅保留坐标兼容函数，用于绘图和旧数据结构回退。
   function getRouteCoords(routeOption, startCoord, endCoord) {
     if (Array.isArray(routeOption?.coords) && routeOption.coords.length >= 2) {
       return routeOption.coords;
@@ -1226,40 +1093,6 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const n of routeOption.path) coords.push([n.lat, n.lon]);
     coords.push([endCoord.lat, endCoord.lon]);
     return coords;
-  }
-
-  // 前端本地路线生成（兼容保留）：输出 fastest/fewerLights/balanced 三策略
-  function calcRoutePlans(nodes, startNode, endNode, startGeo, endGeo, signalPoints = []) {
-    const modes = [
-      { id: "fastest", label: "FASTEST", color: "#2563eb", desc: "Prioritize total time" },
-      { id: "fewerLights", label: "FEWER LIGHTS", color: "#16a34a", desc: "Reduce intersection waiting" },
-      { id: "balanced", label: "BALANCED", color: "#ea580c", desc: "Near-fastest with fewer lights" }
-    ];
-
-    const plans = [];
-    const usedEdgeSets = [];
-    for (const mode of modes) {
-      const path = aStar(startNode, endNode, (edge, fromNode) => {
-        const base = edge.weight;
-        const intersectionCost = (edge.to.degree || 0) >= 3 ? (15 / 3600) : 0;
-        const reusePenalty = usedEdgeSets.some(set => set.has(edgeKey(fromNode.key, edge.to.key))) ? 0.025 : 0;
-        if (mode.id === "fastest") return base + reusePenalty;
-        if (mode.id === "fewerLights") return base + intersectionCost * 1.8 + reusePenalty;
-        return base + intersectionCost * 0.9 + reusePenalty;
-      });
-
-      if (path.length < 2) continue;
-      const totalDist = calcPathDistance(path, startGeo, endGeo);
-      const estMinutes = (totalDist / 1000 / 40) * 60;
-      const coords = getRouteCoords({ path }, startGeo, endGeo);
-      const signalLights = countTrafficLightsBySignals(coords, signalPoints, 35, 65);
-      const trafficLights = signalLights > 0 ? signalLights : countTrafficLightsByDegree(path);
-      const signature = Array.from(buildPathEdgeSet(path)).sort().join(",");
-      if (plans.some(p => p.signature === signature)) continue;
-      plans.push({ ...mode, path, signature, totalDist, estMinutes, trafficLights, coords });
-      usedEdgeSets.push(buildPathEdgeSet(path));
-    }
-    return plans;
   }
 
   // 计算点到路线的最短距离（简化为到顶点最短距离）
@@ -1515,6 +1348,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<span class="icon-warning red"></span> SHOW LTA INCIDENTS`;
   }
 
+  // 读取 auth 模块维护的用户设置缓存（容错为 {}，避免页面崩溃）
   function getCurrentUserSettings() {
     try {
       return window.getFastUserSettings ? (window.getFastUserSettings() || {}) : {};
@@ -1523,6 +1357,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 从设置中抽取“公司/家庭”两个常用地点
   function getFrequentPlaces(settings) {
     const places = [];
     const company = String(settings?.companyLocation || "").trim();
@@ -1532,6 +1367,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return places;
   }
 
+  // 从设置中抽取常用路线（最多 3 条），并标准化字段
   function getFrequentRoutes(settings) {
     return (Array.isArray(settings?.frequentRoutes) ? settings.frequentRoutes : [])
       .slice(0, 3)
@@ -1544,6 +1380,7 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((r) => r.start && r.end);
   }
 
+  // 同步 Map View 上“常用地点/路线显示开关”按钮文案
   function renderMapFavoritesToggleButton() {
     const btn = document.getElementById("map-toggle-favorites-btn");
     if (!btn) return;
@@ -1552,6 +1389,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : `<span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES`;
   }
 
+  // 同步 Route Planner 上“常用地点/路线面板开关”按钮文案
   function renderRouteFavoritesToggleButton() {
     const btn = document.getElementById("route-toggle-favorites-btn");
     if (!btn) return;
@@ -1560,6 +1398,9 @@ document.addEventListener("DOMContentLoaded", () => {
       : "SHOW COMMON PLACES/ROUTES";
   }
 
+  // 渲染 Route Planner 常用数据面板：
+  // - 常用地点可一键填入起点/终点
+  // - 常用路线可一键触发导航计算
   function renderRouteFavoritesPanel() {
     const panel = document.getElementById("route-favorites-panel");
     const list = document.getElementById("route-favorites-list");
@@ -1628,6 +1469,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // 在 Map View 叠加常用地点与常用路线图层（独立 layer，便于整体显示/隐藏）
   async function drawFavoriteOverlayOnMap() {
     if (!state.favoriteMapLayer) return;
     state.favoriteMapLayer.clearLayers();
@@ -1669,12 +1511,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 切换 Map View 常用图层显隐
   async function toggleMapFavoritesOverlay() {
     state.favoriteOverlayVisible = !state.favoriteOverlayVisible;
     renderMapFavoritesToggleButton();
     await drawFavoriteOverlayOnMap();
   }
 
+  // 切换 Route Planner 常用面板显隐
   function toggleRouteFavoritesPanel() {
     state.favoritePlannerPanelVisible = !state.favoritePlannerPanelVisible;
     renderRouteFavoritesToggleButton();
@@ -1804,6 +1648,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return 1;
   }
 
+  // 严重度 -> 颜色（用于点位、告警点、标签）
   function getIncidentSeverityColor(incident) {
     const score = getIncidentSeverityScore(incident);
     if (score >= 3) return "red";
@@ -1811,6 +1656,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return "green";
   }
 
+  // 严重度 -> 文案标签（HIGH/MEDIUM/LOW IMPACT）
   function getIncidentImpactLabel(incident) {
     const score = getIncidentSeverityScore(incident);
     if (score >= 3) return "HIGH IMPACT";
@@ -1828,16 +1674,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#39;");
   }
 
+  // 统一事故时间格式，避免各处展示不一致
   function formatIncidentTime(value) {
     const date = value ? new Date(value) : null;
     if (!date || Number.isNaN(date.getTime())) return "Unknown";
     return date.toLocaleString("en-SG", { hour12: true });
   }
 
+  // 事故标题优先级：message > type > 默认文案
   function incidentTitle(incident) {
     return incident?.message || incident?.type || "Traffic incident";
   }
 
+  // 资讯流时间格式（与事故时间分开，便于后续独立改样式）
   function formatFeedTime(value) {
     const date = value ? new Date(value) : null;
     if (!date || Number.isNaN(date.getTime())) return "Unknown time";
@@ -1903,12 +1752,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // 影响范围文案格式化（km）
   function getIncidentSpreadText(incident) {
     const r = Number(incident?.spreadRadiusKm);
     if (!Number.isFinite(r) || r <= 0) return "N/A";
     return `${r.toFixed(1)} km`;
   }
 
+  // 预计影响时长文案格式化（分钟区间）
   function getIncidentDurationText(incident) {
     const minV = Number(incident?.estimatedDurationMin);
     const maxV = Number(incident?.estimatedDurationMax);
@@ -1918,6 +1769,9 @@ document.addEventListener("DOMContentLoaded", () => {
     return "N/A";
   }
 
+  // 解析事故开始时间：
+  // - 优先从 LTA 消息前缀 "(d/m)HH:MM" 提取
+  // - 提取失败时回退 createdAt
   function getIncidentStartTimestamp(incident) {
     const msg = String(incident?.message || "");
     const m = msg.match(/^\((\d{1,2})\/(\d{1,2})\)\s*(\d{1,2}):(\d{2})/);
@@ -1943,6 +1797,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return Number.isFinite(createdTs) ? createdTs : NaN;
   }
 
+  // 计算“已发生多久”，供地图弹窗和详情页实时展示
   function getIncidentElapsedText(incident) {
     const startTs = getIncidentStartTimestamp(incident);
     if (!Number.isFinite(startTs)) return "N/A";
@@ -1953,6 +1808,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return hour > 0 ? `${hour}h ${minute}m` : `${minute}m`;
   }
 
+  // 根据开始时间 + 预计持续区间，推算预计清除时间窗口
   function getIncidentEstimatedClearText(incident) {
     const createdTs = getIncidentStartTimestamp(incident);
     const minV = Number(incident?.estimatedDurationMin);
@@ -1972,6 +1828,7 @@ document.addEventListener("DOMContentLoaded", () => {
     state.userLocation = await getUserLocation();
   }
 
+  // 是否属于“附近事故”：与用户定位距离 <= 3.5km
   function incidentIsNearby(incident) {
     if (!state.userLocation) return false;
     const lat = Number(incident?.lat);
@@ -2226,6 +2083,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return list.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime());
   }
 
+  // 同步“时间/严重度”排序按钮文案
   function renderIncidentSortButton() {
     const btn = document.getElementById("incident-sort-btn");
     if (!btn) return;
@@ -2245,6 +2103,7 @@ document.addEventListener("DOMContentLoaded", () => {
       : "Currently showing LTA live incidents";
   }
 
+  // 刷新 Dashboard Recent Updates 列表，并联动 Alerts 面板
   function renderIncidentUpdatesList() {
     const updatesEl = document.getElementById("dashboard-updates-list");
     if (!updatesEl) return;
@@ -2592,26 +2451,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || "Geocode failed");
     return { lat: parseFloat(d.lat), lon: parseFloat(d.lon), display: d.display || inputText };
-  }
-
-  // 旧版前端本地寻路使用：保留作为兼容/调试函数
-  async function fetchRoadsForBounds(startGeo, endGeo) {
-    const padLat = 0.07;
-    const padLon = 0.09;
-    const minLat = Math.min(startGeo.lat, endGeo.lat) - padLat;
-    const maxLat = Math.max(startGeo.lat, endGeo.lat) + padLat;
-    const minLon = Math.min(startGeo.lon, endGeo.lon) - padLon;
-    const maxLon = Math.max(startGeo.lon, endGeo.lon) + padLon;
-    const q = new URLSearchParams({
-      minLat: String(minLat),
-      minLon: String(minLon),
-      maxLat: String(maxLat),
-      maxLon: String(maxLon)
-    });
-    const r = await fetch(`/api/roads?${q.toString()}`);
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.error || "Roads API failed");
-    return d;
   }
 
   // 新版路径规划入口：调用后端 /api/route-plan（Python A*）
