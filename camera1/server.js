@@ -12,7 +12,6 @@ const config = require('./config');
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
 app.use('/ui2', express.static(path.join(__dirname, '..', 'UI 2')));
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -205,6 +204,24 @@ async function initAuthDatabase() {
       frequent_routes JSONB NOT NULL DEFAULT '[]'::jsonb,
       updated_at TIMESTAMPTZ NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS user_feedback_reports (
+      id BIGSERIAL PRIMARY KEY,
+      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      location TEXT NOT NULL,
+      condition_type TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      comment TEXT NOT NULL,
+      latitude DOUBLE PRECISION,
+      longitude DOUBLE PRECISION,
+      created_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_feedback_reports_created_at
+      ON user_feedback_reports (created_at DESC);
+
+    CREATE INDEX IF NOT EXISTS idx_user_feedback_reports_user_id
+      ON user_feedback_reports (user_id, created_at DESC);
   `);
 
   async function ensureUser(name, email, password, role) {
@@ -318,6 +335,49 @@ function validateSimulationConfig(config) {
   return null;
 }
 
+function normalizeFeedbackPayload(payload) {
+  const location = String(payload?.location || '').trim().slice(0, 200);
+  const conditionType = String(payload?.conditionType || '').trim().toUpperCase().slice(0, 40);
+  const severity = String(payload?.severity || '').trim().toUpperCase().slice(0, 20);
+  const comment = String(payload?.comment || '').trim().slice(0, 1000);
+  const latitude = Number(payload?.latitude);
+  const longitude = Number(payload?.longitude);
+  return {
+    location,
+    conditionType,
+    severity,
+    comment,
+    latitude: Number.isFinite(latitude) ? latitude : null,
+    longitude: Number.isFinite(longitude) ? longitude : null
+  };
+}
+
+function validateFeedbackPayload(feedback) {
+  if (!feedback.location) return 'Location is required';
+  if (!feedback.comment) return 'Comment is required';
+  const allowedTypes = new Set(['CONGESTION', 'ACCIDENT', 'ROAD WORK', 'CLEAR']);
+  if (!allowedTypes.has(feedback.conditionType)) return 'Invalid condition type';
+  const allowedSeverities = new Set(['LOW', 'MEDIUM', 'HIGH']);
+  if (!allowedSeverities.has(feedback.severity)) return 'Invalid severity';
+  return null;
+}
+
+function toPublicFeedbackRow(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    userName: row.user_name,
+    userEmail: row.user_email,
+    location: row.location,
+    conditionType: row.condition_type,
+    severity: row.severity,
+    comment: row.comment,
+    latitude: row.latitude === null ? null : Number(row.latitude),
+    longitude: row.longitude === null ? null : Number(row.longitude),
+    createdAt: row.created_at
+  };
+}
+
 
 // data.gov.sg 交通摄像头接口（无需密钥，公开可用）
 const TRAFFIC_IMAGES_API = 'https://api.data.gov.sg/v1/transport/traffic-images';
@@ -330,6 +390,7 @@ const LTA_SIGNAL_GEOJSON_PATH = path.join(__dirname, 'data', 'LTATrafficSignalAs
 const INCIDENT_MOCK_PATH = path.join(__dirname, 'data', 'incident_api_mock.json');
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python3';
 const PY_ENGINE_PATH = path.join(__dirname, 'py', 'compute_engine.py');
+const PY_ML_ENGINE_PATH = path.join(__dirname, 'py', 'ml_traffic_predictor.py');
 const SPF_RED_LIGHT_API = 'https://api-open.data.gov.sg/v1/public/api/datasets/d_271f8db0ab03ca15ef0f0f9f88bc4d6e/poll-download';
 const OVERPASS_API = 'https://overpass-api.de/api/interpreter';
 const SG_BBOX = '1.16,103.60,1.48,104.10';
@@ -779,6 +840,115 @@ app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
   }
 });
 
+app.post('/api/feedback', requireAuth, async (req, res) => {
+  const feedback = normalizeFeedbackPayload(req.body || {});
+  const error = validateFeedbackPayload(feedback);
+  if (error) return res.status(400).json({ error });
+  try {
+    const inserted = await pool.query(
+      `
+      INSERT INTO user_feedback_reports (
+        user_id, location, condition_type, severity, comment, latitude, longitude, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING
+        id,
+        user_id,
+        $9::text AS user_name,
+        $10::text AS user_email,
+        location,
+        condition_type,
+        severity,
+        comment,
+        latitude,
+        longitude,
+        created_at
+      `,
+      [
+        req.session.user.id,
+        feedback.location,
+        feedback.conditionType,
+        feedback.severity,
+        feedback.comment,
+        feedback.latitude,
+        feedback.longitude,
+        nowIso(),
+        req.session.user.name,
+        req.session.user.email
+      ]
+    );
+    res.json({ ok: true, item: toPublicFeedbackRow(inserted.rows[0]) });
+  } catch (error) {
+    console.error('Failed to submit feedback:', error.message);
+    res.status(500).json({ error: 'Failed to submit feedback' });
+  }
+});
+
+app.get('/api/feedback/mine', requireAuth, async (req, res) => {
+  const limit = Math.max(1, Math.min(parseInt(req.query.limit || '10', 10) || 10, 20));
+  try {
+    const result = await pool.query(
+      `
+      SELECT
+        f.id,
+        f.user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        f.location,
+        f.condition_type,
+        f.severity,
+        f.comment,
+        f.latitude,
+        f.longitude,
+        f.created_at
+      FROM user_feedback_reports f
+      JOIN users u ON u.id = f.user_id
+      WHERE f.user_id = $1
+      ORDER BY f.created_at DESC
+      LIMIT $2
+      `,
+      [req.session.user.id, limit]
+    );
+    res.json({ value: result.rows.map(toPublicFeedbackRow) });
+  } catch (error) {
+    console.error('Failed to load user feedback:', error.message);
+    res.status(500).json({ error: 'Failed to load user feedback' });
+  }
+});
+
+app.get('/api/admin/feedback', requireAuth, requireAdmin, async (req, res) => {
+  const limit = Math.max(1, Math.min(parseInt(req.query.limit || '200', 10) || 200, 500));
+  const offset = Math.max(0, parseInt(req.query.offset || '0', 10) || 0);
+  try {
+    const rows = await pool.query(
+      `
+      SELECT
+        f.id,
+        f.user_id,
+        u.name AS user_name,
+        u.email AS user_email,
+        f.location,
+        f.condition_type,
+        f.severity,
+        f.comment,
+        f.latitude,
+        f.longitude,
+        f.created_at
+      FROM user_feedback_reports f
+      JOIN users u ON u.id = f.user_id
+      ORDER BY f.created_at DESC
+      LIMIT $1 OFFSET $2
+      `,
+      [limit, offset]
+    );
+    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM user_feedback_reports`);
+    res.json({ total: total.rows[0].total, limit, offset, value: rows.rows.map(toPublicFeedbackRow) });
+  } catch (error) {
+    console.error('Failed to load admin feedback list:', error.message);
+    res.status(500).json({ error: 'Failed to load admin feedback list' });
+  }
+});
+
 async function withCache(key, ttlMs, loader) {
   const now = Date.now();
   const cached = sourceCache.get(key);
@@ -1156,6 +1326,52 @@ async function runPythonCompute(op, payload, timeoutMs = 12000) {
       try {
         const parsed = JSON.parse(stdout || '{}');
         resolve(parsed);
+      } catch (parseErr) {
+        reject(new Error(`Python output parse failed: ${parseErr.message}`));
+      }
+    });
+
+    child.stdin.write(JSON.stringify(payload || {}));
+    child.stdin.end();
+  });
+}
+
+async function runPythonJsonScript(scriptPath, payload, timeoutMs = 12000) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(PYTHON_BIN, [scriptPath], {
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+    let stdout = '';
+    let stderr = '';
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      child.kill('SIGKILL');
+      reject(new Error(`Python script timeout: ${path.basename(scriptPath)}`));
+    }, timeoutMs);
+
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString();
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString();
+    });
+    child.on('error', (err) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      reject(new Error(`Python startup failed: ${err.message}`));
+    });
+    child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      if (code !== 0) {
+        return reject(new Error(`Python script failed(code=${code}): ${stderr.trim() || 'unknown error'}`));
+      }
+      try {
+        resolve(JSON.parse(stdout || '{}'));
       } catch (parseErr) {
         reject(new Error(`Python output parse failed: ${parseErr.message}`));
       }
@@ -1837,6 +2053,36 @@ Keep each value within 1 sentence.`;
     });
   } catch (e) {
     res.status(500).json({ error: 'AI incident summary generation failed', details: e.message });
+  }
+});
+
+app.post('/api/ml/traffic-impact', async (req, res) => {
+  const weather = req.body?.weather || {};
+  const forecast = Array.isArray(req.body?.forecast) ? req.body.forecast : [];
+  if (!weather || !forecast.length) {
+    return res.status(400).json({ error: 'weather and forecast are required' });
+  }
+  try {
+    const maxRainPop = Math.max(...forecast.map((item) => Number(item?.pop) || 0), 0);
+    const totalRain = forecast.reduce((sum, item) => sum + (Number(item?.rain) || 0), 0);
+    const now = new Date();
+    const result = await runPythonJsonScript(PY_ML_ENGINE_PATH, {
+      temp: Number(weather.temp) || 0,
+      feels: Number(weather.feels) || 0,
+      humidity: Number(weather.humidity) || 0,
+      wind: Number(weather.wind) || 0,
+      visibility: Number(weather.visibility) || 0,
+      pressure: Number(weather.pressure) || 0,
+      rain_pop: maxRainPop,
+      rain_amount: totalRain,
+      desc: String(weather.desc || ''),
+      hour: now.getHours(),
+      day_of_week: now.getDay() === 0 ? 6 : now.getDay() - 1
+    }, 15000);
+    res.json(result);
+  } catch (error) {
+    console.error('ML traffic impact prediction failed:', error.message);
+    res.status(500).json({ error: 'ML traffic impact prediction failed', details: error.message });
   }
 });
 

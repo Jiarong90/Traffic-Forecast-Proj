@@ -13,6 +13,7 @@
   var userDisplayName = document.getElementById("user-display-name");
   var menuProfileLink = document.getElementById("menu-profile-link");
   var menuSettingsLink = document.getElementById("menu-settings-link");
+  var adminUsersTab = document.getElementById("admin-users-tab");
   var loginForm = document.getElementById("login-form");
   var signupForm = document.getElementById("signup-form");
   var signupFeedback = document.getElementById("signup-feedback");
@@ -220,6 +221,7 @@
     if (userDisplayName && user && user.name) {
       userDisplayName.textContent = user.name + (user.role === 'admin' ? ' (Admin)' : '');
     }
+    if (adminUsersTab) adminUsersTab.classList.toggle('hidden', !(user && user.role === 'admin'));
     document.body.classList.toggle('is-admin', !!(user && user.role === 'admin'));
   }
 
@@ -229,6 +231,9 @@
     var publicPages = ["login", "signup"];
     if (!auth && publicPages.indexOf(pageId) === -1) {
       pageId = "login";
+    }
+    if (pageId === "admin-users" && (!auth || !auth.user || auth.user.role !== "admin")) {
+      pageId = auth ? "dashboard" : "login";
     }
     pages.forEach(function (p) {
       p.classList.toggle('active', p.id === pageId);
@@ -249,7 +254,7 @@
 
   function getPageFromHash() {
     var hash = (window.location.hash || '#dashboard').slice(1);
-    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'alerts', 'alert-detail', 'profile', 'settings', 'login', 'signup'];
+    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'alerts', 'alert-detail', 'profile', 'settings', 'admin-users', 'login', 'signup'];
     return valid.indexOf(hash) !== -1 ? hash : 'dashboard';
   }
 
@@ -733,6 +738,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAdviceUI(advice);
       updateSunUI(weather.sunrise, weather.sunset);
       updateTwoDayUI(forecast.days);
+      await updateTrafficImpact(weather, forecast);
       updateTimestamp();
     } catch (err) {
       console.error(err);
@@ -1009,6 +1015,52 @@ document.addEventListener("DOMContentLoaded", () => {
     if (el) el.textContent = time;
     if (wrap) wrap.style.display = "flex";
   }
+
+  async function updateTrafficImpact(weather, forecast) {
+    if (!window.TrafficMLModel) return;
+    try {
+      const result = await window.TrafficMLModel.predict(weather, forecast);
+      const scoreEl = document.getElementById("impactScore");
+      const ringEl = document.getElementById("impactRing");
+      const badgeEl = document.getElementById("impactLevelBadge");
+      const summaryEl = document.getElementById("impactSummary");
+      const clearEl = document.getElementById("impactClearingTime");
+      const confEl = document.getElementById("impactConfidence");
+      const modelBadgeEl = document.getElementById("mlModelBadge");
+      if (scoreEl) scoreEl.textContent = result.score ?? "--";
+      if (ringEl) ringEl.className = `impact-ring ${result.levelClass || "impact-low"}`;
+      if (badgeEl) {
+        badgeEl.textContent = result.level || "--";
+        badgeEl.className = `impact-level-badge ${result.levelClass || "impact-low"}`;
+      }
+      if (summaryEl) summaryEl.textContent = result.summary || "No ML summary available.";
+      if (clearEl) clearEl.textContent = result.clearingTime || "--";
+      if (confEl) confEl.textContent = `${result.confidence ?? "--"}%`;
+      if (modelBadgeEl) {
+        modelBadgeEl.textContent = result.source === "python-api"
+          ? "ML Engine · Python RandomForest · integrated backend"
+          : "ML Engine · Browser fallback forest · offline mode";
+      }
+      const f = result.features || {};
+      setImpactBar("bar-rain", "val-rain", Number(f.rainPop || 0) * 100, `${Math.round(Number(f.rainPop || 0) * 100)}%`);
+      setImpactBar("bar-wind", "val-wind", Number(f.wind || 0) * 100, `${weather.wind} m/s`);
+      setImpactBar("bar-vis", "val-vis", Number(f.visImpact || 0) * 100, `${weather.visibility} km`);
+      setImpactBar("bar-heat", "val-heat", Number(f.tempStress || 0) * 100, `${weather.temp}°C`);
+    } catch (err) {
+      console.error(err);
+      const summaryEl = document.getElementById("impactSummary");
+      const modelBadgeEl = document.getElementById("mlModelBadge");
+      if (summaryEl) summaryEl.textContent = `ML traffic prediction unavailable: ${err.message}`;
+      if (modelBadgeEl) modelBadgeEl.textContent = "ML Engine · unavailable";
+    }
+  }
+
+  function setImpactBar(barId, valId, pct, label) {
+    const bar = document.getElementById(barId);
+    const val = document.getElementById(valId);
+    if (bar) bar.style.width = `${Math.min(Math.max(Math.round(Number(pct) || 0), 0), 100)}%`;
+    if (val) val.textContent = label;
+  }
 });
 
 // ================= 摄像头 + 路径规划整合模块 =================
@@ -1050,6 +1102,13 @@ document.addEventListener("DOMContentLoaded", () => {
     mapIncidentsVisible: false,
     mapLiveIncidents: [],
     mapIncidentElapsedTimer: null,
+    adminFeedbackItems: [],
+    adminFeedbackVisible: false,
+    adminFeedbackMapLayer: null,
+    adminFeedbackFilters: {
+      timeRange: "all",
+      severity: "all"
+    },
     dashboardIncidents: [],
     favoriteOverlayVisible: false,
     favoritePlannerPanelVisible: false,
@@ -1264,6 +1323,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }).addTo(state.liveMap);
       state.liveLayer = L.layerGroup().addTo(state.liveMap);
       state.liveIncidentLayer = L.layerGroup().addTo(state.liveMap);
+      state.adminFeedbackMapLayer = L.layerGroup().addTo(state.liveMap);
       state.favoriteMapLayer = L.layerGroup().addTo(state.liveMap);
     }
 
@@ -1346,6 +1406,15 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = state.mapIncidentsVisible
       ? `<span class="icon-warning red"></span> HIDE LTA INCIDENTS`
       : `<span class="icon-warning red"></span> SHOW LTA INCIDENTS`;
+  }
+
+  function renderMapFeedbackToggleButton() {
+    const btn = document.getElementById("map-toggle-feedback-btn");
+    if (!btn) return;
+    btn.classList.toggle("hidden", !isAdmin());
+    btn.innerHTML = state.adminFeedbackVisible
+      ? `<span class="icon-pin"></span> HIDE USER FEEDBACK`
+      : `<span class="icon-pin"></span> SHOW USER FEEDBACK`;
   }
 
   // 读取 auth 模块维护的用户设置缓存（容错为 {}，避免页面崩溃）
@@ -2028,6 +2097,81 @@ document.addEventListener("DOMContentLoaded", () => {
     return fallback;
   }
 
+  async function fetchWeatherForTrafficImpact(lat, lon) {
+    const [weatherResp, forecastResp] = await Promise.all([
+      fetch(`${API_CONFIG.weather.currentUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`),
+      fetch(`${API_CONFIG.weather.forecastUrl}?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`)
+    ]);
+    const weatherData = await weatherResp.json();
+    const forecastData = await forecastResp.json();
+    if (!weatherResp.ok) throw new Error(weatherData.error || "Weather fetch failed");
+    if (!forecastResp.ok) throw new Error(forecastData.error || "Forecast fetch failed");
+    return {
+      weather: weatherData,
+      forecast: {
+        hourly: Array.isArray(forecastData.value)
+          ? forecastData.value
+          : Array.isArray(forecastData.hourly)
+            ? forecastData.hourly
+            : []
+      }
+    };
+  }
+
+  async function fetchAlertTrafficImpactPrediction(incident) {
+    let lat = Number(incident?.lat);
+    let lon = Number(incident?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      const currentLoc = state.userLocation || await getUserLocation();
+      state.userLocation = currentLoc || state.userLocation;
+      lat = Number(currentLoc?.lat);
+      lon = Number(currentLoc?.lon);
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      throw new Error("No usable coordinates for traffic impact prediction");
+    }
+    const { weather, forecast } = await fetchWeatherForTrafficImpact(lat, lon);
+    if (!window.TrafficMLModel) throw new Error("Traffic ML model not loaded");
+    const prediction = await window.TrafficMLModel.predict(weather, forecast);
+    return { prediction, weather, lat, lon };
+  }
+
+  function setAlertImpactBar(barId, valId, pct, label) {
+    const bar = document.getElementById(barId);
+    const val = document.getElementById(valId);
+    if (bar) bar.style.width = `${Math.min(Math.max(Math.round(Number(pct) || 0), 0), 100)}%`;
+    if (val) val.textContent = label;
+  }
+
+  function renderAlertTrafficImpactResult(result, weather) {
+    const scoreEl = document.getElementById("detail-impact-score");
+    const ringEl = document.getElementById("detail-impact-ring");
+    const badgeEl = document.getElementById("detail-impact-level");
+    const summaryEl = document.getElementById("detail-impact-summary");
+    const clearEl = document.getElementById("detail-impact-clearing");
+    const confEl = document.getElementById("detail-impact-confidence");
+    const engineEl = document.getElementById("detail-impact-engine");
+    if (scoreEl) scoreEl.textContent = result.score ?? "--";
+    if (ringEl) ringEl.className = `impact-ring ${result.levelClass || "impact-low"}`;
+    if (badgeEl) {
+      badgeEl.textContent = result.level || "--";
+      badgeEl.className = `impact-level-badge ${result.levelClass || "impact-low"}`;
+    }
+    if (summaryEl) summaryEl.textContent = result.summary || "No traffic impact summary available.";
+    if (clearEl) clearEl.textContent = result.clearingTime || "--";
+    if (confEl) confEl.textContent = `${result.confidence ?? "--"}%`;
+    if (engineEl) {
+      engineEl.textContent = result.source === "python-api"
+        ? "ML Engine · Python RandomForest · alert detail"
+        : "ML Engine · Browser fallback forest · alert detail";
+    }
+    const features = result.features || {};
+    setAlertImpactBar("detail-bar-rain", "detail-val-rain", Number(features.rainPop || 0) * 100, `${Math.round(Number(features.rainPop || 0) * 100)}%`);
+    setAlertImpactBar("detail-bar-wind", "detail-val-wind", Number(features.wind || 0) * 100, `${weather.wind} m/s`);
+    setAlertImpactBar("detail-bar-vis", "detail-val-vis", Number(features.visImpact || 0) * 100, `${weather.visibility} km`);
+    setAlertImpactBar("detail-bar-heat", "detail-val-heat", Number(features.tempStress || 0) * 100, `${weather.temp}°C`);
+  }
+
   // Alert Detail 页面渲染：基础字段 + AI 结果 + 摄像头证据
   async function renderAlertDetailPage() {
     const target = document.getElementById("alert-detail-content");
@@ -2056,6 +2200,64 @@ document.addEventListener("DOMContentLoaded", () => {
         ${incident.imageLink ? `<img src="${escapeHtml(incident.imageLink)}" alt="Incident camera evidence" loading="lazy" />` : ""}
       </div>
       ` : ""}
+      <div class="ml-traffic-impact" style="margin-top:16px;">
+        <h4 class="subsection-title" style="margin-bottom:14px;">TRAFFIC IMPACT PREDICTION</h4>
+        <div class="impact-main-row">
+          <div class="impact-ring-container">
+            <div class="impact-ring impact-low" id="detail-impact-ring">
+              <div class="impact-ring-inner">
+                <span class="impact-score-num" id="detail-impact-score">--</span>
+                <span class="impact-score-denom">/10</span>
+              </div>
+            </div>
+            <div class="impact-ring-label">Impact Score</div>
+          </div>
+          <div class="impact-info">
+            <div class="impact-level-badge impact-low" id="detail-impact-level">Generating prediction...</div>
+            <p class="impact-summary" id="detail-impact-summary">Loading weather-based traffic impact prediction for this incident.</p>
+            <div class="impact-meta-row">
+              <div class="impact-meta-item">
+                <span class="impact-meta-icon">⏱</span>
+                <div>
+                  <div class="impact-meta-label">ESTIMATED CLEARING TIME</div>
+                  <div class="impact-meta-val" id="detail-impact-clearing">--</div>
+                </div>
+              </div>
+              <div class="impact-meta-item">
+                <span class="impact-meta-icon">🎯</span>
+                <div>
+                  <div class="impact-meta-label">MODEL CONFIDENCE</div>
+                  <div class="impact-meta-val" id="detail-impact-confidence">--%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="impact-factors-panel">
+          <div class="impact-factors-heading">CONTRIBUTING WEATHER FACTORS</div>
+          <div class="factor-row">
+            <span class="factor-label">Rain Probability</span>
+            <div class="factor-bar-track"><div class="factor-bar factor-bar-rain" id="detail-bar-rain" style="width:0%"></div></div>
+            <span class="factor-val" id="detail-val-rain">--%</span>
+          </div>
+          <div class="factor-row">
+            <span class="factor-label">Wind Speed</span>
+            <div class="factor-bar-track"><div class="factor-bar factor-bar-wind" id="detail-bar-wind" style="width:0%"></div></div>
+            <span class="factor-val" id="detail-val-wind">-- m/s</span>
+          </div>
+          <div class="factor-row">
+            <span class="factor-label">Visibility Impact</span>
+            <div class="factor-bar-track"><div class="factor-bar factor-bar-vis" id="detail-bar-vis" style="width:0%"></div></div>
+            <span class="factor-val" id="detail-val-vis">-- km</span>
+          </div>
+          <div class="factor-row">
+            <span class="factor-label">Heat Stress</span>
+            <div class="factor-bar-track"><div class="factor-bar factor-bar-heat" id="detail-bar-heat" style="width:0%"></div></div>
+            <span class="factor-val" id="detail-val-heat">--°C</span>
+          </div>
+        </div>
+        <div class="ml-model-badge" id="detail-impact-engine">ML Engine · loading...</div>
+      </div>
     `;
 
     const summary = await fetchGeminiIncidentSummary(incident);
@@ -2068,6 +2270,23 @@ document.addEventListener("DOMContentLoaded", () => {
     if (timeEl) timeEl.textContent = summary.time;
     reasonEl.textContent = summary.reason;
     if (durationEl) durationEl.textContent = summary.duration;
+
+    try {
+      const { prediction, weather } = await fetchAlertTrafficImpactPrediction(incident);
+      if (String(incident.id || "") !== String(state.selectedAlertIncidentId || "")) return;
+      renderAlertTrafficImpactResult(prediction, weather);
+    } catch (err) {
+      if (String(incident.id || "") !== String(state.selectedAlertIncidentId || "")) return;
+      const summaryEl = document.getElementById("detail-impact-summary");
+      const badgeEl = document.getElementById("detail-impact-level");
+      const engineEl = document.getElementById("detail-impact-engine");
+      if (badgeEl) {
+        badgeEl.textContent = "Prediction unavailable";
+        badgeEl.className = "impact-level-badge impact-moderate";
+      }
+      if (summaryEl) summaryEl.textContent = `Traffic impact prediction unavailable: ${err.message}`;
+      if (engineEl) engineEl.textContent = "ML Engine · unavailable";
+    }
   }
 
   // 事故排序：按时间/按严重度
@@ -2253,6 +2472,111 @@ document.addEventListener("DOMContentLoaded", () => {
       statsEl.innerHTML = `<div class="admin-user-stat"><span class="k">Error</span><span class="v">-</span></div>`;
       tbody.innerHTML = `<tr><td colspan="6">Failed to load user table: ${err.message}</td></tr>`;
     }
+  }
+
+  async function renderAdminFeedbackPanel() {
+    const panel = document.getElementById("admin-users-panel");
+    const tbody = document.getElementById("admin-feedback-tbody");
+    if (!panel || !tbody) return;
+    if (!isAdmin()) {
+      panel.classList.add("hidden");
+      return;
+    }
+    try {
+      const resp = await window.fastAuthFetch("/api/admin/feedback?limit=300");
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || "Failed to load feedback");
+      state.adminFeedbackItems = Array.isArray(data.value) ? data.value : [];
+      const items = getFilteredAdminFeedbackItems();
+      tbody.innerHTML = items.length ? items.map((item) => `
+        <tr>
+          <td>${new Date(item.createdAt).toLocaleString()}</td>
+          <td>${item.userName || "-"}</td>
+          <td>${item.userEmail || "-"}</td>
+          <td>${item.location || "-"}</td>
+          <td>${item.conditionType || "-"}</td>
+          <td>${item.severity || "-"}</td>
+          <td>${item.comment || "-"}</td>
+        </tr>
+      `).join("") : `<tr><td colspan="7">No feedback submitted yet.</td></tr>`;
+      if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
+    } catch (err) {
+      tbody.innerHTML = `<tr><td colspan="7">Failed to load feedback table: ${err.message}</td></tr>`;
+    }
+  }
+
+  function getFilteredAdminFeedbackItems() {
+    const items = Array.isArray(state.adminFeedbackItems) ? state.adminFeedbackItems : [];
+    const severity = String(state.adminFeedbackFilters?.severity || "all").toUpperCase();
+    const timeRange = String(state.adminFeedbackFilters?.timeRange || "all");
+    const now = Date.now();
+    return items.filter((item) => {
+      if (severity !== "ALL" && String(item.severity || "").toUpperCase() !== severity) return false;
+      if (timeRange === "all") return true;
+      const createdAt = new Date(item.createdAt).getTime();
+      if (!Number.isFinite(createdAt)) return false;
+      const diff = now - createdAt;
+      if (timeRange === "24h") return diff <= 24 * 60 * 60 * 1000;
+      if (timeRange === "7d") return diff <= 7 * 24 * 60 * 60 * 1000;
+      if (timeRange === "30d") return diff <= 30 * 24 * 60 * 60 * 1000;
+      return true;
+    });
+  }
+
+  function applyAdminFeedbackFilters() {
+    const tbody = document.getElementById("admin-feedback-tbody");
+    if (!tbody) return;
+    const items = getFilteredAdminFeedbackItems();
+    tbody.innerHTML = items.length ? items.map((item) => `
+      <tr>
+        <td>${new Date(item.createdAt).toLocaleString()}</td>
+        <td>${item.userName || "-"}</td>
+        <td>${item.userEmail || "-"}</td>
+        <td>${item.location || "-"}</td>
+        <td>${item.conditionType || "-"}</td>
+        <td>${item.severity || "-"}</td>
+        <td>${item.comment || "-"}</td>
+      </tr>
+    `).join("") : `<tr><td colspan="7">No feedback matches the selected filters.</td></tr>`;
+    if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
+  }
+
+  function drawAdminFeedbackMarkers() {
+    if (!state.adminFeedbackMapLayer) return;
+    state.adminFeedbackMapLayer.clearLayers();
+    if (!isAdmin() || !state.adminFeedbackVisible) return;
+    const items = getFilteredAdminFeedbackItems()
+      .filter((item) => Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude)));
+    items.forEach((item) => {
+      const marker = L.circleMarker([Number(item.latitude), Number(item.longitude)], {
+        radius: 7,
+        color: "#fff",
+        weight: 2,
+        fillColor: "#7c3aed",
+        fillOpacity: 0.95
+      }).addTo(state.adminFeedbackMapLayer);
+      marker.bindPopup(`
+        <div style="font-size:12px;max-width:300px;">
+          <div><strong>User:</strong> ${escapeHtml(item.userName || "-")}</div>
+          <div><strong>Email:</strong> ${escapeHtml(item.userEmail || "-")}</div>
+          <div><strong>Submitted:</strong> ${escapeHtml(new Date(item.createdAt).toLocaleString())}</div>
+          <div><strong>Location:</strong> ${escapeHtml(item.location || "-")}</div>
+          <div><strong>Type:</strong> ${escapeHtml(item.conditionType || "-")}</div>
+          <div><strong>Severity:</strong> ${escapeHtml(item.severity || "-")}</div>
+          <div><strong>Feedback:</strong> ${escapeHtml(item.comment || "-")}</div>
+        </div>
+      `);
+    });
+  }
+
+  async function toggleAdminFeedbackLayer() {
+    state.adminFeedbackVisible = !state.adminFeedbackVisible;
+    if (state.adminFeedbackVisible && !state.adminFeedbackItems.length) {
+      await renderAdminFeedbackPanel();
+    } else {
+      drawAdminFeedbackMarkers();
+    }
+    renderMapFeedbackToggleButton();
   }
 
   // 右侧路线详情面板（普通规划）
@@ -2815,7 +3139,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const simToggleBtn = document.getElementById("admin-toggle-sim-btn");
     if (simToggleBtn) simToggleBtn.addEventListener("click", toggleStandaloneSimulation);
     const adminUsersRefreshBtn = document.getElementById("admin-users-refresh-btn");
-    if (adminUsersRefreshBtn) adminUsersRefreshBtn.addEventListener("click", renderAdminUsersPanel);
+    if (adminUsersRefreshBtn) {
+      adminUsersRefreshBtn.addEventListener("click", async () => {
+        await renderAdminUsersPanel();
+        await renderAdminFeedbackPanel();
+      });
+    }
+    const feedbackTimeFilter = document.getElementById("admin-feedback-time-filter");
+    const feedbackSeverityFilter = document.getElementById("admin-feedback-severity-filter");
+    if (feedbackTimeFilter) {
+      feedbackTimeFilter.addEventListener("change", () => {
+        state.adminFeedbackFilters.timeRange = feedbackTimeFilter.value || "all";
+        applyAdminFeedbackFilters();
+      });
+    }
+    if (feedbackSeverityFilter) {
+      feedbackSeverityFilter.addEventListener("change", () => {
+        state.adminFeedbackFilters.severity = feedbackSeverityFilter.value || "all";
+        applyAdminFeedbackFilters();
+      });
+    }
     const incidentSortBtn = document.getElementById("incident-sort-btn");
     if (incidentSortBtn) {
       incidentSortBtn.addEventListener("click", () => {
@@ -2834,6 +3177,19 @@ document.addEventListener("DOMContentLoaded", () => {
           alert(`Load LTA incidents failed: ${err.message}`);
         } finally {
           mapIncidentToggleBtn.disabled = false;
+        }
+      });
+    }
+    const mapFeedbackToggleBtn = document.getElementById("map-toggle-feedback-btn");
+    if (mapFeedbackToggleBtn) {
+      mapFeedbackToggleBtn.addEventListener("click", async () => {
+        mapFeedbackToggleBtn.disabled = true;
+        try {
+          await toggleAdminFeedbackLayer();
+        } catch (err) {
+          alert(`Load feedback markers failed: ${err.message}`);
+        } finally {
+          mapFeedbackToggleBtn.disabled = false;
         }
       });
     }
@@ -2899,6 +3255,10 @@ document.addEventListener("DOMContentLoaded", () => {
         renderAlertsPanels();
         refreshAlertsInfoFeed();
       }
+      if (page === "admin-users" && isAdmin()) {
+        renderAdminUsersPanel();
+        renderAdminFeedbackPanel();
+      }
       if (page === "alert-detail") {
         if (!state.selectedAlertIncidentId && state.dashboardIncidents.length) {
           state.selectedAlertIncidentId = String(state.dashboardIncidents[0].id || "");
@@ -2913,6 +3273,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (tab.getAttribute("data-page") === "alerts") {
           renderAlertsPanels();
           refreshAlertsInfoFeed();
+        }
+        if (tab.getAttribute("data-page") === "admin-users" && isAdmin()) {
+          renderAdminUsersPanel();
+          renderAdminFeedbackPanel();
         }
         setTimeout(() => {
           if (state.liveMap) state.liveMap.invalidateSize();
@@ -2934,6 +3298,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (isAdmin()) await loadAdminSimulationConfig();
       renderIncidentSourceButton();
       renderMapIncidentToggleButton();
+      renderMapFeedbackToggleButton();
       renderMapFavoritesToggleButton();
       renderRouteFavoritesToggleButton();
       renderRouteFavoritesPanel();
@@ -2948,13 +3313,19 @@ document.addEventListener("DOMContentLoaded", () => {
         renderDashboardEvidence();
       }
       await renderAdminUsersPanel();
+      await renderAdminFeedbackPanel();
       renderLiveMapAndList();
       if (state.favoriteOverlayVisible) await drawFavoriteOverlayOnMap();
       if (state.mapIncidentsVisible) drawLiveIncidentMarkers(state.mapLiveIncidents);
+      if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
       if (isAdmin()) renderStandaloneSimulationInfo(null);
       const currentPage = (window.location.hash || "#dashboard").slice(1);
       if (currentPage === "alerts") renderAlertsPanels();
       if (currentPage === "alerts") refreshAlertsInfoFeed();
+      if (currentPage === "admin-users" && isAdmin()) {
+        await renderAdminUsersPanel();
+        await renderAdminFeedbackPanel();
+      }
       if (currentPage === "alert-detail") {
         if (!state.selectedAlertIncidentId && state.dashboardIncidents.length) {
           state.selectedAlertIncidentId = String(state.dashboardIncidents[0].id || "");
@@ -2979,6 +3350,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (usersPanel) usersPanel.classList.toggle("hidden", !isAdmin());
     if (!isAdmin()) state.incidentDataSource = "live";
     renderIncidentSourceButton();
+    renderMapFeedbackToggleButton();
     if (!window.getFastAuth || !window.getFastAuth()) {
       state.favoriteOverlayVisible = false;
       state.favoritePlannerPanelVisible = false;
@@ -2990,6 +3362,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isAdmin()) {
       await loadAdminSimulationConfig();
       await renderAdminUsersPanel();
+      await renderAdminFeedbackPanel();
       state.adminSimulationData = null;
       state.adminSimulationSelectedRouteId = null;
       renderStandaloneSimulationInfo(state.adminSimulationData);
@@ -2998,6 +3371,9 @@ document.addEventListener("DOMContentLoaded", () => {
       state.adminSimulationVisible = false;
       state.adminSimulationData = null;
       state.adminSimulationSelectedRouteId = null;
+      state.adminFeedbackVisible = false;
+      state.adminFeedbackItems = [];
+      if (state.adminFeedbackMapLayer) state.adminFeedbackMapLayer.clearLayers();
       if (state.adminSimulationLayer) state.adminSimulationLayer.clearLayers();
       if (simResults) simResults.innerHTML = "";
     }
@@ -3016,6 +3392,350 @@ document.addEventListener("DOMContentLoaded", () => {
       await drawFavoriteOverlayOnMap();
     }
   });
+
+  // 用户反馈弹窗：提交到 PostgreSQL，并在管理员端集中展示
+  (function setupFeedbackModal() {
+    const COOLDOWN_SECONDS = 60;
+    const fab = document.getElementById("fabFeedback");
+    const overlay = document.getElementById("feedbackOverlay");
+    const closeBtn = document.getElementById("modalClose");
+    const locateBtn = document.getElementById("fbLocateBtn");
+    const submitBtn = document.getElementById("fbSubmitBtn");
+    const toast = document.getElementById("feedbackToast");
+    const typeGroup = document.getElementById("fbTypeGroup");
+    const severityGroup = document.getElementById("fbSeverityGroup");
+    const countBadge = document.getElementById("fbCountBadge");
+    const locationInput = document.getElementById("fb-location");
+    const commentsInput = document.getElementById("fb-comments");
+    const recentWrap = document.getElementById("recentSubmissions");
+    const recentList = document.getElementById("recentList");
+    if (!fab || !overlay || !submitBtn || !typeGroup || !severityGroup || !locationInput || !commentsInput) return;
+
+    let submissions = [];
+    let cooldownRemaining = 0;
+    let cooldownTimer = null;
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char] || char);
+    }
+
+    function showError(id, message) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = message;
+      el.style.display = "block";
+    }
+
+    function clearError(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = "";
+      el.style.display = "none";
+    }
+
+    function clearErrors() {
+      ["err-location", "err-type", "err-severity", "err-comments"].forEach(clearError);
+      locationInput.classList.remove("input-error");
+      commentsInput.classList.remove("input-error");
+    }
+
+    function selectedType() {
+      return typeGroup.querySelector(".fb-type-btn.active")?.dataset.type || "";
+    }
+
+    function selectedSeverity() {
+      return severityGroup.querySelector(".fb-severity-btn.active")?.dataset.severity || "";
+    }
+
+    function updateBadge() {
+      if (!countBadge) return;
+      if (!submissions.length) {
+        countBadge.style.display = "none";
+        countBadge.textContent = "";
+        return;
+      }
+      countBadge.style.display = "inline-flex";
+      countBadge.textContent = String(submissions.length);
+    }
+
+    function renderRecent() {
+      if (!recentWrap || !recentList) return;
+      if (!submissions.length) {
+        recentWrap.style.display = "none";
+        recentList.innerHTML = "";
+        return;
+      }
+      recentWrap.style.display = "block";
+      recentList.innerHTML = submissions.slice().reverse().map((item) => `
+        <div class="recent-item">
+          <div class="recent-item-top">
+            <span class="recent-type">${escapeHtml(item.type)}</span>
+            <span class="impact-tag ${String(item.severity || "").toLowerCase()}">${escapeHtml(item.severity)}</span>
+            <span class="recent-time">${escapeHtml(item.time)}</span>
+          </div>
+          <div class="recent-loc">📍 ${escapeHtml(item.location)}</div>
+          ${item.comment ? `<div class="recent-comment">${escapeHtml(item.comment)}</div>` : ""}
+        </div>
+      `).join("");
+    }
+
+    async function loadRecent() {
+      const auth = window.getFastAuth ? window.getFastAuth() : null;
+      if (!auth || !auth.token) {
+        submissions = [];
+        updateBadge();
+        renderRecent();
+        return;
+      }
+      try {
+        const resp = await window.fastAuthFetch("/api/feedback/mine?limit=10");
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Failed to load feedback");
+        submissions = Array.isArray(data.value) ? data.value.map((item) => ({
+          id: item.id,
+          location: item.location,
+          type: item.conditionType,
+          severity: item.severity,
+          comment: item.comment,
+          time: new Date(item.createdAt).toLocaleString()
+        })) : [];
+      } catch (err) {
+        console.error(err);
+        submissions = [];
+      }
+      updateBadge();
+      renderRecent();
+    }
+
+    function resetForm() {
+      locationInput.value = "";
+      commentsInput.value = "";
+      typeGroup.querySelectorAll(".fb-type-btn").forEach((btn, index) => {
+        btn.classList.toggle("active", index === 0);
+      });
+      severityGroup.querySelectorAll(".fb-severity-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.severity === "MEDIUM");
+      });
+      if (locateBtn) {
+        locateBtn.disabled = false;
+        locateBtn.innerHTML = `
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12"></path>
+            <circle cx="12" cy="12" r="4"></circle>
+          </svg>
+        `;
+      }
+      clearErrors();
+    }
+
+    async function openModal() {
+      const auth = window.getFastAuth ? window.getFastAuth() : null;
+      if (!auth || !auth.token) {
+        window.location.hash = "login";
+        return;
+      }
+      clearErrors();
+      await loadRecent();
+      overlay.classList.add("open");
+    }
+
+    function closeModal() {
+      overlay.classList.remove("open");
+    }
+
+    function showToast(message) {
+      if (!toast) return;
+      toast.textContent = message;
+      toast.classList.add("show");
+      window.setTimeout(() => toast.classList.remove("show"), 3200);
+    }
+
+    function validateForm() {
+      let valid = true;
+      const location = locationInput.value.trim();
+      const comments = commentsInput.value.trim();
+      if (!location) {
+        locationInput.classList.add("input-error");
+        showError("err-location", "Please enter a location.");
+        valid = false;
+      }
+      if (!selectedType()) {
+        showError("err-type", "Please select a condition type.");
+        valid = false;
+      }
+      if (!selectedSeverity()) {
+        showError("err-severity", "Please select a severity level.");
+        valid = false;
+      }
+      if (!comments) {
+        commentsInput.classList.add("input-error");
+        showError("err-comments", "Please describe the road condition.");
+        valid = false;
+      }
+      return valid;
+    }
+
+    function renderCooldownText() {
+      if (!submitBtn) return;
+      if (cooldownRemaining <= 0) {
+        submitBtn.disabled = false;
+        submitBtn.classList.remove("btn-cooldown");
+        submitBtn.innerHTML = `
+          POST FEEDBACK
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"></path>
+          </svg>
+        `;
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.classList.add("btn-cooldown");
+      submitBtn.textContent = `WAIT ${cooldownRemaining}s BEFORE NEXT REPORT`;
+    }
+
+    function startCooldown() {
+      cooldownRemaining = COOLDOWN_SECONDS;
+      renderCooldownText();
+      if (cooldownTimer) window.clearInterval(cooldownTimer);
+      cooldownTimer = window.setInterval(() => {
+        cooldownRemaining -= 1;
+        if (cooldownRemaining <= 0) {
+          window.clearInterval(cooldownTimer);
+          cooldownTimer = null;
+          cooldownRemaining = 0;
+        }
+        renderCooldownText();
+      }, 1000);
+    }
+
+    function parseLocationInput(value) {
+      const match = String(value || "").trim().match(/^(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)$/);
+      if (!match) return { latitude: null, longitude: null };
+      return { latitude: Number(match[1]), longitude: Number(match[2]) };
+    }
+
+    async function resolveFeedbackCoordinates(locationText) {
+      const direct = parseLocationInput(locationText);
+      if (Number.isFinite(direct.latitude) && Number.isFinite(direct.longitude)) return direct;
+      try {
+        const geo = await geocodeLocation(locationText);
+        return {
+          latitude: Number.isFinite(Number(geo.lat)) ? Number(geo.lat) : null,
+          longitude: Number.isFinite(Number(geo.lon)) ? Number(geo.lon) : null
+        };
+      } catch (_) {
+        return { latitude: null, longitude: null };
+      }
+    }
+
+    fab.addEventListener("click", () => {
+      openModal().catch((err) => {
+        console.error(err);
+        showToast("Unable to open feedback form right now.");
+      });
+    });
+    if (closeBtn) closeBtn.addEventListener("click", closeModal);
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) closeModal();
+    });
+
+    typeGroup.querySelectorAll(".fb-type-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        typeGroup.querySelectorAll(".fb-type-btn").forEach((node) => node.classList.remove("active"));
+        btn.classList.add("active");
+        clearError("err-type");
+      });
+    });
+
+    severityGroup.querySelectorAll(".fb-severity-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        severityGroup.querySelectorAll(".fb-severity-btn").forEach((node) => node.classList.remove("active"));
+        btn.classList.add("active");
+        clearError("err-severity");
+      });
+    });
+
+    if (locateBtn) {
+      locateBtn.addEventListener("click", () => {
+        if (!navigator.geolocation) {
+          showError("err-location", "Geolocation is not supported in this browser.");
+          return;
+        }
+        locateBtn.disabled = true;
+        locateBtn.textContent = "...";
+        navigator.geolocation.getCurrentPosition((position) => {
+          locationInput.value = `${position.coords.latitude.toFixed(5)}, ${position.coords.longitude.toFixed(5)}`;
+          locateBtn.disabled = false;
+          locateBtn.textContent = "✓";
+          locationInput.classList.remove("input-error");
+          clearError("err-location");
+        }, () => {
+          locateBtn.disabled = false;
+          locateBtn.innerHTML = `
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12"></path>
+              <circle cx="12" cy="12" r="4"></circle>
+            </svg>
+          `;
+          showError("err-location", "Could not get your current location. Please enter it manually.");
+        });
+      });
+    }
+
+    submitBtn.addEventListener("click", async () => {
+      if (cooldownRemaining > 0) return;
+      const auth = window.getFastAuth ? window.getFastAuth() : null;
+      if (!auth || !auth.token) {
+        window.location.hash = "login";
+        return;
+      }
+      clearErrors();
+      if (!validateForm()) return;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+      try {
+        const coords = await resolveFeedbackCoordinates(locationInput.value);
+        const resp = await window.fastAuthFetch("/api/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: locationInput.value.trim(),
+            conditionType: selectedType(),
+            severity: selectedSeverity(),
+            comment: commentsInput.value.trim(),
+            latitude: coords.latitude,
+            longitude: coords.longitude
+          })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Submit feedback failed");
+        await loadRecent();
+        closeModal();
+        showToast("Feedback submitted. Thank you for helping the community.");
+        resetForm();
+        startCooldown();
+        if (isAdmin()) await renderAdminFeedbackPanel();
+      } catch (err) {
+        submitBtn.disabled = false;
+        renderCooldownText();
+        showError("err-comments", `Submit failed: ${err.message}`);
+      }
+    });
+
+    window.addEventListener("fast-auth-changed", () => {
+      loadRecent().catch((err) => console.error(err));
+    });
+
+    loadRecent().catch((err) => console.error(err));
+    resetForm();
+    renderCooldownText();
+  })();
 
   // 模块真实启动点
   document.addEventListener("DOMContentLoaded", bootstrapDemo);

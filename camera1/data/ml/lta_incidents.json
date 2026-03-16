@@ -1,0 +1,257 @@
+{
+  "odata.metadata": "https://datamall2.mytransport.sg/ltaodataservice/$metadata#TrafficIncidents",
+  "generated": "2026-03-15T08:00:00+08:00",
+  "source": "LTA DataMall — Sample Dataset",
+  "value": [
+    {
+      "Type": "Accident",
+      "Latitude": 1.3290,
+      "Longitude": 103.8530,
+      "Message": "(15/3)07:42 Accident involving 3 vehicles on PIE (towards Airport) after Bedok North Ave 4 exit. Right 2 lanes blocked. Expect heavy delays.",
+      "Severity": "High",
+      "AlertType": "Jam",
+      "RoadName": "Pan Island Expressway",
+      "Direction": "Towards Airport"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.3521,
+      "Longitude": 103.7700,
+      "Message": "(15/3)06:00 Road works on CTE (towards Ang Mo Kio) between Braddell Rd and Thomson Rd exits. Left lane closed until 22:00.",
+      "Severity": "Medium",
+      "AlertType": "RoadWorks",
+      "RoadName": "Central Expressway",
+      "Direction": "Towards Ang Mo Kio"
+    },
+    {
+      "Type": "Vehicle Breakdown",
+      "Latitude": 1.3036,
+      "Longitude": 103.7632,
+      "Message": "(15/3)08:15 Vehicle breakdown on AYE (towards Tuas) after Clementi Ave 6 exit. Road shoulder blocked. Slow traffic.",
+      "Severity": "Low",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Ayer Rajah Expressway",
+      "Direction": "Towards Tuas"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3748,
+      "Longitude": 103.9490,
+      "Message": "(15/3)08:30 Accident on TPE (towards PIE) after Tampines Ave 10 exit. Road shoulder and left lane affected. Ambulance on-site.",
+      "Severity": "High",
+      "AlertType": "Jam",
+      "RoadName": "Tampines Expressway",
+      "Direction": "Towards PIE"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.3644,
+      "Longitude": 103.9993,
+      "Message": "(15/3)00:00 Ongoing road resurfacing on ECP (towards Marina Coastal Expressway) between Changi Coast Rd and Airport Blvd. Partial lane closure.",
+      "Severity": "Medium",
+      "AlertType": "RoadWorks",
+      "RoadName": "East Coast Parkway",
+      "Direction": "Towards Marina"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.4042,
+      "Longitude": 103.7930,
+      "Message": "(15/3)07:55 Multi-vehicle accident on SLE (towards KJE) after Woodlands Ave 2 exit. All lanes moving slowly. Police on-site.",
+      "Severity": "High",
+      "AlertType": "Jam",
+      "RoadName": "Seletar Expressway",
+      "Direction": "Towards KJE"
+    },
+    {
+      "Type": "Vehicle Breakdown",
+      "Latitude": 1.3123,
+      "Longitude": 103.8451,
+      "Message": "(15/3)08:02 Heavy vehicle breakdown on KPE (towards ECP) after Upper Changi Rd North exit. Centre lane blocked. Traffic building up.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Kallang Paya Lebar Expressway",
+      "Direction": "Towards ECP"
+    },
+    {
+      "Type": "Weather",
+      "Latitude": 1.2966,
+      "Longitude": 103.7764,
+      "Message": "(15/3)08:10 Heavy rain reported along AYE (both directions) near West Coast Hwy. Reduced visibility. Drive slowly and maintain safe following distance.",
+      "Severity": "High",
+      "AlertType": "Weather",
+      "RoadName": "Ayer Rajah Expressway",
+      "Direction": "Both"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.3231,
+      "Longitude": 103.8654,
+      "Message": "(15/3)07:00 Utility works on Orchard Rd (towards Dhoby Ghaut) near Scotts Rd junction. Left lane closed. Valid until 20:00.",
+      "Severity": "Medium",
+      "AlertType": "RoadWorks",
+      "RoadName": "Orchard Road",
+      "Direction": "Towards Dhoby Ghaut"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3496,
+      "Longitude": 103.9502,
+      "Message": "(15/3)08:22 Accident on Tampines Ave 10 near Tampines Mall. Vehicles involved: 2 cars. Right lane blocked.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Tampines Avenue 10",
+      "Direction": "Towards Tampines MRT"
+    },
+    {
+      "Type": "Vehicle Breakdown",
+      "Latitude": 1.4216,
+      "Longitude": 103.8370,
+      "Message": "(15/3)07:48 Vehicle stalled on BKE (towards PIE) after Woodlands Ave 12 exit. Road shoulder affected. Slight delays.",
+      "Severity": "Low",
+      "AlertType": "MinorDelay",
+      "RoadName": "Bukit Timah Expressway",
+      "Direction": "Towards PIE"
+    },
+    {
+      "Type": "Obstacle",
+      "Latitude": 1.2840,
+      "Longitude": 103.8526,
+      "Message": "(15/3)08:05 Debris on MCE (towards ECP) near Marina South Pier exit. Road shoulder affected. Tow truck dispatched.",
+      "Severity": "Low",
+      "AlertType": "MinorDelay",
+      "RoadName": "Marina Coastal Expressway",
+      "Direction": "Towards ECP"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3140,
+      "Longitude": 103.8050,
+      "Message": "(15/3)08:35 Accident on CTE (towards City) after Braddell Rd exit. Motorcyclist involved. Left lane and road shoulder blocked. Ambulance activated.",
+      "Severity": "High",
+      "AlertType": "Jam",
+      "RoadName": "Central Expressway",
+      "Direction": "Towards City"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.3393,
+      "Longitude": 103.7053,
+      "Message": "(15/3)09:00 Sewer maintenance on Clementi Ave 3 near Clementi MRT. Single lane operation from 09:00 to 18:00.",
+      "Severity": "Low",
+      "AlertType": "RoadWorks",
+      "RoadName": "Clementi Avenue 3",
+      "Direction": "Both"
+    },
+    {
+      "Type": "Weather",
+      "Latitude": 1.4433,
+      "Longitude": 103.7880,
+      "Message": "(15/3)08:18 Flash flood advisory for Woodlands Ave 12 near Marsiling Rd. Water pooling on road. Proceed with caution.",
+      "Severity": "High",
+      "AlertType": "Weather",
+      "RoadName": "Woodlands Avenue 12",
+      "Direction": "Both"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3204,
+      "Longitude": 103.8775,
+      "Message": "(15/3)07:30 Rear-end collision on Nicoll Highway (towards ECP) near Mountbatten Rd. Right lane affected.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Nicoll Highway",
+      "Direction": "Towards ECP"
+    },
+    {
+      "Type": "Vehicle Breakdown",
+      "Latitude": 1.3851,
+      "Longitude": 103.9150,
+      "Message": "(15/3)08:40 Bus breakdown on TPE (towards CTE) after Pasir Ris Dr 3 exit. Road shoulder affected. Recovery vehicle en route.",
+      "Severity": "Low",
+      "AlertType": "MinorDelay",
+      "RoadName": "Tampines Expressway",
+      "Direction": "Towards CTE"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.2740,
+      "Longitude": 103.8450,
+      "Message": "(15/3)08:00 MRT tunnelling works on Shenton Way near Maxwell Rd. Temporary lane narrowing until further notice.",
+      "Severity": "Medium",
+      "AlertType": "RoadWorks",
+      "RoadName": "Shenton Way",
+      "Direction": "Both"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3612,
+      "Longitude": 103.8367,
+      "Message": "(15/3)08:50 Accident at Upper Thomson Rd / Marymount Rd junction. Vehicles blocking intersection. Police directing traffic.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Upper Thomson Road",
+      "Direction": "Junction"
+    },
+    {
+      "Type": "Obstacle",
+      "Latitude": 1.3285,
+      "Longitude": 103.9055,
+      "Message": "(15/3)08:12 Fallen tree on Bedok North Ave 3 near Bedok Interchange. Right lane blocked. Clearance crew on-site.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "Bedok North Avenue 3",
+      "Direction": "Towards Bedok Interchange"
+    },
+    {
+      "Type": "Weather",
+      "Latitude": 1.3910,
+      "Longitude": 103.8990,
+      "Message": "(15/3)08:00 Thunderstorm warning in effect for northeast Singapore. Drivers along TPE and SLE advised to drive cautiously and reduce speed.",
+      "Severity": "High",
+      "AlertType": "Weather",
+      "RoadName": "Tampines Expressway / Seletar Expressway",
+      "Direction": "Both"
+    },
+    {
+      "Type": "Road Works",
+      "Latitude": 1.2935,
+      "Longitude": 103.7598,
+      "Message": "(15/3)07:00 Resurfacing works on West Coast Hwy (towards AYE) near West Coast Dr. Two right lanes closed until 15:00.",
+      "Severity": "Medium",
+      "AlertType": "RoadWorks",
+      "RoadName": "West Coast Highway",
+      "Direction": "Towards AYE"
+    },
+    {
+      "Type": "Accident",
+      "Latitude": 1.3189,
+      "Longitude": 103.8861,
+      "Message": "(15/3)08:55 Motorcycle accident on ECP (towards City) after Fort Road exit. Road shoulder blocked.",
+      "Severity": "Medium",
+      "AlertType": "HeavyTraffic",
+      "RoadName": "East Coast Parkway",
+      "Direction": "Towards City"
+    },
+    {
+      "Type": "Vehicle Breakdown",
+      "Latitude": 1.3453,
+      "Longitude": 103.6905,
+      "Message": "(15/3)08:28 Lorry breakdown on AYE (towards City) near Jurong East Ave 1. Leftmost lane blocked. Tow truck dispatched.",
+      "Severity": "Low",
+      "AlertType": "MinorDelay",
+      "RoadName": "Ayer Rajah Expressway",
+      "Direction": "Towards City"
+    },
+    {
+      "Type": "Others",
+      "Latitude": 1.3012,
+      "Longitude": 103.8320,
+      "Message": "(15/3)09:10 Special event causing road diversions near Padang / St Andrew's Rd. Multiple roads closed. Follow police direction.",
+      "Severity": "High",
+      "AlertType": "EventRoadClosure",
+      "RoadName": "St Andrew's Road",
+      "Direction": "Both"
+    }
+  ]
+}

@@ -1,0 +1,3001 @@
+road_segment,road_category,day_of_week,hour_of_day,current_speed,avg_speed_last_15min,avg_speed_last_30min,weather_condition,is_peak_hour,future_speedband
+Central Expressway,Y,4,10,58.4,54.5,59.0,Mist,0,6
+Bukit Timah Expressway,Y,5,10,75.0,78.4,77.3,Clear,0,8
+Central Expressway,Y,6,1,49.7,47.7,55.8,Rain,0,5
+Clementi Avenue 3,C,5,4,32.7,34.0,43.4,Mist,0,4
+Kallang Paya Lebar Expressway,Y,6,8,59.2,56.7,55.1,Drizzle,0,7
+Woodlands Avenue 12,B,1,19,12.7,13.4,13.3,Rain,1,2
+East Coast Parkway,Y,4,3,40.3,42.2,33.0,Thunderstorm,0,4
+Orchard Road,B,3,13,28.4,31.3,20.0,Rain,0,3
+Orchard Road,B,3,13,21.2,19.8,25.5,Thunderstorm,0,3
+Woodlands Avenue 12,B,0,5,38.7,40.8,36.6,Mist,0,4
+Woodlands Avenue 12,B,2,9,3.9,2.8,2.0,Thunderstorm,1,1
+Clementi Avenue 3,C,6,12,40.0,39.7,37.9,Clouds,0,4
+Upper Thomson Road,B,6,2,45.1,42.4,43.2,Drizzle,0,6
+East Coast Parkway,Y,1,17,40.5,39.5,44.7,Mist,1,4
+Clementi Avenue 3,C,5,13,35.0,33.4,36.2,Drizzle,0,4
+Ayer Rajah Expressway,Y,0,15,42.2,46.3,46.4,Thunderstorm,0,5
+Clementi Avenue 3,C,1,14,40.0,35.9,43.2,Clear,0,4
+Ayer Rajah Expressway,Y,2,11,67.6,76.3,69.7,Haze,0,7
+Orchard Road,B,5,6,30.1,29.7,35.4,Rain,0,4
+Orchard Road,B,2,13,45.0,50.3,45.7,Clear,0,5
+Upper Thomson Road,B,6,5,50.0,47.5,54.2,Haze,0,5
+East Coast Parkway,Y,4,6,68.8,70.1,66.5,Haze,0,7
+Woodlands Avenue 12,B,1,21,40.2,41.1,46.7,Haze,0,5
+Seletar Expressway,Y,2,8,23.9,20.2,17.1,Thunderstorm,1,4
+Central Expressway,Y,6,3,63.5,60.8,66.7,Mist,0,7
+Bukit Timah Expressway,Y,3,3,52.1,54.0,41.8,Rain,0,6
+Bedok North Avenue 3,C,5,13,23.3,19.3,23.5,Thunderstorm,0,3
+Woodlands Avenue 12,B,0,11,37.6,35.5,36.5,Drizzle,0,4
+Ayer Rajah Expressway,Y,5,2,46.4,52.0,42.1,Thunderstorm,0,5
+Kallang Paya Lebar Expressway,Y,4,18,31.0,29.0,20.3,Rain,1,4
+Tampines Avenue 10,B,6,20,21.9,21.6,13.1,Thunderstorm,0,2
+Bukit Timah Expressway,Y,1,5,75.0,71.5,73.2,Clouds,0,8
+Ayer Rajah Expressway,Y,2,7,51.0,49.9,50.3,Mist,1,5
+Orchard Road,B,4,1,43.3,46.3,44.1,Clear,0,5
+Woodlands Avenue 12,B,5,21,27.1,33.4,35.0,Rain,0,3
+Tampines Expressway,Y,0,8,50.8,51.6,53.2,Clear,1,5
+Nicoll Highway,B,5,21,46.3,46.5,44.8,Mist,0,5
+Nicoll Highway,B,2,12,35.1,35.6,36.6,Rain,0,4
+Kallang Paya Lebar Expressway,Y,1,10,54.0,53.0,53.7,Rain,0,5
+East Coast Parkway,Y,5,22,65.9,67.2,74.6,Drizzle,0,7
+East Coast Parkway,Y,3,12,68.3,64.8,72.2,Mist,0,7
+Woodlands Avenue 12,B,4,2,17.1,16.9,11.2,Thunderstorm,0,2
+Kallang Paya Lebar Expressway,Y,3,18,14.2,10.6,10.8,Thunderstorm,1,2
+Central Expressway,Y,0,13,51.5,52.7,59.6,Rain,0,5
+Ayer Rajah Expressway,Y,5,2,68.6,71.1,65.7,Haze,0,8
+Clementi Avenue 3,C,5,21,28.9,28.5,28.1,Drizzle,0,4
+Central Expressway,Y,3,10,66.9,64.4,67.9,Haze,0,8
+Ayer Rajah Expressway,Y,4,23,66.4,73.4,65.4,Drizzle,0,6
+Bukit Timah Expressway,Y,0,16,37.6,33.8,29.6,Thunderstorm,0,4
+Pan Island Expressway,Y,3,22,55.3,55.5,52.9,Drizzle,0,6
+Pan Island Expressway,Y,4,23,78.5,79.2,81.2,Clear,0,8
+Kallang Paya Lebar Expressway,Y,5,18,76.0,75.2,75.4,Clouds,0,8
+Nicoll Highway,B,6,19,29.8,32.0,28.4,Thunderstorm,0,4
+Nicoll Highway,B,5,20,31.1,31.4,26.9,Thunderstorm,0,3
+Nicoll Highway,B,0,4,51.8,47.7,53.8,Mist,0,5
+Pan Island Expressway,Y,1,21,71.6,70.0,66.3,Clear,0,7
+Orchard Road,B,1,15,38.6,37.6,31.2,Mist,0,5
+East Coast Parkway,Y,3,22,44.9,50.8,55.3,Thunderstorm,0,5
+Woodlands Avenue 12,B,0,7,29.0,29.9,24.8,Clouds,1,3
+Woodlands Avenue 12,B,4,7,16.7,20.0,11.9,Thunderstorm,1,2
+Orchard Road,B,3,15,20.9,24.1,15.2,Thunderstorm,0,3
+Bukit Timah Expressway,Y,6,12,63.4,63.2,62.5,Drizzle,0,7
+East Coast Parkway,Y,3,20,39.3,42.6,41.1,Drizzle,1,4
+Orchard Road,B,3,4,37.5,31.5,30.0,Drizzle,0,5
+Clementi Avenue 3,C,1,14,36.8,44.1,39.0,Clouds,0,4
+Tampines Avenue 10,B,1,16,25.4,27.8,27.1,Thunderstorm,0,3
+Clementi Avenue 3,C,2,20,19.3,23.3,18.3,Clouds,1,3
+Nicoll Highway,B,2,1,46.2,45.1,41.5,Drizzle,0,5
+Woodlands Avenue 12,B,4,5,45.0,37.8,41.1,Clear,0,4
+Nicoll Highway,B,5,15,46.2,46.8,41.2,Mist,0,5
+Bedok North Avenue 3,C,6,20,35.9,35.6,34.4,Drizzle,0,4
+Central Expressway,Y,2,8,38.2,38.0,39.9,Mist,1,4
+Seletar Expressway,Y,0,8,47.5,49.1,48.4,Clouds,1,5
+Orchard Road,B,2,6,40.2,44.2,46.4,Clear,0,4
+Upper Thomson Road,B,3,17,23.1,25.2,33.1,Haze,1,2
+Upper Thomson Road,B,6,15,35.0,40.5,26.7,Rain,0,3
+Bukit Timah Expressway,Y,6,11,56.3,57.8,53.4,Mist,0,7
+East Coast Parkway,Y,3,19,26.9,21.8,29.6,Rain,1,3
+Bedok North Avenue 3,C,5,17,17.4,19.5,18.6,Thunderstorm,0,2
+Central Expressway,Y,1,20,21.3,22.7,18.6,Thunderstorm,1,2
+Upper Thomson Road,B,1,5,28.4,27.2,18.7,Thunderstorm,0,3
+Central Expressway,Y,3,21,69.6,65.1,73.1,Clouds,0,8
+Upper Thomson Road,B,5,9,38.9,39.4,36.9,Drizzle,0,5
+Seletar Expressway,Y,0,8,55.1,52.5,56.0,Clear,1,6
+Kallang Paya Lebar Expressway,Y,6,23,59.7,59.5,51.2,Drizzle,0,6
+Bedok North Avenue 3,C,2,12,33.6,31.5,27.0,Haze,0,4
+Ayer Rajah Expressway,Y,2,20,53.0,52.5,57.1,Clouds,1,6
+Woodlands Avenue 12,B,4,16,39.4,38.0,43.4,Haze,0,5
+Kallang Paya Lebar Expressway,Y,2,22,40.1,33.3,36.0,Thunderstorm,0,4
+Pan Island Expressway,Y,4,1,77.0,76.3,71.8,Clouds,0,8
+Tampines Avenue 10,B,6,16,45.8,47.7,45.7,Clear,0,5
+Kallang Paya Lebar Expressway,Y,1,0,63.6,65.7,61.8,Haze,0,6
+Bukit Timah Expressway,Y,1,7,48.4,52.8,49.8,Clouds,1,6
+Bukit Timah Expressway,Y,3,11,69.2,68.6,70.6,Clear,0,7
+Bedok North Avenue 3,C,5,0,38.0,41.6,32.9,Clouds,0,4
+Bukit Timah Expressway,Y,1,20,43.7,41.0,43.8,Clear,1,5
+Orchard Road,B,6,14,26.4,29.0,29.6,Rain,0,3
+Tampines Expressway,Y,3,9,49.8,44.4,50.2,Clouds,1,5
+Upper Thomson Road,B,5,16,40.6,44.7,40.7,Mist,0,5
+Clementi Avenue 3,C,0,4,22.2,22.0,31.2,Thunderstorm,0,3
+Seletar Expressway,Y,4,21,69.7,69.2,66.0,Clear,0,7
+Central Expressway,Y,2,15,57.1,60.3,62.2,Drizzle,0,6
+Upper Thomson Road,B,1,13,29.4,32.7,28.7,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,6,12,69.0,67.5,65.9,Drizzle,0,8
+Upper Thomson Road,B,1,16,43.2,47.5,37.4,Drizzle,0,4
+Bedok North Avenue 3,C,4,21,34.8,26.8,36.8,Mist,0,4
+Kallang Paya Lebar Expressway,Y,5,21,72.4,76.7,81.6,Clear,0,8
+East Coast Parkway,Y,6,9,74.2,75.3,90.1,Haze,0,8
+Seletar Expressway,Y,0,14,61.3,61.4,62.7,Drizzle,0,7
+Tampines Expressway,Y,2,16,77.1,72.8,76.8,Clouds,0,8
+Seletar Expressway,Y,3,4,72.5,72.4,73.9,Clouds,0,7
+Central Expressway,Y,1,15,63.1,62.4,62.6,Haze,0,7
+Tampines Avenue 10,B,0,23,40.4,41.3,46.6,Haze,0,4
+Kallang Paya Lebar Expressway,Y,5,20,71.8,71.9,70.2,Clear,0,8
+Seletar Expressway,Y,3,17,18.3,18.6,17.6,Thunderstorm,1,3
+Upper Thomson Road,B,2,2,40.6,37.4,36.8,Haze,0,5
+Pan Island Expressway,Y,1,5,58.7,60.3,65.5,Rain,0,6
+Tampines Expressway,Y,0,22,73.8,79.4,73.0,Clouds,0,8
+Nicoll Highway,B,2,3,43.9,48.8,45.4,Rain,0,5
+Woodlands Avenue 12,B,1,6,42.3,45.0,44.8,Clouds,0,5
+Woodlands Avenue 12,B,3,12,40.5,29.6,31.9,Drizzle,0,5
+Nicoll Highway,B,4,8,34.5,41.2,34.5,Haze,1,4
+Nicoll Highway,B,1,22,52.1,48.0,50.8,Clouds,0,5
+Seletar Expressway,Y,5,3,56.0,57.9,51.0,Rain,0,6
+Clementi Avenue 3,C,2,15,27.7,23.1,28.8,Rain,0,4
+Woodlands Avenue 12,B,4,0,39.1,37.7,43.5,Mist,0,5
+Clementi Avenue 3,C,5,17,34.5,34.9,35.2,Drizzle,0,4
+Ayer Rajah Expressway,Y,2,8,16.6,17.6,20.0,Thunderstorm,1,2
+Clementi Avenue 3,C,2,0,18.7,13.7,13.5,Thunderstorm,0,2
+Ayer Rajah Expressway,Y,6,6,76.1,77.0,78.1,Clear,0,8
+Orchard Road,B,5,22,21.4,24.5,27.3,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,3,0,44.2,42.5,48.2,Thunderstorm,0,5
+Tampines Expressway,Y,5,13,64.4,61.8,61.7,Drizzle,0,7
+Tampines Expressway,Y,6,23,68.0,75.3,61.1,Mist,0,8
+Upper Thomson Road,B,4,6,26.6,31.0,24.3,Thunderstorm,0,4
+Orchard Road,B,2,0,45.0,44.8,44.0,Clouds,0,5
+Central Expressway,Y,3,23,62.6,71.0,59.7,Drizzle,0,7
+Upper Thomson Road,B,6,3,45.9,44.7,38.9,Clear,0,4
+Orchard Road,B,1,10,43.3,43.8,40.0,Clouds,0,5
+Central Expressway,Y,4,17,42.5,44.3,45.5,Clear,1,5
+Tampines Avenue 10,B,2,18,25.0,27.5,32.4,Drizzle,1,3
+Ayer Rajah Expressway,Y,1,21,60.5,59.4,62.3,Rain,0,6
+Bukit Timah Expressway,Y,1,0,74.1,73.3,83.0,Clear,0,8
+Pan Island Expressway,Y,0,20,43.4,47.5,42.6,Clouds,1,5
+Orchard Road,B,2,18,32.4,25.4,22.4,Clouds,1,4
+Upper Thomson Road,B,6,2,44.1,47.2,45.0,Mist,0,5
+Nicoll Highway,B,6,15,52.4,56.8,40.1,Clear,0,5
+Upper Thomson Road,B,3,15,46.5,43.9,58.8,Clouds,0,6
+Kallang Paya Lebar Expressway,Y,3,1,72.0,69.0,71.6,Clear,0,7
+Seletar Expressway,Y,1,9,29.5,32.1,25.5,Rain,1,4
+Seletar Expressway,Y,0,5,73.8,73.4,81.5,Clear,0,8
+Nicoll Highway,B,3,1,47.7,44.9,55.1,Haze,0,5
+Kallang Paya Lebar Expressway,Y,0,10,68.6,66.6,65.0,Clouds,0,7
+Bukit Timah Expressway,Y,2,6,57.5,55.4,44.2,Drizzle,0,6
+Pan Island Expressway,Y,3,14,80.0,83.9,82.1,Clear,0,8
+Kallang Paya Lebar Expressway,Y,1,9,56.6,58.3,53.9,Clear,1,6
+Tampines Expressway,Y,3,11,51.1,48.7,51.2,Rain,0,6
+East Coast Parkway,Y,6,2,78.0,76.4,83.2,Clouds,0,8
+Seletar Expressway,Y,5,22,69.0,73.6,65.0,Haze,0,8
+Seletar Expressway,Y,2,7,33.4,32.0,38.4,Rain,1,4
+Nicoll Highway,B,5,13,47.0,49.0,50.3,Clouds,0,5
+Woodlands Avenue 12,B,4,22,44.2,44.3,41.2,Clear,0,5
+Bedok North Avenue 3,C,0,0,22.4,24.8,22.7,Rain,0,3
+Woodlands Avenue 12,B,6,21,37.5,36.2,35.5,Drizzle,0,3
+East Coast Parkway,Y,1,23,53.3,50.4,53.6,Rain,0,5
+Seletar Expressway,Y,3,11,66.0,69.7,52.1,Mist,0,7
+Central Expressway,Y,6,19,69.5,75.0,68.5,Clear,0,8
+Bukit Timah Expressway,Y,3,16,54.2,49.5,55.3,Rain,0,6
+Woodlands Avenue 12,B,6,5,26.7,23.5,31.1,Rain,0,3
+East Coast Parkway,Y,2,23,78.3,77.7,74.3,Mist,0,8
+Seletar Expressway,Y,1,12,75.1,72.9,79.7,Clear,0,8
+Seletar Expressway,Y,2,22,70.3,76.0,72.6,Clear,0,7
+Central Expressway,Y,6,13,68.0,62.8,72.3,Haze,0,7
+Bukit Timah Expressway,Y,1,23,67.9,63.4,72.0,Drizzle,0,7
+Seletar Expressway,Y,4,3,66.6,67.5,74.0,Haze,0,8
+Tampines Avenue 10,B,3,10,32.6,36.3,27.2,Rain,0,4
+Clementi Avenue 3,C,1,22,25.9,20.3,35.2,Rain,0,3
+Seletar Expressway,Y,4,22,46.7,46.1,44.2,Rain,0,5
+Ayer Rajah Expressway,Y,2,21,54.8,53.5,65.9,Rain,0,5
+Upper Thomson Road,B,0,8,33.2,36.1,33.3,Haze,1,4
+Central Expressway,Y,2,4,51.4,53.9,56.0,Rain,0,6
+Bedok North Avenue 3,C,5,22,31.5,32.2,31.1,Clouds,0,3
+Tampines Expressway,Y,0,11,70.6,66.4,77.8,Haze,0,8
+Upper Thomson Road,B,4,23,48.9,47.9,51.4,Clear,0,5
+Tampines Avenue 10,B,6,10,41.7,47.1,43.5,Mist,0,5
+Bedok North Avenue 3,C,4,8,23.5,19.6,16.7,Haze,1,2
+Orchard Road,B,2,3,34.9,34.3,34.1,Mist,0,5
+Central Expressway,Y,5,3,67.4,67.7,69.0,Haze,0,8
+Nicoll Highway,B,5,8,49.7,47.9,49.6,Clouds,0,5
+Nicoll Highway,B,1,1,27.4,29.5,21.5,Thunderstorm,0,3
+Tampines Expressway,Y,2,8,55.5,49.2,55.3,Clouds,1,7
+Ayer Rajah Expressway,Y,2,3,67.4,62.4,68.5,Clouds,0,7
+Seletar Expressway,Y,4,15,48.4,47.7,47.5,Rain,0,5
+Seletar Expressway,Y,5,1,56.4,58.1,57.9,Rain,0,7
+Upper Thomson Road,B,6,2,41.2,38.4,48.8,Mist,0,5
+Ayer Rajah Expressway,Y,0,9,43.0,37.7,39.0,Drizzle,1,5
+East Coast Parkway,Y,1,4,82.0,77.9,78.9,Clouds,0,8
+Tampines Avenue 10,B,1,19,34.3,31.9,28.6,Clouds,1,4
+Woodlands Avenue 12,B,2,23,39.2,39.3,38.1,Clouds,0,5
+Orchard Road,B,5,20,37.3,30.7,39.0,Drizzle,0,5
+Bedok North Avenue 3,C,5,19,23.4,16.4,28.1,Rain,0,2
+Orchard Road,B,3,11,34.3,35.4,36.6,Drizzle,0,4
+East Coast Parkway,Y,0,5,75.0,78.8,67.9,Haze,0,8
+Kallang Paya Lebar Expressway,Y,1,6,52.2,53.1,50.9,Rain,0,6
+Tampines Expressway,Y,0,22,71.7,72.7,67.9,Clear,0,8
+Tampines Avenue 10,B,3,18,16.6,9.6,24.6,Thunderstorm,1,2
+Nicoll Highway,B,3,7,31.4,32.2,36.8,Haze,1,3
+Woodlands Avenue 12,B,0,21,32.6,25.4,35.8,Rain,0,3
+Tampines Expressway,Y,4,12,51.6,50.1,58.0,Rain,0,6
+Tampines Expressway,Y,1,12,41.6,43.9,42.2,Thunderstorm,0,6
+Seletar Expressway,Y,2,15,64.9,65.6,64.9,Drizzle,0,7
+Bukit Timah Expressway,Y,4,9,36.3,35.6,28.2,Mist,1,5
+Tampines Expressway,Y,6,19,39.6,38.0,45.7,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,5,20,65.4,63.8,57.5,Drizzle,0,6
+East Coast Parkway,Y,5,21,70.1,77.2,61.4,Mist,0,8
+Seletar Expressway,Y,3,17,44.2,49.9,41.9,Haze,1,5
+Tampines Expressway,Y,0,21,72.5,72.2,67.4,Clouds,0,8
+Clementi Avenue 3,C,5,7,37.2,33.0,33.9,Haze,0,5
+Central Expressway,Y,0,3,70.8,70.9,70.3,Clear,0,8
+Kallang Paya Lebar Expressway,Y,6,17,48.1,47.5,44.0,Rain,0,5
+Kallang Paya Lebar Expressway,Y,5,5,68.7,66.4,65.8,Clouds,0,7
+East Coast Parkway,Y,5,5,67.2,65.5,72.7,Drizzle,0,7
+Tampines Expressway,Y,3,14,34.7,32.4,31.5,Thunderstorm,0,4
+Tampines Avenue 10,B,0,9,18.6,27.0,16.3,Rain,1,2
+Woodlands Avenue 12,B,3,11,29.4,30.0,23.8,Rain,0,4
+Central Expressway,Y,2,12,75.0,78.6,80.5,Clear,0,7
+Orchard Road,B,2,5,41.6,40.7,32.3,Clouds,0,5
+East Coast Parkway,Y,6,3,50.1,51.4,48.6,Rain,0,5
+Tampines Expressway,Y,1,5,64.7,67.6,54.9,Mist,0,6
+Clementi Avenue 3,C,2,6,34.8,37.6,37.2,Drizzle,0,4
+Clementi Avenue 3,C,2,22,34.5,36.5,38.8,Haze,0,5
+Kallang Paya Lebar Expressway,Y,6,21,61.1,62.3,64.0,Haze,0,7
+Orchard Road,B,2,9,4.8,4.8,9.2,Thunderstorm,1,1
+Woodlands Avenue 12,B,0,5,29.1,31.1,25.9,Rain,0,4
+Bedok North Avenue 3,C,4,1,36.7,39.8,38.7,Clouds,0,4
+East Coast Parkway,Y,4,10,61.6,62.1,60.6,Rain,0,7
+Seletar Expressway,Y,4,3,54.2,50.6,48.9,Rain,0,5
+Orchard Road,B,6,11,37.2,41.5,34.9,Drizzle,0,4
+Tampines Expressway,Y,3,15,52.8,54.4,57.9,Rain,0,5
+Upper Thomson Road,B,4,5,22.8,24.2,20.6,Thunderstorm,0,2
+Orchard Road,B,3,4,37.1,33.6,37.3,Haze,0,4
+Clementi Avenue 3,C,1,21,35.0,26.2,41.0,Haze,0,3
+Bukit Timah Expressway,Y,4,13,62.4,65.5,52.8,Drizzle,0,7
+Clementi Avenue 3,C,3,7,13.7,15.9,5.1,Rain,1,2
+Orchard Road,B,3,17,29.8,26.3,26.4,Haze,1,3
+Bukit Timah Expressway,Y,0,6,67.7,62.3,63.9,Haze,0,7
+Tampines Expressway,Y,2,11,69.9,67.9,71.0,Clear,0,7
+Pan Island Expressway,Y,5,22,50.7,48.8,49.3,Rain,0,5
+Ayer Rajah Expressway,Y,0,1,37.4,39.8,36.2,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,4,14,71.1,71.8,79.0,Clear,0,8
+Tampines Expressway,Y,5,19,64.3,63.4,65.3,Drizzle,0,7
+Nicoll Highway,B,5,2,46.2,49.1,46.6,Drizzle,0,5
+Tampines Avenue 10,B,3,15,40.1,38.1,42.3,Mist,0,5
+Tampines Avenue 10,B,0,23,42.9,44.8,36.6,Drizzle,0,5
+Tampines Expressway,Y,0,3,61.2,61.1,57.9,Rain,0,7
+Pan Island Expressway,Y,5,12,65.3,61.3,57.9,Haze,0,7
+Kallang Paya Lebar Expressway,Y,6,9,66.3,68.3,64.3,Mist,0,7
+Orchard Road,B,5,16,44.4,47.2,47.7,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,4,8,24.3,24.6,18.7,Rain,1,3
+Orchard Road,B,3,2,32.8,34.5,30.3,Rain,0,3
+Ayer Rajah Expressway,Y,2,17,7.2,8.3,5.7,Thunderstorm,1,1
+Kallang Paya Lebar Expressway,Y,2,0,33.7,29.5,23.8,Thunderstorm,0,4
+Nicoll Highway,B,2,6,53.6,47.1,49.0,Clear,0,6
+Upper Thomson Road,B,1,4,50.0,49.7,47.7,Clear,0,5
+Pan Island Expressway,Y,0,18,41.7,42.0,45.6,Mist,1,5
+Central Expressway,Y,3,2,61.6,59.5,65.5,Haze,0,7
+Tampines Avenue 10,B,5,14,37.4,38.6,39.9,Mist,0,5
+Kallang Paya Lebar Expressway,Y,6,9,74.2,74.8,78.1,Clouds,0,8
+Tampines Avenue 10,B,0,10,34.0,40.6,31.4,Rain,0,4
+Bukit Timah Expressway,Y,6,6,63.0,60.6,61.2,Mist,0,7
+Orchard Road,B,1,19,25.4,33.5,27.4,Clouds,1,3
+East Coast Parkway,Y,2,14,73.4,73.2,77.1,Clear,0,8
+Seletar Expressway,Y,1,21,66.7,68.7,63.0,Haze,0,7
+Clementi Avenue 3,C,5,23,40.0,41.8,46.2,Clear,0,5
+Orchard Road,B,4,22,37.5,36.6,31.4,Haze,0,4
+Nicoll Highway,B,3,16,49.8,56.2,51.0,Clouds,0,5
+Tampines Avenue 10,B,6,17,38.1,44.1,40.8,Haze,0,5
+Nicoll Highway,B,3,8,34.1,33.6,34.2,Clear,1,4
+East Coast Parkway,Y,4,12,64.9,68.1,63.4,Drizzle,0,7
+Bedok North Avenue 3,C,2,1,34.8,38.7,43.7,Mist,0,4
+Pan Island Expressway,Y,4,18,50.7,51.0,46.9,Clear,1,6
+Orchard Road,B,3,20,29.4,36.0,30.8,Mist,1,4
+Pan Island Expressway,Y,6,8,68.6,68.5,68.1,Clouds,0,7
+Tampines Expressway,Y,1,23,66.2,67.7,63.1,Drizzle,0,6
+Upper Thomson Road,B,6,0,49.2,51.2,37.3,Clear,0,6
+Central Expressway,Y,5,12,63.0,55.9,59.1,Drizzle,0,7
+Pan Island Expressway,Y,5,8,72.7,67.2,70.4,Clouds,0,8
+Woodlands Avenue 12,B,0,9,25.8,22.0,35.2,Clear,1,3
+Kallang Paya Lebar Expressway,Y,5,13,55.5,56.9,57.3,Rain,0,6
+Nicoll Highway,B,3,13,46.9,50.5,44.8,Drizzle,0,6
+Pan Island Expressway,Y,6,20,70.8,69.3,66.3,Clear,0,6
+Bukit Timah Expressway,Y,5,10,49.2,53.1,50.5,Rain,0,6
+Woodlands Avenue 12,B,2,11,43.3,42.4,45.3,Clear,0,5
+Seletar Expressway,Y,1,11,52.0,44.8,54.6,Rain,0,5
+East Coast Parkway,Y,4,3,40.3,41.1,40.1,Thunderstorm,0,4
+Tampines Expressway,Y,1,23,73.8,78.2,72.8,Mist,0,7
+Orchard Road,B,2,14,39.0,43.5,42.7,Clear,0,5
+East Coast Parkway,Y,4,18,35.2,35.7,36.8,Mist,1,5
+Orchard Road,B,3,16,38.5,46.1,45.9,Haze,0,5
+Woodlands Avenue 12,B,0,1,26.9,26.6,34.9,Rain,0,3
+Bedok North Avenue 3,C,0,1,31.7,30.9,35.7,Mist,0,3
+Bukit Timah Expressway,Y,6,16,60.0,63.4,59.8,Drizzle,0,6
+Bukit Timah Expressway,Y,0,4,67.1,65.8,66.2,Clouds,0,7
+Tampines Avenue 10,B,2,15,22.9,20.3,14.7,Thunderstorm,0,3
+Nicoll Highway,B,6,20,37.5,32.4,30.3,Rain,0,5
+Seletar Expressway,Y,6,14,35.2,29.6,33.8,Thunderstorm,0,5
+Tampines Expressway,Y,5,3,76.6,76.5,85.7,Clear,0,8
+East Coast Parkway,Y,0,19,43.2,40.3,44.6,Drizzle,1,5
+Woodlands Avenue 12,B,6,21,41.2,43.7,54.2,Haze,0,4
+Upper Thomson Road,B,5,22,22.3,23.9,18.2,Thunderstorm,0,3
+Tampines Avenue 10,B,6,11,19.1,15.3,12.5,Thunderstorm,0,2
+Pan Island Expressway,Y,6,13,76.2,78.2,76.3,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,6,21,70.8,64.7,71.9,Clouds,0,8
+Bukit Timah Expressway,Y,0,22,73.5,73.2,72.9,Clear,0,8
+Pan Island Expressway,Y,3,8,33.8,36.2,30.3,Rain,1,4
+Woodlands Avenue 12,B,3,13,32.7,31.1,38.9,Drizzle,0,4
+East Coast Parkway,Y,1,11,82.0,86.6,83.8,Clouds,0,8
+Tampines Expressway,Y,3,0,70.2,70.6,67.3,Drizzle,0,8
+Bukit Timah Expressway,Y,2,13,67.3,66.7,58.3,Mist,0,8
+Clementi Avenue 3,C,2,0,35.6,39.0,38.3,Clouds,0,4
+Upper Thomson Road,B,5,15,42.7,37.8,45.8,Haze,0,5
+Orchard Road,B,3,9,23.9,22.4,22.3,Haze,1,4
+Nicoll Highway,B,5,15,53.1,46.8,55.0,Clouds,0,6
+Ayer Rajah Expressway,Y,2,4,54.0,54.1,60.6,Rain,0,7
+Orchard Road,B,6,13,36.5,37.9,47.9,Haze,0,4
+Orchard Road,B,5,21,28.6,25.7,34.9,Rain,0,4
+Seletar Expressway,Y,4,17,45.2,48.2,45.6,Clouds,1,6
+Bedok North Avenue 3,C,0,15,33.7,35.8,25.7,Mist,0,4
+Bedok North Avenue 3,C,1,9,18.6,22.8,18.2,Haze,1,2
+Orchard Road,B,1,11,44.2,40.2,35.9,Clouds,0,5
+Orchard Road,B,1,9,17.3,20.1,13.4,Rain,1,3
+Pan Island Expressway,Y,4,19,30.5,30.0,37.3,Drizzle,1,4
+Tampines Avenue 10,B,1,6,26.5,26.5,32.2,Thunderstorm,0,4
+Orchard Road,B,6,9,43.9,43.6,39.1,Clear,0,5
+Pan Island Expressway,Y,3,21,54.1,61.3,48.8,Rain,0,5
+Pan Island Expressway,Y,6,5,74.8,71.9,73.9,Haze,0,8
+East Coast Parkway,Y,4,9,47.6,48.0,45.6,Drizzle,1,5
+Bedok North Avenue 3,C,4,7,22.7,24.2,21.5,Clear,1,3
+East Coast Parkway,Y,0,13,49.8,49.1,54.8,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,5,4,71.5,65.8,65.1,Clouds,0,7
+Orchard Road,B,2,19,24.2,24.6,26.2,Haze,1,3
+Upper Thomson Road,B,4,7,39.4,38.9,41.4,Clear,1,3
+Tampines Expressway,Y,2,19,39.6,36.2,38.9,Clouds,1,4
+Central Expressway,Y,3,3,69.4,73.3,60.7,Clouds,0,8
+East Coast Parkway,Y,4,12,41.7,37.9,35.9,Thunderstorm,0,4
+Nicoll Highway,B,0,13,42.9,42.2,55.2,Mist,0,5
+Upper Thomson Road,B,3,14,50.0,53.5,55.2,Clear,0,5
+Pan Island Expressway,Y,1,20,44.4,39.5,45.0,Clear,1,5
+East Coast Parkway,Y,0,22,60.4,58.3,52.3,Rain,0,6
+Pan Island Expressway,Y,1,5,57.8,60.3,61.6,Rain,0,7
+Tampines Avenue 10,B,2,15,28.1,29.8,25.8,Thunderstorm,0,3
+Orchard Road,B,5,5,34.2,35.4,34.7,Rain,0,4
+Upper Thomson Road,B,1,10,38.1,35.7,35.5,Drizzle,0,5
+Ayer Rajah Expressway,Y,0,10,67.4,65.5,66.1,Mist,0,8
+Nicoll Highway,B,4,13,43.6,37.9,45.0,Drizzle,0,4
+Bedok North Avenue 3,C,0,6,35.8,34.2,28.5,Clouds,0,4
+Tampines Expressway,Y,3,13,64.1,61.0,64.1,Drizzle,0,7
+Bedok North Avenue 3,C,3,14,33.1,36.0,38.0,Haze,0,3
+Orchard Road,B,0,9,19.4,19.6,18.6,Drizzle,1,3
+Orchard Road,B,2,22,42.7,40.8,46.6,Clear,0,5
+Tampines Expressway,Y,5,5,66.8,71.5,66.5,Clouds,0,7
+Central Expressway,Y,4,1,37.5,46.7,32.1,Thunderstorm,0,4
+Orchard Road,B,6,13,37.5,35.5,32.1,Clouds,0,3
+Upper Thomson Road,B,1,23,49.0,50.2,50.5,Clear,0,6
+Orchard Road,B,0,22,35.9,36.3,33.9,Mist,0,4
+Ayer Rajah Expressway,Y,4,3,63.0,61.0,59.7,Drizzle,0,6
+Tampines Avenue 10,B,0,6,22.3,18.1,27.4,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,1,3,34.7,36.3,32.3,Thunderstorm,0,5
+Upper Thomson Road,B,1,14,46.0,51.5,40.9,Haze,0,5
+Woodlands Avenue 12,B,6,3,30.2,32.9,34.2,Rain,0,4
+Pan Island Expressway,Y,5,15,62.4,65.6,58.6,Rain,0,6
+Tampines Expressway,Y,0,2,69.4,73.2,69.5,Mist,0,7
+Tampines Expressway,Y,3,18,42.1,45.6,36.3,Haze,1,5
+Kallang Paya Lebar Expressway,Y,2,9,41.2,42.8,41.8,Clouds,1,5
+Nicoll Highway,B,0,14,49.1,49.2,41.1,Haze,0,6
+Central Expressway,Y,5,14,38.7,38.6,35.8,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,2,17,20.3,18.5,31.8,Rain,1,2
+Bukit Timah Expressway,Y,5,15,70.3,70.9,78.2,Clear,0,8
+East Coast Parkway,Y,5,10,51.4,49.9,47.6,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,0,10,73.5,79.4,65.8,Mist,0,8
+Upper Thomson Road,B,0,14,40.4,47.5,38.6,Drizzle,0,4
+Nicoll Highway,B,3,7,34.3,35.4,24.1,Mist,1,3
+Central Expressway,Y,6,1,52.7,54.9,45.9,Rain,0,5
+Clementi Avenue 3,C,2,15,33.1,36.4,35.5,Mist,0,4
+Clementi Avenue 3,C,2,17,23.1,20.4,20.6,Clouds,1,3
+Woodlands Avenue 12,B,4,3,44.5,47.5,39.8,Clouds,0,5
+East Coast Parkway,Y,4,16,74.3,72.3,72.7,Clear,0,8
+Bukit Timah Expressway,Y,3,20,48.5,49.3,50.7,Mist,1,6
+Central Expressway,Y,1,19,50.0,53.8,45.7,Clear,1,5
+Ayer Rajah Expressway,Y,2,8,16.8,17.5,14.2,Thunderstorm,1,2
+Kallang Paya Lebar Expressway,Y,5,23,58.0,61.7,54.7,Drizzle,0,7
+Pan Island Expressway,Y,3,1,76.3,82.3,79.3,Clouds,0,8
+Seletar Expressway,Y,0,20,48.4,50.7,49.1,Clear,1,5
+Nicoll Highway,B,0,1,55.0,55.9,58.7,Clouds,0,6
+Upper Thomson Road,B,1,13,48.3,50.4,51.0,Clear,0,5
+Orchard Road,B,3,18,24.5,26.5,21.2,Haze,1,3
+East Coast Parkway,Y,1,2,82.0,83.6,91.9,Clear,0,8
+Nicoll Highway,B,1,8,32.5,33.6,36.7,Mist,1,4
+Tampines Expressway,Y,1,3,41.1,40.7,38.1,Thunderstorm,0,4
+East Coast Parkway,Y,0,12,78.5,80.1,81.3,Clear,0,8
+Clementi Avenue 3,C,4,21,32.0,28.4,37.3,Drizzle,0,4
+Tampines Expressway,Y,4,21,72.9,73.4,76.0,Mist,0,8
+Tampines Expressway,Y,0,2,70.3,66.2,65.4,Mist,0,7
+Pan Island Expressway,Y,5,8,53.8,50.3,53.2,Rain,0,6
+Tampines Expressway,Y,1,15,39.9,43.4,38.4,Thunderstorm,0,5
+Woodlands Avenue 12,B,4,15,45.0,43.4,45.2,Clear,0,5
+Ayer Rajah Expressway,Y,0,2,59.8,63.4,71.0,Drizzle,0,7
+Pan Island Expressway,Y,2,18,46.0,44.2,41.4,Haze,1,5
+Bedok North Avenue 3,C,0,17,22.5,27.0,17.1,Haze,1,3
+Nicoll Highway,B,3,13,48.6,45.1,54.2,Haze,0,5
+Tampines Avenue 10,B,2,0,38.4,34.4,42.8,Drizzle,0,4
+Central Expressway,Y,6,12,67.3,68.3,64.1,Mist,0,8
+Ayer Rajah Expressway,Y,2,12,59.8,64.6,57.3,Drizzle,0,7
+Ayer Rajah Expressway,Y,4,12,78.0,77.0,77.1,Clear,0,8
+Bukit Timah Expressway,Y,6,0,71.5,70.3,80.2,Clear,0,8
+Ayer Rajah Expressway,Y,6,7,38.7,41.9,36.7,Thunderstorm,0,4
+Tampines Expressway,Y,2,3,43.2,45.1,45.4,Thunderstorm,0,5
+Clementi Avenue 3,C,4,0,32.8,35.7,48.2,Drizzle,0,4
+Upper Thomson Road,B,3,4,32.5,34.4,31.6,Rain,0,4
+Seletar Expressway,Y,1,23,46.3,48.6,38.3,Thunderstorm,0,5
+Bukit Timah Expressway,Y,5,1,37.6,37.8,34.2,Thunderstorm,0,4
+Seletar Expressway,Y,6,12,75.4,74.6,74.2,Clouds,0,8
+Upper Thomson Road,B,3,14,46.5,48.8,39.2,Clouds,0,5
+Central Expressway,Y,2,3,57.6,58.9,61.7,Drizzle,0,6
+Ayer Rajah Expressway,Y,6,23,50.3,47.2,51.1,Rain,0,6
+Orchard Road,B,2,6,19.4,19.5,18.0,Thunderstorm,0,3
+Clementi Avenue 3,C,1,7,18.2,18.2,15.2,Mist,1,3
+Upper Thomson Road,B,2,22,38.6,44.2,35.3,Mist,0,4
+Seletar Expressway,Y,5,18,60.5,57.3,51.9,Drizzle,0,6
+Bukit Timah Expressway,Y,5,13,51.4,45.8,48.9,Rain,0,6
+Tampines Expressway,Y,1,10,53.3,55.4,61.7,Rain,0,6
+Upper Thomson Road,B,2,14,33.7,34.1,31.9,Rain,0,3
+Tampines Avenue 10,B,2,9,24.1,24.1,23.5,Mist,1,3
+Pan Island Expressway,Y,5,11,54.9,60.5,58.9,Rain,0,5
+East Coast Parkway,Y,3,22,72.4,70.4,72.9,Haze,0,8
+Upper Thomson Road,B,5,2,43.8,47.1,42.2,Haze,0,5
+Woodlands Avenue 12,B,3,1,33.6,39.4,37.2,Rain,0,4
+Clementi Avenue 3,C,5,3,24.1,24.4,17.0,Thunderstorm,0,2
+Upper Thomson Road,B,2,11,26.3,30.6,31.0,Rain,0,3
+Ayer Rajah Expressway,Y,1,7,25.4,19.0,24.3,Rain,1,3
+Upper Thomson Road,B,0,21,40.2,42.8,45.6,Rain,0,5
+East Coast Parkway,Y,1,18,43.4,42.6,44.6,Drizzle,1,5
+Kallang Paya Lebar Expressway,Y,5,17,76.0,75.3,82.6,Clouds,0,8
+Bedok North Avenue 3,C,6,9,33.9,35.5,28.7,Mist,0,4
+Bukit Timah Expressway,Y,1,1,71.5,72.6,70.0,Clear,0,8
+East Coast Parkway,Y,0,12,82.0,81.1,74.1,Clear,0,8
+East Coast Parkway,Y,2,15,78.1,82.8,77.2,Clouds,0,8
+Seletar Expressway,Y,5,7,69.0,71.6,64.9,Clouds,0,7
+Seletar Expressway,Y,5,21,51.1,55.9,56.3,Rain,0,5
+Tampines Avenue 10,B,3,14,38.7,41.5,37.4,Drizzle,0,4
+Clementi Avenue 3,C,0,19,27.0,23.2,26.2,Clear,1,4
+Kallang Paya Lebar Expressway,Y,5,7,68.9,71.1,72.8,Haze,0,8
+Bedok North Avenue 3,C,4,21,31.7,32.3,34.5,Drizzle,0,3
+East Coast Parkway,Y,2,5,68.5,74.6,63.4,Drizzle,0,7
+Pan Island Expressway,Y,6,18,64.6,65.9,62.7,Drizzle,0,8
+Pan Island Expressway,Y,6,10,73.9,81.2,67.0,Clouds,0,8
+Seletar Expressway,Y,4,0,60.2,60.1,63.4,Drizzle,0,6
+Orchard Road,B,3,0,41.5,44.1,47.5,Clear,0,4
+Central Expressway,Y,4,7,41.7,44.9,41.4,Clouds,1,5
+Orchard Road,B,6,20,39.1,42.7,35.8,Mist,0,4
+Orchard Road,B,4,20,19.2,15.2,11.4,Rain,1,3
+Central Expressway,Y,3,22,64.0,62.8,70.8,Mist,0,7
+Bukit Timah Expressway,Y,6,19,62.4,63.4,61.2,Mist,0,8
+Central Expressway,Y,1,6,58.5,59.4,57.7,Mist,0,6
+Ayer Rajah Expressway,Y,4,11,65.6,67.2,68.4,Mist,0,6
+Bukit Timah Expressway,Y,2,2,57.6,57.8,54.4,Drizzle,0,6
+Tampines Expressway,Y,4,22,36.9,38.2,50.0,Thunderstorm,0,5
+Upper Thomson Road,B,5,18,46.6,44.2,43.1,Clear,0,5
+Clementi Avenue 3,C,1,23,34.3,32.0,36.9,Haze,0,4
+Nicoll Highway,B,0,13,52.2,54.2,51.5,Clouds,0,6
+Tampines Expressway,Y,0,7,51.8,52.6,52.0,Clouds,1,6
+East Coast Parkway,Y,6,13,72.2,74.1,73.6,Mist,0,8
+Central Expressway,Y,1,16,69.9,68.6,67.5,Clouds,0,8
+Seletar Expressway,Y,2,6,53.4,55.3,67.4,Rain,0,6
+Orchard Road,B,1,6,31.1,29.2,30.2,Rain,0,4
+Nicoll Highway,B,3,15,29.7,25.9,31.7,Thunderstorm,0,3
+Central Expressway,Y,3,10,70.0,73.5,74.6,Clouds,0,8
+Ayer Rajah Expressway,Y,4,16,56.3,57.9,61.8,Rain,0,6
+Orchard Road,B,1,13,38.6,33.0,33.9,Drizzle,0,5
+Nicoll Highway,B,4,23,54.0,52.5,51.6,Clear,0,6
+Bukit Timah Expressway,Y,3,17,48.1,43.1,42.8,Haze,1,6
+Kallang Paya Lebar Expressway,Y,3,3,70.4,73.3,57.3,Clouds,0,7
+Pan Island Expressway,Y,6,3,63.3,61.7,62.1,Drizzle,0,7
+Central Expressway,Y,3,21,64.5,67.4,70.7,Mist,0,7
+Orchard Road,B,1,7,23.0,23.7,17.4,Drizzle,1,2
+Ayer Rajah Expressway,Y,1,22,66.0,67.7,65.3,Drizzle,0,7
+Upper Thomson Road,B,5,14,35.3,35.6,23.6,Rain,0,4
+Kallang Paya Lebar Expressway,Y,5,2,50.4,46.3,48.7,Rain,0,6
+Tampines Expressway,Y,5,2,71.1,67.5,74.7,Clouds,0,7
+Central Expressway,Y,0,14,75.0,75.9,77.8,Clear,0,8
+Central Expressway,Y,6,6,36.9,33.5,38.5,Thunderstorm,0,4
+Orchard Road,B,6,12,43.5,41.2,43.8,Clouds,0,4
+Woodlands Avenue 12,B,2,2,20.7,13.7,15.4,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,0,23,54.3,56.2,57.6,Rain,0,5
+East Coast Parkway,Y,4,2,75.6,72.5,68.1,Clear,0,8
+Kallang Paya Lebar Expressway,Y,2,12,72.1,71.2,68.8,Clouds,0,8
+Woodlands Avenue 12,B,1,22,45.0,45.0,49.4,Clouds,0,5
+Tampines Expressway,Y,6,5,69.2,70.3,74.7,Mist,0,8
+Clementi Avenue 3,C,4,11,22.1,22.4,20.6,Thunderstorm,0,2
+Upper Thomson Road,B,5,20,38.7,38.5,38.5,Drizzle,0,4
+Tampines Avenue 10,B,3,6,34.5,28.5,30.7,Rain,0,4
+Ayer Rajah Expressway,Y,3,10,54.8,53.4,53.6,Rain,0,6
+Bukit Timah Expressway,Y,5,16,65.5,66.2,66.7,Haze,0,8
+Nicoll Highway,B,6,4,51.2,53.5,52.8,Haze,0,6
+Kallang Paya Lebar Expressway,Y,3,13,38.2,39.5,44.2,Thunderstorm,0,4
+Bukit Timah Expressway,Y,6,22,52.8,50.8,57.9,Rain,0,6
+Orchard Road,B,3,4,38.6,45.3,45.7,Mist,0,4
+Kallang Paya Lebar Expressway,Y,4,15,60.4,61.2,63.8,Drizzle,0,7
+Orchard Road,B,3,12,41.1,41.1,42.1,Haze,0,5
+Bedok North Avenue 3,C,2,20,7.6,9.5,6.8,Thunderstorm,1,1
+Kallang Paya Lebar Expressway,Y,4,3,65.2,65.7,76.2,Haze,0,7
+Pan Island Expressway,Y,0,12,60.8,56.5,56.0,Drizzle,0,7
+Upper Thomson Road,B,0,12,43.6,43.3,45.6,Drizzle,0,5
+Tampines Avenue 10,B,0,9,22.1,24.2,25.0,Rain,1,3
+Kallang Paya Lebar Expressway,Y,0,1,65.3,66.5,61.2,Haze,0,7
+Ayer Rajah Expressway,Y,0,5,41.7,45.9,35.6,Thunderstorm,0,4
+Tampines Expressway,Y,1,7,43.6,46.2,44.0,Haze,1,5
+Ayer Rajah Expressway,Y,5,3,63.3,65.6,74.7,Mist,0,7
+Ayer Rajah Expressway,Y,6,11,78.0,80.5,80.2,Clear,0,8
+Bedok North Avenue 3,C,0,21,35.3,37.6,23.2,Clear,0,4
+Pan Island Expressway,Y,6,18,64.4,66.0,60.4,Mist,0,7
+Pan Island Expressway,Y,1,2,50.2,52.4,45.2,Rain,0,6
+Bukit Timah Expressway,Y,2,0,67.7,64.8,72.8,Clouds,0,7
+Woodlands Avenue 12,B,2,6,29.5,30.1,24.5,Rain,0,4
+Bukit Timah Expressway,Y,5,20,60.9,65.2,51.7,Drizzle,0,7
+Bukit Timah Expressway,Y,2,6,60.2,61.3,56.0,Mist,0,6
+Ayer Rajah Expressway,Y,3,12,67.9,63.9,61.3,Clouds,0,8
+Orchard Road,B,5,21,39.8,39.5,42.3,Haze,0,5
+Orchard Road,B,0,18,17.8,14.6,15.2,Mist,1,2
+Bukit Timah Expressway,Y,6,20,63.7,59.4,75.5,Drizzle,0,7
+Pan Island Expressway,Y,6,3,69.8,72.8,73.9,Haze,0,8
+Ayer Rajah Expressway,Y,5,14,68.9,62.8,70.5,Clear,0,7
+Nicoll Highway,B,1,17,13.5,13.5,17.9,Rain,1,2
+Tampines Avenue 10,B,0,15,43.3,42.9,50.2,Haze,0,5
+Nicoll Highway,B,0,20,33.2,43.0,27.2,Mist,1,4
+Bedok North Avenue 3,C,2,1,28.2,31.7,31.7,Rain,0,3
+Bedok North Avenue 3,C,0,20,15.9,15.7,19.1,Rain,1,2
+Pan Island Expressway,Y,4,13,78.8,79.5,78.7,Clear,0,8
+Kallang Paya Lebar Expressway,Y,3,4,66.8,68.2,57.6,Mist,0,7
+Bukit Timah Expressway,Y,4,11,56.6,57.5,62.2,Drizzle,0,6
+Seletar Expressway,Y,5,14,54.7,58.2,53.8,Rain,0,5
+Woodlands Avenue 12,B,1,4,20.0,22.3,18.8,Thunderstorm,0,2
+Tampines Expressway,Y,1,11,74.6,73.4,83.1,Clouds,0,8
+Orchard Road,B,0,18,25.3,22.7,31.7,Clouds,1,3
+Seletar Expressway,Y,5,18,71.3,70.0,76.8,Clouds,0,7
+Orchard Road,B,3,9,24.9,25.9,13.0,Haze,1,3
+Upper Thomson Road,B,6,18,43.9,43.7,47.0,Clouds,0,5
+Bukit Timah Expressway,Y,1,5,33.8,34.1,29.1,Thunderstorm,0,4
+Woodlands Avenue 12,B,5,21,38.4,34.8,46.0,Drizzle,0,5
+Tampines Expressway,Y,2,7,45.9,45.2,35.7,Drizzle,1,6
+Clementi Avenue 3,C,3,11,28.5,21.7,30.5,Drizzle,0,4
+Tampines Expressway,Y,1,8,33.8,31.5,38.0,Rain,1,4
+Seletar Expressway,Y,1,23,60.9,59.1,50.0,Drizzle,0,7
+Central Expressway,Y,6,6,58.6,56.8,52.9,Haze,0,7
+Upper Thomson Road,B,2,23,41.9,37.9,51.6,Mist,0,5
+Tampines Expressway,Y,1,2,68.3,70.1,60.2,Mist,0,8
+Pan Island Expressway,Y,0,8,47.6,48.4,47.9,Clouds,1,5
+Tampines Avenue 10,B,5,11,24.0,28.6,23.6,Thunderstorm,0,3
+Tampines Avenue 10,B,5,12,24.1,23.7,27.8,Thunderstorm,0,3
+Upper Thomson Road,B,6,5,44.0,48.1,49.8,Mist,0,5
+Pan Island Expressway,Y,6,16,69.6,65.4,68.7,Mist,0,7
+Bukit Timah Expressway,Y,0,2,53.1,58.8,57.3,Rain,0,6
+Kallang Paya Lebar Expressway,Y,4,11,61.7,61.6,56.6,Haze,0,7
+East Coast Parkway,Y,3,16,82.0,79.7,80.8,Clear,0,8
+Seletar Expressway,Y,2,16,68.4,66.7,69.5,Clear,0,7
+Woodlands Avenue 12,B,1,0,39.0,39.0,37.4,Mist,0,5
+Kallang Paya Lebar Expressway,Y,5,4,60.5,58.5,63.1,Mist,0,7
+Woodlands Avenue 12,B,5,23,38.3,39.6,39.4,Mist,0,4
+Nicoll Highway,B,6,11,47.9,53.2,43.4,Clouds,0,5
+Bedok North Avenue 3,C,0,9,15.4,16.1,12.9,Drizzle,1,1
+Woodlands Avenue 12,B,6,5,45.0,47.2,40.0,Haze,0,5
+Nicoll Highway,B,3,6,44.9,45.2,49.7,Drizzle,0,5
+Tampines Avenue 10,B,6,21,28.1,24.9,29.7,Thunderstorm,0,3
+Seletar Expressway,Y,1,10,71.3,69.2,78.5,Clouds,0,8
+Ayer Rajah Expressway,Y,6,5,71.2,68.5,72.7,Clouds,0,7
+Clementi Avenue 3,C,1,5,33.7,35.4,33.8,Haze,0,3
+Tampines Avenue 10,B,2,21,42.7,40.6,44.5,Haze,0,5
+Ayer Rajah Expressway,Y,3,13,75.4,77.3,71.7,Clear,0,8
+Nicoll Highway,B,0,15,50.9,52.8,53.1,Clouds,0,6
+Seletar Expressway,Y,5,23,64.8,67.9,66.6,Mist,0,7
+Clementi Avenue 3,C,2,17,23.2,23.6,29.6,Clouds,1,3
+Bedok North Avenue 3,C,3,23,30.6,33.1,38.3,Mist,0,4
+Kallang Paya Lebar Expressway,Y,0,8,42.5,41.4,44.2,Clouds,1,5
+Nicoll Highway,B,2,14,43.7,43.4,44.6,Drizzle,0,4
+Tampines Avenue 10,B,5,8,47.7,46.4,44.4,Clear,0,5
+Central Expressway,Y,4,5,61.3,58.0,61.1,Drizzle,0,7
+Orchard Road,B,0,5,41.5,39.4,36.3,Clouds,0,4
+Seletar Expressway,Y,6,2,67.5,58.1,62.3,Haze,0,7
+Bukit Timah Expressway,Y,4,23,66.6,66.5,62.4,Drizzle,0,7
+Ayer Rajah Expressway,Y,4,6,54.6,55.9,52.4,Rain,0,6
+Upper Thomson Road,B,0,10,46.0,41.1,44.2,Clear,0,5
+Orchard Road,B,4,23,36.9,42.5,33.0,Drizzle,0,3
+Ayer Rajah Expressway,Y,3,11,43.7,44.8,47.7,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,4,20,22.5,20.6,19.0,Rain,1,2
+Woodlands Avenue 12,B,0,9,23.3,24.1,19.6,Mist,1,3
+Seletar Expressway,Y,4,10,68.7,71.1,66.3,Haze,0,7
+Kallang Paya Lebar Expressway,Y,3,15,68.1,65.7,70.9,Clouds,0,7
+Tampines Avenue 10,B,1,14,47.2,49.8,45.4,Haze,0,5
+Kallang Paya Lebar Expressway,Y,5,2,76.0,76.7,81.6,Clear,0,8
+Pan Island Expressway,Y,4,3,60.3,67.0,49.1,Drizzle,0,6
+Tampines Expressway,Y,6,2,73.5,72.7,72.9,Clear,0,8
+Central Expressway,Y,1,6,63.1,59.9,54.4,Haze,0,7
+Bedok North Avenue 3,C,2,10,19.7,20.2,24.0,Thunderstorm,0,2
+Orchard Road,B,2,9,11.9,15.5,13.7,Thunderstorm,1,1
+Central Expressway,Y,5,2,55.7,54.7,59.0,Mist,0,6
+Clementi Avenue 3,C,1,11,21.4,20.4,27.5,Thunderstorm,0,2
+Bedok North Avenue 3,C,6,21,35.0,40.9,37.9,Clouds,0,3
+Tampines Avenue 10,B,1,11,46.9,48.0,51.1,Clear,0,5
+Central Expressway,Y,6,9,61.1,64.0,58.8,Drizzle,0,6
+Upper Thomson Road,B,2,17,22.1,20.9,22.0,Rain,1,3
+Upper Thomson Road,B,5,8,47.4,43.3,45.0,Clouds,0,5
+Upper Thomson Road,B,6,12,42.4,41.7,48.8,Haze,0,4
+Tampines Expressway,Y,4,5,58.7,56.5,48.6,Mist,0,6
+Clementi Avenue 3,C,1,3,31.6,28.2,31.4,Mist,0,4
+Pan Island Expressway,Y,4,0,64.4,63.8,74.6,Drizzle,0,6
+Kallang Paya Lebar Expressway,Y,0,11,64.6,63.9,56.6,Drizzle,0,7
+Tampines Avenue 10,B,1,7,30.2,29.2,41.0,Clouds,1,4
+Seletar Expressway,Y,1,16,64.2,62.9,68.9,Mist,0,7
+Orchard Road,B,2,5,22.3,21.5,24.5,Thunderstorm,0,3
+Clementi Avenue 3,C,5,16,20.8,16.4,15.3,Thunderstorm,0,2
+Pan Island Expressway,Y,5,12,66.3,65.0,55.9,Drizzle,0,7
+Bukit Timah Expressway,Y,2,15,38.7,35.8,36.1,Thunderstorm,0,4
+Nicoll Highway,B,0,1,49.1,49.4,40.5,Mist,0,5
+Woodlands Avenue 12,B,0,5,38.6,34.7,31.5,Mist,0,5
+Nicoll Highway,B,6,3,43.9,41.2,52.6,Mist,0,5
+Orchard Road,B,0,13,43.5,40.6,45.4,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,1,22,74.3,75.4,74.2,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,1,10,67.5,73.7,67.9,Drizzle,0,6
+Bedok North Avenue 3,C,5,4,31.9,30.4,28.7,Mist,0,4
+Woodlands Avenue 12,B,5,22,36.5,32.3,41.4,Drizzle,0,3
+Pan Island Expressway,Y,0,16,58.4,56.3,61.3,Rain,0,6
+Bedok North Avenue 3,C,5,19,19.0,19.8,16.5,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,5,18,34.1,37.3,32.4,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,4,14,50.9,52.2,52.1,Rain,0,5
+Central Expressway,Y,5,22,66.9,63.1,59.8,Clouds,0,8
+Bukit Timah Expressway,Y,1,0,73.8,76.5,69.9,Clear,0,8
+East Coast Parkway,Y,2,20,34.1,33.6,38.2,Drizzle,1,3
+Woodlands Avenue 12,B,4,5,32.0,27.6,35.6,Rain,0,3
+Woodlands Avenue 12,B,3,22,41.3,35.9,30.7,Haze,0,5
+East Coast Parkway,Y,6,7,80.4,81.7,81.1,Clear,0,8
+East Coast Parkway,Y,4,0,75.7,75.9,75.9,Clouds,0,8
+Seletar Expressway,Y,0,20,58.4,52.0,62.9,Clear,1,6
+Tampines Avenue 10,B,1,16,46.3,50.0,46.5,Clear,0,5
+Woodlands Avenue 12,B,4,4,41.6,41.9,40.5,Clouds,0,5
+Ayer Rajah Expressway,Y,5,1,77.3,78.2,79.7,Clear,0,8
+East Coast Parkway,Y,4,0,69.3,66.5,64.2,Drizzle,0,7
+Kallang Paya Lebar Expressway,Y,5,10,48.5,51.2,46.6,Rain,0,5
+East Coast Parkway,Y,2,9,40.1,45.0,43.0,Drizzle,1,5
+Tampines Expressway,Y,6,7,73.3,72.3,72.9,Clear,0,8
+Orchard Road,B,4,19,27.6,24.8,27.7,Clear,1,3
+Woodlands Avenue 12,B,2,10,22.8,21.1,25.1,Thunderstorm,0,3
+Nicoll Highway,B,1,1,47.6,52.4,43.8,Drizzle,0,5
+Orchard Road,B,5,20,42.1,44.1,37.7,Mist,0,4
+Tampines Avenue 10,B,2,7,19.1,23.9,20.0,Haze,1,2
+Nicoll Highway,B,3,14,49.5,51.7,49.0,Drizzle,0,5
+Tampines Expressway,Y,4,5,71.4,66.2,68.1,Haze,0,7
+Ayer Rajah Expressway,Y,2,15,68.0,68.7,71.1,Clear,0,7
+Tampines Expressway,Y,4,8,14.6,16.3,21.7,Thunderstorm,1,2
+Tampines Avenue 10,B,5,20,25.0,23.6,20.3,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,4,18,32.5,28.5,34.4,Drizzle,1,4
+Clementi Avenue 3,C,1,19,7.6,11.2,12.0,Thunderstorm,1,2
+Seletar Expressway,Y,4,17,49.5,50.7,49.7,Clear,1,5
+Upper Thomson Road,B,5,21,23.2,29.3,20.1,Thunderstorm,0,3
+Pan Island Expressway,Y,5,3,79.0,76.9,82.9,Clear,0,8
+Pan Island Expressway,Y,4,3,60.0,61.0,55.6,Drizzle,0,6
+Tampines Avenue 10,B,1,5,35.2,36.7,29.0,Mist,0,3
+Pan Island Expressway,Y,4,2,69.9,66.9,69.4,Mist,0,7
+Pan Island Expressway,Y,0,10,55.7,53.8,58.7,Rain,0,6
+East Coast Parkway,Y,4,9,61.0,56.4,62.9,Clouds,1,6
+Bukit Timah Expressway,Y,6,6,58.6,61.4,67.5,Mist,0,7
+Central Expressway,Y,3,3,68.9,66.7,68.7,Haze,0,8
+Central Expressway,Y,6,22,41.9,46.4,50.9,Thunderstorm,0,5
+Tampines Expressway,Y,2,17,47.1,48.6,46.2,Drizzle,1,5
+Seletar Expressway,Y,1,19,41.2,43.3,33.6,Mist,1,4
+Upper Thomson Road,B,0,0,33.3,34.9,36.1,Rain,0,4
+Pan Island Expressway,Y,3,4,43.0,45.4,47.5,Thunderstorm,0,5
+Tampines Expressway,Y,1,19,44.2,44.0,40.9,Mist,1,4
+Tampines Avenue 10,B,6,16,45.3,48.3,41.2,Clouds,0,5
+Seletar Expressway,Y,6,8,62.9,61.4,63.6,Drizzle,0,8
+Bukit Timah Expressway,Y,6,15,64.6,64.6,73.5,Drizzle,0,7
+East Coast Parkway,Y,3,6,82.0,82.0,80.4,Clear,0,8
+Bedok North Avenue 3,C,1,14,34.0,38.6,39.7,Mist,0,3
+Upper Thomson Road,B,3,4,45.4,40.5,41.3,Clouds,0,5
+Nicoll Highway,B,6,7,54.6,49.3,60.5,Haze,0,6
+Nicoll Highway,B,2,20,25.9,21.1,26.1,Drizzle,1,3
+Upper Thomson Road,B,0,14,35.7,39.8,27.5,Rain,0,4
+Ayer Rajah Expressway,Y,6,6,52.2,51.7,52.0,Rain,0,6
+Orchard Road,B,2,16,44.2,39.7,45.8,Drizzle,0,4
+Tampines Avenue 10,B,4,15,44.3,45.3,46.7,Clouds,0,5
+Seletar Expressway,Y,5,7,72.3,67.5,72.1,Haze,0,8
+Orchard Road,B,4,7,19.5,17.3,22.4,Drizzle,1,2
+Woodlands Avenue 12,B,2,10,22.0,18.8,21.3,Thunderstorm,0,2
+Pan Island Expressway,Y,1,13,67.1,66.2,64.7,Drizzle,0,7
+Kallang Paya Lebar Expressway,Y,0,1,51.8,54.5,46.9,Rain,0,6
+Bedok North Avenue 3,C,3,15,21.6,27.3,18.1,Thunderstorm,0,2
+Tampines Expressway,Y,3,15,59.1,61.5,60.9,Drizzle,0,6
+Upper Thomson Road,B,1,10,36.9,33.6,33.2,Drizzle,0,4
+Central Expressway,Y,3,1,37.9,39.1,38.0,Thunderstorm,0,4
+Nicoll Highway,B,6,10,55.0,57.4,50.1,Clear,0,6
+Woodlands Avenue 12,B,4,21,36.3,37.7,37.4,Clouds,0,4
+Central Expressway,Y,0,5,69.3,70.4,63.5,Clear,0,7
+Orchard Road,B,4,8,26.0,27.8,20.0,Haze,1,3
+Seletar Expressway,Y,5,20,58.6,60.8,57.8,Drizzle,0,7
+Upper Thomson Road,B,6,18,46.1,44.4,39.4,Clouds,0,6
+Ayer Rajah Expressway,Y,4,21,70.2,74.2,64.1,Clear,0,7
+Upper Thomson Road,B,0,9,17.4,20.8,17.0,Rain,1,2
+Tampines Expressway,Y,6,16,71.5,76.0,66.2,Haze,0,7
+Tampines Avenue 10,B,2,1,41.9,42.1,42.8,Mist,0,5
+Kallang Paya Lebar Expressway,Y,2,7,48.2,49.1,46.5,Haze,1,6
+Bedok North Avenue 3,C,6,16,15.1,14.5,15.6,Thunderstorm,0,2
+Seletar Expressway,Y,3,1,47.6,49.9,45.6,Thunderstorm,0,5
+Tampines Expressway,Y,2,18,50.3,52.3,41.9,Mist,1,5
+Clementi Avenue 3,C,1,21,35.8,37.8,45.4,Clear,0,3
+Upper Thomson Road,B,5,17,36.5,37.8,42.3,Drizzle,0,4
+Clementi Avenue 3,C,4,13,21.5,24.9,11.6,Thunderstorm,0,2
+Bukit Timah Expressway,Y,0,17,40.3,42.6,43.3,Clouds,1,4
+Seletar Expressway,Y,1,2,73.5,74.6,74.7,Clear,0,8
+Bedok North Avenue 3,C,5,14,29.9,28.0,32.5,Drizzle,0,3
+Seletar Expressway,Y,2,18,45.5,40.6,47.4,Clear,1,5
+East Coast Parkway,Y,2,4,64.9,61.9,56.2,Drizzle,0,8
+Kallang Paya Lebar Expressway,Y,3,3,57.8,57.0,65.0,Drizzle,0,7
+Nicoll Highway,B,2,15,38.4,37.6,44.1,Drizzle,0,5
+Tampines Expressway,Y,6,7,67.7,68.2,63.7,Drizzle,0,8
+Clementi Avenue 3,C,6,18,37.8,37.8,35.5,Clear,0,5
+Nicoll Highway,B,4,12,32.8,33.3,33.8,Thunderstorm,0,3
+Woodlands Avenue 12,B,4,7,7.1,11.2,7.3,Thunderstorm,1,1
+Orchard Road,B,3,3,45.0,47.3,50.7,Clear,0,5
+East Coast Parkway,Y,1,5,65.3,63.1,64.7,Drizzle,0,7
+Tampines Avenue 10,B,6,2,39.4,36.9,38.5,Mist,0,5
+Tampines Expressway,Y,0,20,51.9,50.9,52.6,Clear,1,5
+Nicoll Highway,B,1,21,38.7,38.5,44.3,Rain,0,5
+Orchard Road,B,3,6,30.7,29.9,23.0,Rain,0,3
+Bukit Timah Expressway,Y,4,0,46.2,44.0,53.1,Rain,0,6
+Upper Thomson Road,B,1,1,41.6,48.4,42.6,Haze,0,4
+Orchard Road,B,4,15,38.3,37.4,36.4,Drizzle,0,4
+Bukit Timah Expressway,Y,1,1,68.7,70.4,73.1,Clouds,0,8
+Nicoll Highway,B,3,10,53.1,52.0,46.5,Clear,0,6
+Central Expressway,Y,6,11,75.0,73.8,72.3,Clouds,0,8
+Upper Thomson Road,B,2,9,27.3,30.1,23.4,Mist,1,3
+Seletar Expressway,Y,5,3,62.3,66.6,66.0,Drizzle,0,7
+Clementi Avenue 3,C,3,1,36.7,38.6,29.4,Drizzle,0,4
+Kallang Paya Lebar Expressway,Y,6,13,70.9,74.5,76.9,Haze,0,7
+Central Expressway,Y,4,13,67.5,66.6,74.1,Clear,0,7
+Central Expressway,Y,2,18,36.1,32.3,41.7,Haze,1,4
+Kallang Paya Lebar Expressway,Y,3,17,36.4,36.2,36.1,Mist,1,4
+Central Expressway,Y,5,3,71.0,73.5,79.5,Haze,0,8
+Bedok North Avenue 3,C,2,21,34.7,36.0,37.0,Haze,0,4
+Tampines Avenue 10,B,5,23,39.9,45.1,38.7,Mist,0,5
+Clementi Avenue 3,C,1,13,25.4,27.1,24.6,Rain,0,3
+East Coast Parkway,Y,0,21,66.6,65.9,75.1,Mist,0,8
+Tampines Expressway,Y,5,5,54.6,56.4,55.5,Rain,0,6
+Central Expressway,Y,0,12,58.9,55.5,62.7,Mist,0,6
+Central Expressway,Y,4,1,37.4,41.1,28.3,Thunderstorm,0,5
+Clementi Avenue 3,C,0,2,39.8,34.4,41.9,Clear,0,4
+Seletar Expressway,Y,3,13,77.0,75.8,70.0,Clear,0,8
+Pan Island Expressway,Y,0,8,46.9,47.3,54.5,Clear,1,5
+Central Expressway,Y,3,9,48.0,46.8,45.2,Mist,1,5
+Ayer Rajah Expressway,Y,6,1,62.2,64.3,49.8,Drizzle,0,7
+Tampines Expressway,Y,2,17,14.2,17.0,15.4,Thunderstorm,1,2
+Ayer Rajah Expressway,Y,4,4,52.4,48.3,53.5,Rain,0,6
+Clementi Avenue 3,C,5,22,30.9,26.6,30.0,Drizzle,0,4
+East Coast Parkway,Y,3,10,75.9,73.0,81.0,Clear,0,7
+Ayer Rajah Expressway,Y,1,21,52.6,54.4,45.9,Rain,0,6
+Orchard Road,B,5,10,39.6,44.5,46.8,Drizzle,0,5
+Pan Island Expressway,Y,6,12,74.5,76.8,85.2,Clear,0,8
+Clementi Avenue 3,C,5,14,19.6,18.0,23.8,Thunderstorm,0,2
+Bukit Timah Expressway,Y,4,3,66.7,68.6,64.0,Mist,0,7
+Seletar Expressway,Y,0,6,68.2,69.7,76.4,Drizzle,0,7
+Upper Thomson Road,B,2,16,32.7,28.7,36.7,Rain,0,4
+Orchard Road,B,4,2,33.9,29.6,29.8,Rain,0,3
+Woodlands Avenue 12,B,5,5,38.0,40.1,47.1,Mist,0,4
+Woodlands Avenue 12,B,0,4,26.9,30.0,31.9,Thunderstorm,0,3
+Seletar Expressway,Y,1,9,6.9,12.1,8.4,Thunderstorm,1,1
+Woodlands Avenue 12,B,5,2,21.3,20.7,22.0,Thunderstorm,0,2
+Clementi Avenue 3,C,2,20,18.4,17.1,28.4,Rain,1,3
+Upper Thomson Road,B,5,0,30.1,31.6,36.5,Thunderstorm,0,3
+Clementi Avenue 3,C,5,9,40.0,39.9,34.7,Clouds,0,4
+Seletar Expressway,Y,3,17,44.4,44.3,49.2,Haze,1,5
+Woodlands Avenue 12,B,5,6,18.7,16.3,12.8,Thunderstorm,0,2
+Kallang Paya Lebar Expressway,Y,0,8,32.4,35.4,33.8,Mist,1,3
+Pan Island Expressway,Y,0,12,54.3,46.3,54.0,Rain,0,7
+Tampines Expressway,Y,4,14,80.0,80.7,76.2,Clear,0,8
+Kallang Paya Lebar Expressway,Y,5,17,48.0,46.9,53.0,Rain,0,5
+Woodlands Avenue 12,B,0,21,38.5,41.1,31.9,Haze,0,4
+Upper Thomson Road,B,0,18,26.5,26.9,34.0,Haze,1,3
+Ayer Rajah Expressway,Y,6,12,47.8,45.5,52.9,Thunderstorm,0,5
+Central Expressway,Y,3,21,46.5,47.1,50.3,Thunderstorm,0,5
+Clementi Avenue 3,C,1,6,39.1,38.2,39.2,Haze,0,5
+Ayer Rajah Expressway,Y,3,6,73.3,72.9,73.4,Haze,0,8
+Ayer Rajah Expressway,Y,2,14,75.2,71.3,70.0,Clear,0,8
+Tampines Expressway,Y,0,0,74.9,78.7,70.6,Clouds,0,8
+Central Expressway,Y,2,0,69.7,68.0,70.8,Clouds,0,8
+Tampines Expressway,Y,0,21,70.8,72.2,69.2,Clouds,0,7
+Bedok North Avenue 3,C,1,2,36.5,35.9,38.4,Clear,0,3
+Orchard Road,B,3,14,41.5,46.4,46.4,Haze,0,4
+Clementi Avenue 3,C,4,20,19.8,16.0,26.0,Haze,1,2
+Seletar Expressway,Y,0,7,44.3,42.6,38.6,Mist,1,4
+Central Expressway,Y,5,12,62.8,60.6,61.6,Mist,0,6
+Kallang Paya Lebar Expressway,Y,2,5,62.3,61.3,68.6,Mist,0,6
+Clementi Avenue 3,C,4,2,30.9,36.2,40.6,Rain,0,4
+Central Expressway,Y,6,20,52.6,52.9,50.1,Rain,0,6
+Tampines Expressway,Y,2,6,72.6,76.9,73.4,Haze,0,8
+East Coast Parkway,Y,1,8,29.6,33.4,29.8,Rain,1,3
+Ayer Rajah Expressway,Y,6,22,78.0,79.1,76.8,Clear,0,8
+East Coast Parkway,Y,1,3,69.8,74.5,68.9,Mist,0,8
+East Coast Parkway,Y,2,1,60.0,59.2,60.2,Rain,0,6
+Tampines Expressway,Y,2,23,72.7,74.6,83.3,Clouds,0,8
+Pan Island Expressway,Y,6,17,51.2,52.2,50.9,Rain,0,5
+Woodlands Avenue 12,B,0,13,45.0,49.5,37.5,Clear,0,5
+Nicoll Highway,B,0,9,28.2,33.9,26.9,Clouds,1,4
+Central Expressway,Y,3,22,71.9,72.0,65.0,Clear,0,8
+Tampines Expressway,Y,0,12,39.4,44.7,39.8,Thunderstorm,0,4
+Pan Island Expressway,Y,2,19,45.7,51.4,45.2,Haze,1,5
+Pan Island Expressway,Y,5,20,71.3,74.2,65.6,Haze,0,8
+Bedok North Avenue 3,C,2,2,36.9,37.9,37.9,Clouds,0,4
+Central Expressway,Y,4,20,50.3,54.0,49.8,Clear,1,6
+Ayer Rajah Expressway,Y,1,23,78.0,80.4,79.6,Clear,0,8
+Seletar Expressway,Y,1,0,68.8,67.7,73.3,Clouds,0,8
+Seletar Expressway,Y,4,16,42.4,44.4,43.1,Thunderstorm,0,6
+Bedok North Avenue 3,C,2,19,4.6,2.0,2.0,Thunderstorm,1,1
+Central Expressway,Y,0,1,75.0,74.0,83.6,Clear,0,8
+Bukit Timah Expressway,Y,2,12,50.9,53.9,48.8,Rain,0,5
+Clementi Avenue 3,C,2,3,34.8,36.2,45.9,Haze,0,4
+Bedok North Avenue 3,C,0,8,23.5,21.8,24.0,Mist,1,3
+Woodlands Avenue 12,B,4,0,40.2,34.4,32.9,Haze,0,4
+Tampines Expressway,Y,0,22,64.3,67.5,67.3,Drizzle,0,7
+Bedok North Avenue 3,C,2,10,27.3,26.4,25.8,Mist,0,4
+Tampines Expressway,Y,3,23,40.6,39.9,39.0,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,1,3,67.0,66.9,75.4,Clouds,0,6
+Kallang Paya Lebar Expressway,Y,3,15,63.1,61.1,63.4,Mist,0,7
+Pan Island Expressway,Y,2,0,64.8,66.2,62.5,Drizzle,0,7
+East Coast Parkway,Y,3,2,59.3,57.2,65.6,Mist,0,7
+Ayer Rajah Expressway,Y,2,1,59.6,54.8,62.0,Drizzle,0,6
+Central Expressway,Y,1,0,41.0,43.5,42.4,Thunderstorm,0,4
+Tampines Expressway,Y,1,9,48.5,46.7,45.9,Haze,1,5
+Nicoll Highway,B,0,19,12.4,14.3,13.5,Thunderstorm,1,2
+Bedok North Avenue 3,C,0,12,32.1,24.6,26.7,Haze,0,4
+Central Expressway,Y,4,14,64.5,67.8,61.5,Drizzle,0,7
+East Coast Parkway,Y,2,8,46.6,46.3,49.1,Mist,1,5
+Woodlands Avenue 12,B,0,13,41.8,37.8,42.2,Clouds,0,5
+Tampines Expressway,Y,5,12,64.8,64.1,62.0,Mist,0,7
+Central Expressway,Y,5,12,72.9,67.9,77.0,Clear,0,8
+Woodlands Avenue 12,B,2,11,40.8,40.2,46.2,Haze,0,4
+Central Expressway,Y,5,11,59.0,58.2,56.9,Mist,0,7
+East Coast Parkway,Y,2,23,38.5,33.6,48.5,Thunderstorm,0,4
+Tampines Avenue 10,B,4,5,48.0,49.7,40.4,Clear,0,5
+Kallang Paya Lebar Expressway,Y,2,3,58.4,62.9,67.5,Drizzle,0,6
+Nicoll Highway,B,2,2,47.2,46.3,44.9,Haze,0,5
+Clementi Avenue 3,C,3,16,30.0,27.0,30.0,Rain,0,3
+Bedok North Avenue 3,C,5,16,29.5,30.1,25.6,Drizzle,0,3
+Clementi Avenue 3,C,6,10,36.3,40.8,41.9,Haze,0,4
+Tampines Avenue 10,B,1,3,47.7,53.2,39.1,Clouds,0,5
+Tampines Avenue 10,B,5,16,34.6,40.0,39.6,Rain,0,4
+Upper Thomson Road,B,3,17,27.8,29.4,29.4,Drizzle,1,3
+Clementi Avenue 3,C,4,18,5.1,2.7,8.1,Thunderstorm,1,1
+Bukit Timah Expressway,Y,0,7,36.8,39.5,34.9,Haze,1,4
+Pan Island Expressway,Y,0,21,36.8,42.1,29.8,Thunderstorm,0,4
+Tampines Expressway,Y,6,9,43.0,40.7,42.5,Thunderstorm,0,4
+Clementi Avenue 3,C,2,2,38.7,37.6,33.2,Haze,0,4
+East Coast Parkway,Y,2,8,51.9,53.0,48.3,Haze,1,6
+Bukit Timah Expressway,Y,5,13,38.6,37.2,43.9,Thunderstorm,0,4
+Clementi Avenue 3,C,6,4,32.0,34.3,30.0,Mist,0,4
+Woodlands Avenue 12,B,6,15,34.2,32.6,33.9,Drizzle,0,4
+Tampines Avenue 10,B,1,12,44.8,45.6,50.7,Haze,0,4
+Seletar Expressway,Y,0,21,64.7,67.5,59.0,Mist,0,7
+East Coast Parkway,Y,4,12,82.0,87.3,78.0,Clear,0,8
+Bukit Timah Expressway,Y,3,0,58.7,49.5,65.1,Drizzle,0,7
+Orchard Road,B,1,12,39.1,37.8,39.2,Clear,0,4
+Tampines Expressway,Y,3,2,75.0,79.6,75.4,Clouds,0,8
+Central Expressway,Y,0,4,35.8,39.1,35.3,Thunderstorm,0,5
+Kallang Paya Lebar Expressway,Y,3,7,17.0,15.5,17.0,Rain,1,2
+Tampines Expressway,Y,6,3,65.5,66.0,64.9,Mist,0,7
+Seletar Expressway,Y,0,19,35.8,38.6,35.3,Drizzle,1,4
+Upper Thomson Road,B,2,12,36.2,33.0,43.0,Drizzle,0,4
+Tampines Avenue 10,B,1,20,21.3,21.5,32.9,Mist,1,3
+Central Expressway,Y,6,7,68.7,68.0,66.6,Clouds,0,7
+Upper Thomson Road,B,1,8,20.8,20.7,15.9,Rain,1,2
+Tampines Avenue 10,B,2,1,46.1,46.4,47.0,Clouds,0,5
+Clementi Avenue 3,C,0,12,20.8,18.3,10.7,Thunderstorm,0,2
+Tampines Avenue 10,B,4,0,40.4,44.5,44.2,Drizzle,0,5
+Nicoll Highway,B,3,7,30.5,29.5,33.6,Mist,1,3
+Orchard Road,B,3,5,41.8,46.2,43.3,Clear,0,5
+Tampines Avenue 10,B,3,17,31.1,27.6,29.7,Mist,1,4
+Pan Island Expressway,Y,5,13,67.2,72.0,64.4,Haze,0,7
+Woodlands Avenue 12,B,2,10,25.5,23.5,19.4,Thunderstorm,0,3
+Bukit Timah Expressway,Y,3,0,53.5,52.6,48.3,Rain,0,6
+Seletar Expressway,Y,6,23,69.6,67.3,73.1,Clear,0,7
+East Coast Parkway,Y,0,9,54.6,53.4,52.6,Clear,1,6
+Clementi Avenue 3,C,0,11,28.3,28.7,34.4,Rain,0,3
+Central Expressway,Y,2,8,51.1,51.7,49.8,Drizzle,1,6
+Bedok North Avenue 3,C,2,14,35.5,31.9,38.3,Clouds,0,4
+Bedok North Avenue 3,C,6,17,14.6,20.7,12.5,Thunderstorm,0,2
+Bukit Timah Expressway,Y,4,2,40.8,46.1,43.4,Thunderstorm,0,5
+Tampines Avenue 10,B,4,8,33.1,33.2,38.4,Clouds,1,4
+Woodlands Avenue 12,B,0,6,33.2,26.7,32.8,Rain,0,4
+Nicoll Highway,B,6,14,48.5,41.7,51.4,Mist,0,5
+Tampines Expressway,Y,2,21,49.2,51.8,53.5,Rain,0,5
+Tampines Avenue 10,B,1,1,31.9,26.8,36.1,Rain,0,3
+Seletar Expressway,Y,6,5,74.3,75.4,80.5,Clear,0,7
+Ayer Rajah Expressway,Y,0,2,65.6,66.6,68.5,Mist,0,7
+Tampines Expressway,Y,6,4,36.8,36.5,37.8,Thunderstorm,0,4
+Upper Thomson Road,B,0,1,21.3,22.4,21.0,Thunderstorm,0,3
+Seletar Expressway,Y,5,10,57.2,57.6,56.2,Rain,0,6
+Central Expressway,Y,5,14,66.0,67.3,59.1,Drizzle,0,7
+East Coast Parkway,Y,5,0,82.0,83.7,86.9,Clear,0,8
+Ayer Rajah Expressway,Y,4,10,78.0,80.6,79.1,Clouds,0,8
+Ayer Rajah Expressway,Y,6,11,44.4,45.4,44.5,Thunderstorm,0,5
+Seletar Expressway,Y,5,12,62.9,62.7,61.2,Drizzle,0,7
+Orchard Road,B,4,13,40.4,40.6,39.4,Haze,0,5
+Orchard Road,B,5,18,29.4,31.5,24.9,Rain,0,3
+Kallang Paya Lebar Expressway,Y,6,22,69.3,73.1,66.4,Haze,0,7
+Pan Island Expressway,Y,6,22,77.2,77.4,74.6,Clear,0,8
+Bukit Timah Expressway,Y,1,18,44.6,41.2,45.5,Clear,1,5
+Central Expressway,Y,1,17,44.0,41.4,47.3,Clouds,1,5
+Ayer Rajah Expressway,Y,5,12,56.6,58.2,51.9,Drizzle,0,7
+Nicoll Highway,B,2,17,34.9,38.4,43.2,Mist,1,4
+Clementi Avenue 3,C,1,2,28.1,21.1,22.5,Rain,0,3
+Clementi Avenue 3,C,3,3,34.7,33.3,29.9,Haze,0,4
+Bedok North Avenue 3,C,2,10,38.0,34.9,38.4,Clear,0,4
+Nicoll Highway,B,5,3,29.8,31.6,39.1,Thunderstorm,0,4
+Tampines Expressway,Y,0,14,60.2,58.4,71.0,Drizzle,0,6
+Orchard Road,B,1,13,36.6,36.7,28.8,Rain,0,4
+Woodlands Avenue 12,B,1,14,43.9,41.3,42.9,Mist,0,5
+Pan Island Expressway,Y,3,6,58.2,58.4,59.0,Rain,0,6
+Pan Island Expressway,Y,2,6,68.2,62.8,64.5,Mist,0,7
+Clementi Avenue 3,C,6,7,33.3,33.3,27.2,Mist,0,4
+Seletar Expressway,Y,6,12,57.4,59.9,64.0,Rain,0,7
+Clementi Avenue 3,C,2,1,27.6,35.1,25.8,Rain,0,4
+Upper Thomson Road,B,6,1,47.4,44.3,41.3,Clear,0,6
+Clementi Avenue 3,C,5,9,35.7,34.7,38.4,Mist,0,4
+Clementi Avenue 3,C,4,12,33.1,30.0,33.8,Haze,0,4
+East Coast Parkway,Y,3,13,72.8,76.5,72.6,Haze,0,8
+Orchard Road,B,4,7,13.7,15.5,6.8,Thunderstorm,1,2
+East Coast Parkway,Y,6,21,67.7,66.9,67.4,Haze,0,7
+Upper Thomson Road,B,0,21,25.7,26.3,18.7,Thunderstorm,0,3
+Bedok North Avenue 3,C,3,21,30.4,30.4,33.3,Haze,0,4
+Kallang Paya Lebar Expressway,Y,6,9,54.7,52.0,68.7,Rain,0,6
+Bedok North Avenue 3,C,0,19,22.4,19.7,20.0,Mist,1,3
+Pan Island Expressway,Y,0,23,70.3,66.5,71.4,Haze,0,7
+Seletar Expressway,Y,5,21,63.6,62.6,62.8,Drizzle,0,7
+Seletar Expressway,Y,3,16,61.7,55.1,67.1,Drizzle,0,7
+Woodlands Avenue 12,B,2,1,37.7,34.4,37.2,Drizzle,0,5
+Woodlands Avenue 12,B,4,13,34.1,30.8,37.9,Haze,0,3
+Central Expressway,Y,5,21,73.3,73.1,75.1,Clear,0,8
+Woodlands Avenue 12,B,6,16,34.9,33.7,39.1,Drizzle,0,4
+East Coast Parkway,Y,6,18,70.4,74.1,73.6,Mist,0,7
+Bukit Timah Expressway,Y,4,10,66.9,67.3,51.8,Clouds,0,7
+Tampines Avenue 10,B,4,9,27.5,23.5,26.5,Haze,1,3
+Seletar Expressway,Y,4,16,71.2,69.7,62.2,Haze,0,8
+Upper Thomson Road,B,2,8,29.8,27.6,20.6,Drizzle,1,3
+Tampines Expressway,Y,4,19,47.4,47.9,52.2,Drizzle,1,5
+Pan Island Expressway,Y,5,12,61.3,62.4,63.5,Drizzle,0,7
+Clementi Avenue 3,C,1,5,32.5,37.7,30.9,Drizzle,0,3
+Kallang Paya Lebar Expressway,Y,3,20,59.3,60.3,52.8,Clouds,1,6
+Bedok North Avenue 3,C,2,3,15.9,20.7,17.4,Thunderstorm,0,2
+Orchard Road,B,0,10,39.3,41.3,43.1,Mist,0,4
+East Coast Parkway,Y,4,13,70.6,68.8,66.6,Mist,0,7
+Ayer Rajah Expressway,Y,4,20,51.4,53.1,38.4,Haze,1,6
+Nicoll Highway,B,5,22,44.2,44.1,50.9,Drizzle,0,5
+East Coast Parkway,Y,6,16,74.0,72.6,77.6,Haze,0,8
+Kallang Paya Lebar Expressway,Y,2,20,53.5,52.2,53.3,Clouds,1,5
+East Coast Parkway,Y,6,23,68.5,64.1,72.8,Drizzle,0,7
+Nicoll Highway,B,5,9,55.0,54.9,54.6,Clouds,0,6
+Woodlands Avenue 12,B,4,19,31.8,34.3,30.5,Clouds,1,4
+Tampines Expressway,Y,6,0,71.8,71.8,73.3,Haze,0,7
+Pan Island Expressway,Y,2,15,50.3,48.9,55.1,Rain,0,6
+Orchard Road,B,4,4,36.3,38.9,29.6,Haze,0,4
+Seletar Expressway,Y,2,16,71.8,66.1,56.8,Clear,0,7
+Bedok North Avenue 3,C,2,6,32.9,31.7,33.1,Haze,0,4
+Kallang Paya Lebar Expressway,Y,0,16,71.9,75.1,71.2,Clouds,0,7
+Tampines Expressway,Y,2,5,76.2,74.4,76.3,Clouds,0,8
+Tampines Expressway,Y,6,4,77.2,78.8,76.6,Clear,0,7
+Kallang Paya Lebar Expressway,Y,6,2,53.4,51.0,54.6,Rain,0,6
+Central Expressway,Y,5,17,61.1,64.6,58.6,Drizzle,0,7
+Central Expressway,Y,3,21,50.9,49.7,59.7,Rain,0,5
+Tampines Avenue 10,B,6,7,46.3,44.2,42.7,Haze,0,5
+Seletar Expressway,Y,6,19,35.5,36.0,38.2,Thunderstorm,0,3
+Bedok North Avenue 3,C,5,23,31.9,28.6,30.4,Haze,0,4
+Nicoll Highway,B,6,13,45.2,43.9,45.1,Mist,0,5
+Tampines Avenue 10,B,0,13,34.0,33.3,38.3,Drizzle,0,4
+Pan Island Expressway,Y,0,14,78.0,78.6,67.8,Clouds,0,8
+Tampines Avenue 10,B,0,9,30.3,24.5,31.0,Haze,1,3
+Upper Thomson Road,B,5,16,42.4,38.1,43.6,Mist,0,5
+Tampines Expressway,Y,6,17,45.3,42.0,58.1,Thunderstorm,0,5
+Seletar Expressway,Y,1,3,35.0,34.3,29.4,Thunderstorm,0,5
+Kallang Paya Lebar Expressway,Y,2,10,69.6,65.0,68.8,Haze,0,7
+Nicoll Highway,B,4,22,50.9,48.2,58.1,Haze,0,5
+Bukit Timah Expressway,Y,0,8,51.3,53.9,45.0,Clear,1,6
+Woodlands Avenue 12,B,2,0,39.8,41.9,36.7,Clouds,0,3
+Tampines Expressway,Y,3,17,41.7,44.7,42.5,Haze,1,5
+Tampines Expressway,Y,4,15,67.2,65.9,77.5,Drizzle,0,8
+Clementi Avenue 3,C,6,17,28.7,32.5,30.1,Drizzle,0,3
+Kallang Paya Lebar Expressway,Y,4,20,52.2,55.2,55.1,Clear,1,6
+Orchard Road,B,6,10,39.2,34.1,37.3,Mist,0,4
+Bedok North Avenue 3,C,2,18,14.5,11.4,9.4,Drizzle,1,2
+Bedok North Avenue 3,C,3,21,19.7,19.5,25.0,Thunderstorm,0,2
+Pan Island Expressway,Y,3,9,61.0,62.6,56.9,Clear,1,7
+Tampines Avenue 10,B,0,11,40.6,36.2,37.5,Haze,0,4
+Tampines Expressway,Y,4,13,80.0,78.2,88.3,Clear,0,8
+Ayer Rajah Expressway,Y,5,1,67.4,69.9,72.8,Drizzle,0,7
+Seletar Expressway,Y,1,22,49.5,41.9,52.5,Rain,0,5
+Tampines Avenue 10,B,6,20,43.4,43.8,46.3,Clouds,0,5
+Bedok North Avenue 3,C,5,22,34.9,30.1,35.0,Clear,0,4
+Bedok North Avenue 3,C,6,4,19.3,17.1,24.8,Thunderstorm,0,2
+Bedok North Avenue 3,C,6,21,19.5,21.1,23.2,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,2,7,40.9,44.7,33.8,Mist,1,5
+Bedok North Avenue 3,C,6,4,32.5,33.5,35.9,Clouds,0,4
+East Coast Parkway,Y,2,23,39.9,37.1,39.0,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,2,5,74.1,76.1,82.0,Clouds,0,8
+Nicoll Highway,B,4,16,46.1,46.7,46.1,Haze,0,5
+Tampines Avenue 10,B,1,9,21.2,20.1,21.9,Rain,1,2
+Woodlands Avenue 12,B,4,9,21.7,27.8,15.1,Drizzle,1,3
+Nicoll Highway,B,1,12,48.7,47.3,49.7,Haze,0,5
+Nicoll Highway,B,4,14,52.1,47.0,52.8,Clouds,0,5
+Clementi Avenue 3,C,0,23,30.2,27.9,37.7,Rain,0,3
+Central Expressway,Y,5,19,65.9,68.6,67.0,Drizzle,0,7
+Nicoll Highway,B,1,3,28.6,23.7,27.9,Thunderstorm,0,3
+Bedok North Avenue 3,C,0,2,33.7,27.5,31.1,Haze,0,4
+Ayer Rajah Expressway,Y,2,8,35.7,38.3,36.8,Haze,1,4
+Bukit Timah Expressway,Y,0,3,64.9,69.0,62.9,Drizzle,0,7
+Bukit Timah Expressway,Y,0,2,62.9,59.6,66.1,Drizzle,0,7
+Upper Thomson Road,B,5,8,44.6,42.0,44.3,Mist,0,6
+Nicoll Highway,B,5,17,44.1,40.5,43.1,Drizzle,0,5
+Orchard Road,B,4,4,45.0,57.1,48.5,Clear,0,5
+Kallang Paya Lebar Expressway,Y,5,9,36.0,41.3,42.2,Thunderstorm,0,4
+Woodlands Avenue 12,B,4,11,40.7,43.8,28.6,Clouds,0,4
+Nicoll Highway,B,2,7,36.9,35.5,39.6,Haze,1,4
+Tampines Avenue 10,B,5,10,39.8,37.4,46.6,Drizzle,0,4
+Nicoll Highway,B,0,13,25.0,24.4,18.5,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,1,16,68.4,72.9,71.2,Clouds,0,8
+Seletar Expressway,Y,6,8,37.2,36.5,39.4,Thunderstorm,0,4
+Clementi Avenue 3,C,2,21,33.7,30.6,32.7,Haze,0,3
+Kallang Paya Lebar Expressway,Y,0,3,75.1,71.6,78.6,Haze,0,8
+Nicoll Highway,B,2,18,34.6,32.5,31.0,Clear,1,4
+East Coast Parkway,Y,3,13,42.8,42.2,52.0,Thunderstorm,0,5
+Tampines Expressway,Y,5,7,75.6,80.9,70.3,Clear,0,8
+Central Expressway,Y,0,10,39.0,42.3,35.8,Thunderstorm,0,4
+Bedok North Avenue 3,C,6,19,28.8,30.3,24.7,Haze,0,4
+Tampines Expressway,Y,2,17,47.5,47.5,46.7,Clouds,1,5
+Tampines Expressway,Y,2,19,45.6,48.1,48.2,Clear,1,5
+Bukit Timah Expressway,Y,4,23,38.7,40.4,31.9,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,1,0,73.8,73.3,72.3,Clear,0,8
+Kallang Paya Lebar Expressway,Y,1,4,61.8,63.0,69.2,Haze,0,7
+Central Expressway,Y,4,16,53.3,57.2,54.2,Rain,0,6
+Bukit Timah Expressway,Y,3,1,70.3,72.0,66.6,Clouds,0,8
+Orchard Road,B,2,20,7.9,8.0,9.2,Thunderstorm,1,2
+Tampines Expressway,Y,1,19,28.1,36.4,31.2,Rain,1,4
+Pan Island Expressway,Y,5,19,75.7,76.9,74.6,Clouds,0,8
+Bukit Timah Expressway,Y,5,1,67.3,65.3,69.6,Haze,0,7
+Bedok North Avenue 3,C,4,12,20.2,20.0,18.9,Thunderstorm,0,2
+Tampines Avenue 10,B,6,14,43.5,39.3,46.1,Clouds,0,4
+Tampines Expressway,Y,1,12,68.7,71.5,64.7,Drizzle,0,7
+Woodlands Avenue 12,B,0,2,30.6,32.7,29.9,Rain,0,3
+Pan Island Expressway,Y,1,16,63.3,64.0,59.4,Mist,0,7
+Pan Island Expressway,Y,4,5,75.8,75.5,81.6,Mist,0,8
+Tampines Expressway,Y,6,23,63.4,61.6,54.3,Drizzle,0,7
+Seletar Expressway,Y,2,15,39.5,38.5,43.7,Thunderstorm,0,4
+Bukit Timah Expressway,Y,6,20,63.6,69.9,64.1,Drizzle,0,7
+Clementi Avenue 3,C,6,10,35.7,34.0,33.1,Haze,0,4
+Kallang Paya Lebar Expressway,Y,1,12,70.7,70.2,75.3,Haze,0,7
+Tampines Expressway,Y,2,0,50.9,55.3,47.0,Rain,0,6
+Pan Island Expressway,Y,4,1,54.3,53.2,50.6,Rain,0,6
+Upper Thomson Road,B,0,9,23.4,20.0,27.3,Drizzle,1,3
+Woodlands Avenue 12,B,0,17,28.9,31.1,29.4,Clouds,1,3
+Upper Thomson Road,B,6,15,47.1,44.4,50.4,Clear,0,5
+Central Expressway,Y,4,16,67.9,66.8,69.1,Clouds,0,8
+East Coast Parkway,Y,2,12,63.6,67.2,64.0,Rain,0,7
+Pan Island Expressway,Y,1,0,61.2,57.9,66.1,Rain,0,7
+Upper Thomson Road,B,0,5,27.8,30.1,34.8,Thunderstorm,0,4
+East Coast Parkway,Y,2,4,66.3,67.8,64.9,Drizzle,0,7
+Bedok North Avenue 3,C,2,22,34.3,34.7,27.6,Haze,0,4
+Central Expressway,Y,0,8,39.1,40.8,41.1,Clear,1,4
+Nicoll Highway,B,4,16,48.8,54.9,42.4,Mist,0,5
+Kallang Paya Lebar Expressway,Y,5,6,69.3,73.1,68.7,Mist,0,7
+Central Expressway,Y,4,11,65.0,67.1,62.9,Mist,0,7
+Bukit Timah Expressway,Y,4,8,46.3,46.9,42.5,Clouds,1,5
+Upper Thomson Road,B,3,3,41.9,40.9,36.0,Mist,0,5
+Central Expressway,Y,6,0,45.2,45.2,45.7,Rain,0,5
+Bedok North Avenue 3,C,4,8,27.1,26.1,26.8,Haze,1,4
+Woodlands Avenue 12,B,0,6,37.5,38.1,38.0,Mist,0,4
+Clementi Avenue 3,C,5,17,38.3,35.7,37.0,Clouds,0,5
+Bukit Timah Expressway,Y,3,9,38.1,43.6,39.1,Mist,1,4
+Ayer Rajah Expressway,Y,1,4,58.8,61.5,58.2,Drizzle,0,6
+Central Expressway,Y,6,23,57.0,54.3,57.6,Mist,0,6
+Central Expressway,Y,0,4,36.9,33.9,27.6,Thunderstorm,0,4
+Orchard Road,B,0,6,34.0,34.9,29.1,Haze,0,3
+Nicoll Highway,B,1,20,36.0,29.3,32.2,Haze,1,4
+Tampines Expressway,Y,2,9,55.4,57.0,56.1,Clear,1,6
+Tampines Avenue 10,B,0,18,31.4,28.1,40.4,Clear,1,3
+Orchard Road,B,2,7,22.7,21.6,23.2,Haze,1,3
+Tampines Avenue 10,B,5,17,26.9,30.8,26.0,Thunderstorm,0,4
+Pan Island Expressway,Y,4,13,79.6,83.8,80.5,Clear,0,8
+Woodlands Avenue 12,B,4,16,41.8,43.8,43.1,Clouds,0,4
+Clementi Avenue 3,C,1,14,35.6,34.6,34.9,Mist,0,4
+Seletar Expressway,Y,4,4,53.6,49.9,47.6,Rain,0,6
+Woodlands Avenue 12,B,2,14,38.5,39.4,39.4,Mist,0,5
+Tampines Avenue 10,B,1,20,24.8,23.6,25.0,Rain,1,3
+Upper Thomson Road,B,2,11,47.6,47.0,33.3,Clouds,0,5
+East Coast Parkway,Y,5,18,50.0,49.9,61.4,Thunderstorm,0,6
+Bukit Timah Expressway,Y,3,5,69.9,69.0,69.1,Clear,0,7
+Clementi Avenue 3,C,2,22,35.3,31.2,28.4,Drizzle,0,4
+Tampines Expressway,Y,1,14,54.0,55.7,51.6,Rain,0,6
+Bedok North Avenue 3,C,3,9,14.9,18.6,12.0,Mist,1,3
+Clementi Avenue 3,C,5,9,36.9,35.9,41.7,Haze,0,4
+Bukit Timah Expressway,Y,6,5,69.8,69.7,71.2,Haze,0,7
+Bedok North Avenue 3,C,3,16,33.0,34.7,35.2,Mist,0,4
+Bukit Timah Expressway,Y,1,23,62.8,63.9,62.7,Drizzle,0,6
+Kallang Paya Lebar Expressway,Y,6,9,71.6,70.2,71.9,Clouds,0,8
+Clementi Avenue 3,C,5,12,35.8,33.7,42.8,Haze,0,4
+Central Expressway,Y,1,22,70.8,73.7,69.8,Clear,0,7
+Bukit Timah Expressway,Y,6,17,43.7,44.1,43.4,Thunderstorm,0,5
+Nicoll Highway,B,5,8,55.0,60.1,48.2,Clear,0,6
+Clementi Avenue 3,C,1,5,33.7,37.8,39.8,Haze,0,4
+Nicoll Highway,B,4,0,28.9,27.8,34.6,Thunderstorm,0,4
+East Coast Parkway,Y,0,9,14.5,20.2,16.6,Thunderstorm,1,2
+Nicoll Highway,B,1,12,46.5,42.0,50.2,Mist,0,5
+Kallang Paya Lebar Expressway,Y,0,21,60.6,62.7,51.7,Drizzle,0,7
+Bedok North Avenue 3,C,1,3,35.0,30.0,35.7,Clear,0,4
+Kallang Paya Lebar Expressway,Y,4,9,49.0,51.4,55.5,Haze,1,6
+Bukit Timah Expressway,Y,1,23,46.0,47.4,40.1,Thunderstorm,0,5
+Tampines Expressway,Y,2,14,75.2,71.7,82.8,Clouds,0,8
+Clementi Avenue 3,C,0,16,20.9,23.6,18.3,Thunderstorm,0,2
+Tampines Avenue 10,B,4,8,19.8,16.7,21.1,Rain,1,2
+Pan Island Expressway,Y,5,10,54.1,51.1,62.0,Rain,0,6
+Nicoll Highway,B,0,9,21.2,20.7,24.8,Rain,1,2
+Orchard Road,B,6,17,41.2,40.9,36.9,Mist,0,5
+Tampines Avenue 10,B,5,11,34.9,37.9,24.9,Rain,0,4
+Upper Thomson Road,B,1,23,24.3,27.5,23.5,Thunderstorm,0,3
+Seletar Expressway,Y,1,15,77.0,79.7,78.6,Clouds,0,8
+Central Expressway,Y,5,15,48.1,50.8,41.0,Rain,0,5
+Orchard Road,B,6,17,45.0,49.0,39.1,Clear,0,4
+Clementi Avenue 3,C,1,23,32.5,25.8,30.7,Rain,0,4
+Pan Island Expressway,Y,6,20,66.0,67.5,57.6,Drizzle,0,6
+Clementi Avenue 3,C,1,4,30.7,30.5,22.9,Drizzle,0,4
+Pan Island Expressway,Y,4,18,34.2,35.2,27.5,Rain,1,4
+Central Expressway,Y,3,17,43.4,37.4,40.4,Haze,1,5
+Upper Thomson Road,B,4,11,50.0,48.0,38.8,Clouds,0,5
+Orchard Road,B,5,10,40.9,40.9,45.4,Haze,0,4
+East Coast Parkway,Y,0,22,64.4,64.7,58.7,Mist,0,7
+Woodlands Avenue 12,B,0,18,27.5,32.2,22.4,Haze,1,3
+Woodlands Avenue 12,B,6,23,38.2,36.3,35.3,Mist,0,4
+Tampines Avenue 10,B,5,2,40.2,41.8,36.6,Haze,0,5
+Bedok North Avenue 3,C,3,0,29.0,32.5,32.8,Rain,0,4
+Ayer Rajah Expressway,Y,1,5,69.2,72.9,63.4,Mist,0,7
+East Coast Parkway,Y,1,9,52.7,50.5,46.2,Haze,1,6
+Ayer Rajah Expressway,Y,1,11,70.5,68.3,69.9,Mist,0,8
+Central Expressway,Y,4,14,42.3,45.1,46.8,Thunderstorm,0,5
+East Coast Parkway,Y,3,11,75.2,78.4,72.3,Haze,0,8
+Ayer Rajah Expressway,Y,6,9,72.7,71.9,71.3,Clear,0,8
+Clementi Avenue 3,C,0,15,34.2,29.5,28.2,Haze,0,4
+Tampines Avenue 10,B,3,20,12.4,15.6,10.2,Rain,1,2
+Bedok North Avenue 3,C,5,4,24.3,25.6,26.9,Rain,0,2
+Ayer Rajah Expressway,Y,3,3,72.1,71.2,76.8,Clouds,0,7
+Bedok North Avenue 3,C,0,14,18.7,19.9,8.8,Thunderstorm,0,2
+Nicoll Highway,B,0,13,35.7,37.5,40.5,Rain,0,4
+Pan Island Expressway,Y,0,9,11.9,10.7,11.4,Thunderstorm,1,1
+Clementi Avenue 3,C,1,16,36.9,40.1,39.9,Mist,0,4
+Ayer Rajah Expressway,Y,0,15,54.7,51.5,56.8,Rain,0,6
+Pan Island Expressway,Y,1,21,74.0,71.8,79.5,Mist,0,8
+Pan Island Expressway,Y,1,8,53.8,57.2,58.4,Clouds,1,5
+Tampines Avenue 10,B,6,21,30.6,30.4,36.6,Rain,0,3
+Central Expressway,Y,1,17,47.6,45.3,43.2,Clouds,1,5
+Upper Thomson Road,B,3,12,22.8,18.9,22.8,Thunderstorm,0,2
+Bedok North Avenue 3,C,4,8,5.6,6.4,2.0,Thunderstorm,1,1
+Kallang Paya Lebar Expressway,Y,0,1,72.5,62.7,70.3,Haze,0,8
+East Coast Parkway,Y,1,16,57.7,53.4,64.1,Rain,0,6
+Ayer Rajah Expressway,Y,6,6,49.8,49.1,45.9,Rain,0,5
+Seletar Expressway,Y,3,17,42.4,48.3,31.3,Drizzle,1,5
+Tampines Expressway,Y,4,19,47.5,45.3,50.6,Clouds,1,4
+Seletar Expressway,Y,2,21,68.6,72.5,84.8,Haze,0,8
+Nicoll Highway,B,6,13,27.7,27.5,31.7,Thunderstorm,0,3
+Tampines Expressway,Y,5,13,64.5,71.6,56.8,Haze,0,6
+Central Expressway,Y,4,17,19.4,16.9,21.6,Thunderstorm,1,2
+Kallang Paya Lebar Expressway,Y,1,21,62.8,59.0,56.1,Haze,0,7
+Kallang Paya Lebar Expressway,Y,3,16,68.8,71.1,68.8,Clouds,0,7
+Clementi Avenue 3,C,3,17,29.3,29.3,34.5,Clouds,1,3
+Bukit Timah Expressway,Y,5,21,65.2,63.3,65.4,Haze,0,7
+Nicoll Highway,B,6,2,35.5,32.4,34.3,Rain,0,4
+Pan Island Expressway,Y,3,23,39.4,41.8,30.0,Thunderstorm,0,4
+East Coast Parkway,Y,1,23,76.0,70.4,76.8,Clear,0,8
+Bedok North Avenue 3,C,3,12,18.2,18.4,13.8,Thunderstorm,0,2
+Central Expressway,Y,4,8,45.5,44.1,44.7,Clear,1,5
+Kallang Paya Lebar Expressway,Y,5,15,37.3,36.2,38.0,Thunderstorm,0,4
+Pan Island Expressway,Y,2,10,34.8,33.7,32.0,Thunderstorm,0,5
+Upper Thomson Road,B,1,17,38.2,36.2,44.6,Clear,1,5
+Ayer Rajah Expressway,Y,6,18,57.9,55.9,57.0,Rain,0,7
+East Coast Parkway,Y,1,4,59.2,59.5,63.7,Rain,0,7
+Woodlands Avenue 12,B,5,4,34.3,42.3,26.6,Drizzle,0,4
+East Coast Parkway,Y,6,15,38.4,38.3,34.2,Thunderstorm,0,5
+Pan Island Expressway,Y,5,17,73.0,68.3,80.6,Clouds,0,7
+Tampines Expressway,Y,3,15,76.4,73.4,75.4,Haze,0,8
+Woodlands Avenue 12,B,4,19,13.1,12.1,12.0,Rain,1,2
+Bedok North Avenue 3,C,5,11,31.3,27.4,26.9,Haze,0,3
+Tampines Expressway,Y,3,16,76.1,73.8,71.6,Clouds,0,8
+Upper Thomson Road,B,2,18,26.7,22.9,33.2,Drizzle,1,3
+Nicoll Highway,B,3,6,49.6,48.7,60.0,Haze,0,6
+East Coast Parkway,Y,3,9,17.8,22.7,19.8,Thunderstorm,1,2
+Bedok North Avenue 3,C,3,20,20.0,15.8,16.2,Clear,1,2
+Clementi Avenue 3,C,6,13,37.3,36.5,30.8,Clear,0,4
+Upper Thomson Road,B,1,23,47.8,48.2,45.7,Clear,0,5
+Kallang Paya Lebar Expressway,Y,4,19,20.8,20.8,11.7,Thunderstorm,1,3
+Upper Thomson Road,B,4,20,40.7,37.5,30.6,Clear,1,4
+Bedok North Avenue 3,C,0,5,32.5,32.0,32.3,Mist,0,4
+Seletar Expressway,Y,0,1,66.5,58.0,69.7,Clouds,0,7
+Kallang Paya Lebar Expressway,Y,0,13,63.9,65.8,62.7,Drizzle,0,7
+Upper Thomson Road,B,1,22,46.0,41.4,40.9,Clear,0,4
+Nicoll Highway,B,5,5,53.3,54.5,49.5,Clear,0,6
+Woodlands Avenue 12,B,6,15,41.3,36.4,37.2,Clouds,0,4
+Kallang Paya Lebar Expressway,Y,1,2,66.5,68.3,63.1,Mist,0,7
+Seletar Expressway,Y,5,5,42.8,42.8,36.5,Thunderstorm,0,5
+Upper Thomson Road,B,5,2,47.9,42.0,46.7,Clouds,0,5
+Woodlands Avenue 12,B,1,9,33.1,37.1,27.9,Clear,1,3
+Bukit Timah Expressway,Y,1,1,42.8,42.6,43.1,Thunderstorm,0,5
+Seletar Expressway,Y,2,4,66.1,65.9,74.1,Haze,0,7
+Clementi Avenue 3,C,4,10,27.4,27.7,32.2,Rain,0,4
+Clementi Avenue 3,C,6,17,14.7,16.7,18.6,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,5,5,39.0,39.9,36.2,Thunderstorm,0,4
+Seletar Expressway,Y,0,0,60.0,60.6,66.0,Drizzle,0,7
+Woodlands Avenue 12,B,1,14,23.9,23.9,20.0,Thunderstorm,0,3
+Clementi Avenue 3,C,6,10,40.0,41.5,43.9,Clear,0,4
+Seletar Expressway,Y,1,19,33.7,38.6,37.4,Drizzle,1,4
+Orchard Road,B,1,17,20.4,24.1,20.2,Haze,1,3
+Clementi Avenue 3,C,2,13,33.2,36.1,36.5,Haze,0,4
+Seletar Expressway,Y,4,17,51.0,49.3,53.1,Clouds,1,6
+Nicoll Highway,B,2,2,50.0,53.4,46.2,Haze,0,5
+Tampines Expressway,Y,2,2,61.1,64.2,64.2,Drizzle,0,8
+Ayer Rajah Expressway,Y,5,15,73.7,78.9,71.0,Haze,0,8
+Central Expressway,Y,1,21,70.1,69.5,66.6,Clouds,0,7
+Nicoll Highway,B,4,18,33.5,36.0,24.6,Clouds,1,4
+Ayer Rajah Expressway,Y,6,0,48.3,50.7,45.6,Rain,0,5
+East Coast Parkway,Y,0,10,77.8,78.1,71.7,Clear,0,8
+Orchard Road,B,0,8,25.7,28.6,34.8,Clear,1,4
+Orchard Road,B,4,15,35.5,33.1,35.5,Drizzle,0,4
+Clementi Avenue 3,C,2,23,36.1,41.2,32.1,Clear,0,5
+Orchard Road,B,2,7,22.9,26.2,27.5,Drizzle,1,2
+Clementi Avenue 3,C,1,8,28.1,31.6,25.7,Clouds,1,4
+Seletar Expressway,Y,2,9,34.6,29.1,34.0,Clouds,1,4
+Central Expressway,Y,2,22,73.6,74.2,78.6,Clouds,0,8
+Woodlands Avenue 12,B,5,7,38.6,38.0,41.5,Clouds,0,4
+East Coast Parkway,Y,3,13,42.8,37.2,44.5,Thunderstorm,0,4
+Clementi Avenue 3,C,2,12,25.7,20.6,26.3,Rain,0,3
+Woodlands Avenue 12,B,0,16,37.1,35.8,30.5,Haze,0,4
+Upper Thomson Road,B,6,9,49.2,44.9,47.3,Clear,0,5
+Tampines Expressway,Y,4,22,42.3,40.3,40.4,Thunderstorm,0,5
+Kallang Paya Lebar Expressway,Y,2,19,46.0,43.9,49.7,Drizzle,1,6
+Seletar Expressway,Y,6,5,57.5,55.8,60.3,Rain,0,6
+Clementi Avenue 3,C,1,11,35.5,36.0,26.1,Clouds,0,4
+Tampines Avenue 10,B,6,23,48.0,49.2,42.0,Clear,0,5
+Nicoll Highway,B,0,6,27.7,24.6,17.4,Thunderstorm,0,3
+Nicoll Highway,B,3,20,32.1,33.5,24.3,Drizzle,1,3
+Pan Island Expressway,Y,3,5,77.0,75.1,77.4,Clear,0,8
+Clementi Avenue 3,C,1,9,20.3,16.3,21.6,Clear,1,3
+Tampines Expressway,Y,3,16,64.3,68.0,58.1,Mist,0,7
+Clementi Avenue 3,C,1,22,27.9,25.0,19.7,Rain,0,3
+Tampines Expressway,Y,1,8,51.2,52.9,55.6,Clear,1,6
+Ayer Rajah Expressway,Y,0,13,70.5,72.4,69.2,Clouds,0,8
+Bedok North Avenue 3,C,1,3,32.3,27.9,35.1,Haze,0,3
+Kallang Paya Lebar Expressway,Y,3,17,49.9,48.7,55.7,Clear,1,5
+Seletar Expressway,Y,5,2,66.7,71.9,69.9,Clear,0,8
+Upper Thomson Road,B,1,11,45.9,49.1,45.5,Drizzle,0,5
+Tampines Avenue 10,B,6,18,27.2,30.5,26.4,Thunderstorm,0,2
+Woodlands Avenue 12,B,0,8,31.9,28.8,25.5,Clouds,1,4
+Pan Island Expressway,Y,3,0,46.8,47.7,50.4,Thunderstorm,0,6
+Tampines Avenue 10,B,3,17,19.9,24.8,19.6,Mist,1,3
+Kallang Paya Lebar Expressway,Y,4,6,55.9,58.6,48.5,Drizzle,0,6
+Woodlands Avenue 12,B,2,0,33.3,35.6,37.6,Drizzle,0,4
+Nicoll Highway,B,4,22,54.6,57.3,48.8,Clear,0,6
+Central Expressway,Y,1,9,50.2,48.6,48.7,Haze,1,5
+Nicoll Highway,B,5,10,44.6,50.9,40.9,Drizzle,0,4
+Nicoll Highway,B,2,8,14.9,19.5,17.4,Thunderstorm,1,3
+Upper Thomson Road,B,1,20,11.4,13.0,10.9,Thunderstorm,1,2
+Tampines Expressway,Y,3,3,56.0,52.3,52.0,Rain,0,6
+Kallang Paya Lebar Expressway,Y,6,10,67.9,65.2,71.3,Mist,0,7
+Kallang Paya Lebar Expressway,Y,0,12,42.9,44.0,34.1,Thunderstorm,0,4
+Orchard Road,B,1,17,22.1,17.4,21.0,Haze,1,3
+Tampines Avenue 10,B,6,5,30.8,25.5,26.2,Rain,0,3
+Ayer Rajah Expressway,Y,5,9,67.1,70.3,65.3,Haze,0,8
+Clementi Avenue 3,C,0,7,18.7,19.6,9.2,Haze,1,2
+Woodlands Avenue 12,B,3,13,34.8,34.3,31.2,Mist,0,4
+Nicoll Highway,B,1,11,46.2,43.2,44.4,Mist,0,5
+Tampines Avenue 10,B,3,1,28.3,32.0,35.2,Thunderstorm,0,4
+Nicoll Highway,B,3,2,55.0,52.0,54.7,Clear,0,6
+Orchard Road,B,3,16,39.8,40.1,36.8,Clear,0,4
+Nicoll Highway,B,4,3,32.4,34.7,36.2,Thunderstorm,0,4
+Orchard Road,B,1,1,34.6,31.9,31.0,Rain,0,4
+Woodlands Avenue 12,B,0,5,23.4,22.0,22.3,Thunderstorm,0,3
+Tampines Avenue 10,B,1,3,43.5,46.7,33.0,Clear,0,5
+Seletar Expressway,Y,6,4,65.8,69.0,67.5,Mist,0,7
+Upper Thomson Road,B,2,10,39.1,37.9,52.6,Mist,0,4
+Bukit Timah Expressway,Y,1,5,68.4,66.6,68.1,Haze,0,7
+Tampines Expressway,Y,6,13,50.1,47.7,48.9,Thunderstorm,0,6
+Clementi Avenue 3,C,2,18,24.4,25.5,25.9,Haze,1,3
+Tampines Avenue 10,B,6,23,25.5,25.5,20.8,Thunderstorm,0,3
+Woodlands Avenue 12,B,2,11,38.3,39.1,45.2,Clouds,0,4
+Bedok North Avenue 3,C,3,11,35.9,39.5,38.5,Clear,0,4
+Nicoll Highway,B,5,6,27.7,20.7,27.9,Thunderstorm,0,3
+Clementi Avenue 3,C,1,22,32.7,35.7,35.6,Rain,0,4
+Orchard Road,B,1,8,23.6,25.3,23.3,Mist,1,2
+Bedok North Avenue 3,C,2,0,34.6,36.5,32.1,Clear,0,4
+Kallang Paya Lebar Expressway,Y,4,1,74.0,71.8,59.4,Clouds,0,8
+Tampines Expressway,Y,2,10,71.3,71.8,77.7,Haze,0,8
+Nicoll Highway,B,2,17,32.4,31.6,33.3,Drizzle,1,4
+Bukit Timah Expressway,Y,1,11,71.4,75.2,64.6,Haze,0,7
+Ayer Rajah Expressway,Y,3,12,45.3,46.8,44.5,Rain,0,5
+East Coast Parkway,Y,3,1,69.7,69.9,73.0,Drizzle,0,8
+Clementi Avenue 3,C,1,10,24.9,21.3,31.4,Thunderstorm,0,3
+Upper Thomson Road,B,2,9,22.2,24.7,22.9,Drizzle,1,2
+East Coast Parkway,Y,6,9,70.3,68.9,78.3,Mist,0,7
+Upper Thomson Road,B,6,13,50.0,50.4,46.0,Clear,0,5
+Nicoll Highway,B,2,11,50.7,50.4,55.8,Clouds,0,6
+Bukit Timah Expressway,Y,6,22,57.6,62.6,57.8,Drizzle,0,6
+Bukit Timah Expressway,Y,0,9,16.6,14.8,27.5,Thunderstorm,1,2
+Orchard Road,B,3,13,37.3,35.6,47.1,Haze,0,5
+Upper Thomson Road,B,6,7,45.5,47.9,50.1,Clouds,0,5
+Nicoll Highway,B,6,7,39.3,40.4,39.6,Rain,0,5
+Bedok North Avenue 3,C,3,19,14.0,12.9,20.5,Rain,1,2
+Upper Thomson Road,B,6,6,42.5,46.1,41.8,Drizzle,0,4
+Orchard Road,B,1,18,29.9,28.0,24.4,Haze,1,4
+Tampines Avenue 10,B,4,19,34.2,37.8,39.4,Clouds,1,4
+Upper Thomson Road,B,3,10,48.0,46.1,43.2,Clear,0,5
+East Coast Parkway,Y,4,20,46.2,48.5,45.2,Mist,1,5
+Bukit Timah Expressway,Y,0,14,51.9,51.2,50.7,Rain,0,5
+Clementi Avenue 3,C,0,13,36.8,35.3,42.0,Clouds,0,4
+Kallang Paya Lebar Expressway,Y,5,4,49.2,48.4,50.7,Rain,0,6
+Pan Island Expressway,Y,2,6,72.1,77.1,69.4,Clouds,0,8
+Tampines Expressway,Y,0,21,61.4,66.6,62.0,Mist,0,7
+Seletar Expressway,Y,6,9,57.8,57.2,60.7,Drizzle,0,6
+Nicoll Highway,B,6,12,49.1,48.3,45.9,Mist,0,5
+Woodlands Avenue 12,B,3,4,24.8,27.2,22.1,Thunderstorm,0,3
+Upper Thomson Road,B,6,16,49.4,50.3,43.5,Clouds,0,6
+Orchard Road,B,1,19,28.1,30.1,25.4,Mist,1,3
+Tampines Avenue 10,B,0,11,44.7,38.3,45.4,Haze,0,5
+Clementi Avenue 3,C,0,3,34.3,30.4,33.7,Mist,0,4
+Ayer Rajah Expressway,Y,2,13,70.9,67.0,66.1,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,3,14,53.2,51.5,54.1,Rain,0,5
+Clementi Avenue 3,C,0,16,27.3,25.6,26.4,Drizzle,0,4
+Woodlands Avenue 12,B,6,2,39.7,40.1,32.3,Haze,0,4
+Bedok North Avenue 3,C,6,10,18.0,20.3,15.2,Thunderstorm,0,3
+Woodlands Avenue 12,B,0,17,26.3,26.5,17.5,Drizzle,1,3
+Pan Island Expressway,Y,4,21,70.1,69.6,72.3,Clouds,0,8
+Ayer Rajah Expressway,Y,1,17,7.5,10.1,12.4,Thunderstorm,1,2
+Orchard Road,B,3,18,25.7,24.7,28.2,Drizzle,1,3
+East Coast Parkway,Y,5,23,38.1,37.7,43.5,Thunderstorm,0,5
+Pan Island Expressway,Y,5,11,75.3,78.5,77.7,Clouds,0,7
+Central Expressway,Y,5,20,46.4,51.7,50.6,Rain,0,6
+East Coast Parkway,Y,5,23,45.9,50.0,47.5,Thunderstorm,0,5
+Clementi Avenue 3,C,2,11,30.7,29.9,34.9,Drizzle,0,4
+East Coast Parkway,Y,2,14,42.5,38.6,47.3,Thunderstorm,0,4
+Tampines Avenue 10,B,0,0,44.6,47.9,41.2,Mist,0,5
+Seletar Expressway,Y,4,22,49.0,50.3,53.8,Rain,0,5
+Bedok North Avenue 3,C,6,2,30.4,32.6,27.7,Drizzle,0,4
+Woodlands Avenue 12,B,3,10,33.6,31.8,37.2,Rain,0,4
+Pan Island Expressway,Y,6,22,69.2,74.7,66.0,Drizzle,0,7
+Ayer Rajah Expressway,Y,2,23,48.1,46.1,50.8,Rain,0,5
+Bukit Timah Expressway,Y,3,22,50.8,51.3,53.4,Rain,0,6
+Kallang Paya Lebar Expressway,Y,3,6,37.8,34.9,33.7,Thunderstorm,0,4
+Seletar Expressway,Y,5,3,64.0,54.6,63.3,Clouds,0,8
+Tampines Avenue 10,B,4,13,40.6,37.0,39.5,Mist,0,4
+Ayer Rajah Expressway,Y,1,19,52.4,48.4,44.9,Haze,1,6
+Orchard Road,B,5,8,25.2,23.5,28.6,Thunderstorm,0,3
+East Coast Parkway,Y,4,12,54.1,50.1,56.9,Rain,0,6
+Nicoll Highway,B,3,5,43.9,46.0,51.4,Mist,0,5
+Kallang Paya Lebar Expressway,Y,4,23,74.2,73.6,68.2,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,3,23,65.9,71.4,64.3,Mist,0,7
+Upper Thomson Road,B,0,8,22.9,19.2,21.0,Rain,1,2
+Bedok North Avenue 3,C,1,5,33.3,31.6,30.9,Mist,0,3
+Orchard Road,B,2,5,44.7,43.0,44.0,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,0,20,57.6,56.4,58.8,Clear,1,7
+Clementi Avenue 3,C,1,15,33.9,31.4,40.6,Mist,0,4
+Bukit Timah Expressway,Y,3,20,9.2,8.5,6.7,Thunderstorm,1,2
+Tampines Expressway,Y,4,16,80.0,77.5,76.4,Clear,0,8
+Bedok North Avenue 3,C,1,4,34.4,41.6,34.0,Haze,0,4
+Clementi Avenue 3,C,5,10,38.4,35.0,40.2,Clear,0,4
+Upper Thomson Road,B,0,13,39.0,41.2,24.6,Haze,0,5
+Ayer Rajah Expressway,Y,6,18,76.5,70.9,74.7,Clear,0,8
+Clementi Avenue 3,C,3,21,37.1,39.2,32.5,Haze,0,4
+Clementi Avenue 3,C,2,16,40.0,38.9,39.5,Clear,0,5
+Seletar Expressway,Y,5,18,69.4,69.4,65.5,Clouds,0,7
+Tampines Avenue 10,B,1,17,32.6,35.9,33.0,Clouds,1,4
+Ayer Rajah Expressway,Y,2,18,50.8,54.2,44.8,Mist,1,6
+Tampines Avenue 10,B,5,16,38.3,37.3,33.4,Drizzle,0,5
+Bukit Timah Expressway,Y,2,9,42.5,43.7,46.2,Clear,1,4
+Tampines Expressway,Y,2,15,35.2,36.7,45.1,Thunderstorm,0,3
+East Coast Parkway,Y,5,16,79.7,79.8,79.4,Clear,0,8
+Woodlands Avenue 12,B,1,14,43.6,41.7,51.6,Clear,0,5
+Woodlands Avenue 12,B,3,12,34.5,30.4,42.6,Drizzle,0,5
+Seletar Expressway,Y,0,7,49.6,47.5,37.8,Clouds,1,6
+Woodlands Avenue 12,B,3,17,22.9,16.7,23.0,Mist,1,3
+Nicoll Highway,B,4,12,51.9,57.4,61.3,Clear,0,6
+Bedok North Avenue 3,C,4,11,20.9,22.3,23.6,Rain,0,3
+Bedok North Avenue 3,C,0,11,31.9,30.0,33.3,Drizzle,0,4
+Seletar Expressway,Y,6,13,67.6,68.5,69.7,Clear,0,8
+Pan Island Expressway,Y,2,1,72.5,72.0,78.2,Clouds,0,8
+East Coast Parkway,Y,3,12,49.3,47.9,56.4,Thunderstorm,0,5
+Central Expressway,Y,2,20,47.6,55.4,43.9,Clouds,1,6
+Clementi Avenue 3,C,6,17,32.6,33.5,37.4,Haze,0,4
+East Coast Parkway,Y,3,6,37.6,38.4,30.6,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,6,2,71.5,73.8,64.2,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,6,12,55.0,56.2,52.4,Drizzle,0,6
+Bedok North Avenue 3,C,6,14,31.1,35.7,32.6,Haze,0,2
+Bukit Timah Expressway,Y,3,12,54.5,56.7,52.4,Rain,0,5
+Nicoll Highway,B,0,17,27.3,25.9,25.2,Rain,1,3
+Kallang Paya Lebar Expressway,Y,0,11,73.4,76.9,82.6,Clouds,0,8
+Woodlands Avenue 12,B,4,21,33.0,35.5,36.1,Rain,0,4
+Orchard Road,B,1,4,34.7,32.1,31.3,Mist,0,4
+Central Expressway,Y,0,14,61.3,62.6,59.8,Drizzle,0,6
+Tampines Avenue 10,B,2,3,43.2,40.9,34.9,Clouds,0,4
+Nicoll Highway,B,5,20,42.9,42.1,53.6,Drizzle,0,5
+Woodlands Avenue 12,B,5,3,23.6,21.3,16.7,Thunderstorm,0,3
+Central Expressway,Y,0,3,73.7,74.9,65.7,Clouds,0,8
+Tampines Avenue 10,B,2,22,37.3,46.9,32.7,Mist,0,5
+Tampines Expressway,Y,6,3,73.1,72.2,78.6,Mist,0,8
+East Coast Parkway,Y,4,12,54.8,56.7,61.9,Rain,0,6
+Orchard Road,B,5,1,40.0,39.7,42.8,Clouds,0,4
+Seletar Expressway,Y,4,23,60.0,63.6,57.8,Mist,0,6
+Clementi Avenue 3,C,0,11,38.4,37.1,33.3,Clear,0,4
+Tampines Expressway,Y,2,9,42.8,45.7,44.3,Mist,1,5
+Woodlands Avenue 12,B,4,19,24.8,30.1,20.2,Mist,1,3
+Tampines Avenue 10,B,0,22,34.3,35.2,36.6,Rain,0,4
+Woodlands Avenue 12,B,2,16,35.6,34.7,33.8,Clouds,0,4
+Clementi Avenue 3,C,6,11,27.8,23.7,28.1,Rain,0,3
+Nicoll Highway,B,2,23,48.8,46.4,46.9,Clouds,0,6
+Kallang Paya Lebar Expressway,Y,3,13,64.3,63.3,63.2,Clouds,0,7
+Nicoll Highway,B,1,17,33.1,35.6,24.6,Clear,1,3
+East Coast Parkway,Y,3,11,82.0,80.0,79.2,Clouds,0,8
+Clementi Avenue 3,C,4,8,22.7,21.9,20.7,Mist,1,3
+Pan Island Expressway,Y,3,13,75.6,79.9,67.5,Haze,0,8
+Bedok North Avenue 3,C,2,20,7.5,6.8,3.5,Thunderstorm,1,1
+Clementi Avenue 3,C,1,10,29.3,25.6,31.6,Mist,0,3
+Nicoll Highway,B,4,8,40.7,38.8,41.6,Clear,1,4
+Bedok North Avenue 3,C,6,20,35.1,29.7,28.9,Drizzle,0,4
+East Coast Parkway,Y,2,21,73.4,73.6,70.1,Clouds,0,8
+Tampines Avenue 10,B,1,20,30.3,27.4,36.3,Clear,1,3
+Central Expressway,Y,5,2,60.8,61.9,62.4,Drizzle,0,6
+Bukit Timah Expressway,Y,6,8,74.1,71.2,79.5,Clouds,0,7
+Woodlands Avenue 12,B,0,19,5.5,3.7,8.1,Thunderstorm,1,1
+Pan Island Expressway,Y,1,5,56.4,54.9,50.4,Rain,0,6
+Tampines Expressway,Y,2,17,47.2,45.3,51.8,Haze,1,5
+Seletar Expressway,Y,2,8,33.7,29.6,29.0,Drizzle,1,4
+East Coast Parkway,Y,6,8,35.1,33.3,30.7,Thunderstorm,0,4
+Nicoll Highway,B,1,17,27.3,24.2,32.7,Drizzle,1,3
+Central Expressway,Y,2,18,30.9,34.1,31.3,Rain,1,3
+Woodlands Avenue 12,B,6,10,39.2,33.3,35.0,Drizzle,0,4
+Tampines Expressway,Y,2,15,42.0,42.8,44.4,Thunderstorm,0,4
+Woodlands Avenue 12,B,6,12,38.7,37.5,44.4,Mist,0,4
+Pan Island Expressway,Y,5,10,74.9,76.3,63.4,Clear,0,8
+Woodlands Avenue 12,B,4,8,26.4,20.4,23.6,Clear,1,4
+Pan Island Expressway,Y,0,13,74.2,72.3,81.3,Clear,0,8
+Bukit Timah Expressway,Y,0,4,32.1,26.8,26.5,Thunderstorm,0,3
+Bedok North Avenue 3,C,1,17,21.5,20.7,20.7,Drizzle,1,3
+Woodlands Avenue 12,B,1,3,43.8,46.5,38.4,Drizzle,0,5
+Kallang Paya Lebar Expressway,Y,5,16,35.5,38.5,38.0,Thunderstorm,0,4
+Bukit Timah Expressway,Y,6,3,68.2,68.0,67.6,Clear,0,8
+Tampines Avenue 10,B,1,12,38.6,39.7,38.4,Drizzle,0,5
+Clementi Avenue 3,C,0,22,36.6,35.0,37.5,Drizzle,0,4
+Pan Island Expressway,Y,4,7,11.7,11.7,9.6,Thunderstorm,1,2
+Pan Island Expressway,Y,6,17,40.3,38.8,40.8,Thunderstorm,0,5
+Nicoll Highway,B,6,17,32.0,32.3,26.5,Thunderstorm,0,3
+Orchard Road,B,6,11,42.7,44.4,44.3,Haze,0,5
+Bedok North Avenue 3,C,6,10,34.5,33.6,36.9,Clear,0,4
+Bedok North Avenue 3,C,4,4,25.1,23.3,31.5,Rain,0,3
+Bukit Timah Expressway,Y,4,20,49.7,50.0,50.8,Clouds,1,6
+Woodlands Avenue 12,B,4,12,22.5,23.1,25.3,Thunderstorm,0,3
+Nicoll Highway,B,2,6,52.2,57.5,56.2,Clear,0,6
+Seletar Expressway,Y,5,12,41.8,44.9,47.8,Thunderstorm,0,5
+Nicoll Highway,B,5,18,42.0,38.2,46.9,Drizzle,0,5
+Upper Thomson Road,B,3,9,12.0,7.8,9.5,Rain,1,1
+Kallang Paya Lebar Expressway,Y,4,22,42.8,39.9,44.9,Thunderstorm,0,5
+East Coast Parkway,Y,0,3,56.7,56.9,57.1,Rain,0,6
+Nicoll Highway,B,3,2,47.9,47.2,42.1,Haze,0,5
+Bedok North Avenue 3,C,0,9,23.2,25.7,22.6,Mist,1,2
+Tampines Avenue 10,B,3,19,24.5,15.9,19.2,Mist,1,3
+Woodlands Avenue 12,B,6,4,35.4,37.0,33.3,Mist,0,4
+Tampines Expressway,Y,4,3,43.4,43.2,38.2,Thunderstorm,0,5
+Upper Thomson Road,B,2,5,33.6,32.7,39.0,Rain,0,4
+Bukit Timah Expressway,Y,5,20,47.9,47.8,48.1,Rain,0,5
+Kallang Paya Lebar Expressway,Y,0,11,72.0,72.2,62.5,Clouds,0,7
+Bedok North Avenue 3,C,6,12,35.2,37.1,40.8,Drizzle,0,4
+Woodlands Avenue 12,B,1,1,41.3,40.6,38.3,Clouds,0,5
+Pan Island Expressway,Y,3,4,70.9,68.9,73.7,Clouds,0,7
+Clementi Avenue 3,C,3,20,25.5,23.9,22.2,Clouds,1,4
+Seletar Expressway,Y,6,12,35.6,32.6,35.8,Thunderstorm,0,3
+Seletar Expressway,Y,0,18,46.9,46.2,43.9,Haze,1,5
+Kallang Paya Lebar Expressway,Y,2,23,74.5,75.2,82.4,Clear,0,8
+Tampines Avenue 10,B,4,15,44.5,39.6,45.5,Clear,0,5
+Kallang Paya Lebar Expressway,Y,2,18,20.9,20.6,23.1,Thunderstorm,1,2
+Woodlands Avenue 12,B,2,1,22.7,19.7,19.4,Thunderstorm,0,2
+Tampines Avenue 10,B,4,12,37.7,40.9,34.6,Drizzle,0,4
+Tampines Avenue 10,B,1,8,13.4,17.2,20.1,Rain,1,1
+Seletar Expressway,Y,0,7,35.8,40.2,38.4,Mist,1,4
+Clementi Avenue 3,C,3,8,26.0,28.3,32.4,Clouds,1,3
+Bukit Timah Expressway,Y,3,21,55.9,55.0,57.1,Drizzle,0,6
+Clementi Avenue 3,C,0,1,40.0,38.8,41.6,Clouds,0,5
+East Coast Parkway,Y,4,9,48.0,49.3,45.6,Drizzle,1,5
+Kallang Paya Lebar Expressway,Y,1,14,41.9,40.4,43.6,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,4,17,34.4,34.1,26.3,Rain,1,4
+Orchard Road,B,4,9,21.4,18.9,28.7,Drizzle,1,3
+Ayer Rajah Expressway,Y,6,1,36.1,39.7,32.7,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,5,11,54.3,54.7,55.3,Rain,0,5
+Pan Island Expressway,Y,6,9,76.1,79.2,74.6,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,1,19,48.5,51.1,56.2,Haze,1,5
+Central Expressway,Y,0,0,59.5,63.0,70.3,Haze,0,7
+Nicoll Highway,B,4,6,52.2,51.1,49.9,Haze,0,6
+Bedok North Avenue 3,C,2,10,29.1,32.4,25.1,Drizzle,0,4
+Pan Island Expressway,Y,3,14,38.8,37.8,29.8,Thunderstorm,0,4
+Tampines Expressway,Y,4,2,74.8,75.5,75.3,Clear,0,8
+Upper Thomson Road,B,3,20,22.8,23.6,24.1,Mist,1,3
+Pan Island Expressway,Y,3,7,47.2,44.3,50.6,Drizzle,1,5
+Ayer Rajah Expressway,Y,5,10,78.0,80.6,79.0,Clear,0,8
+Pan Island Expressway,Y,4,1,65.2,65.2,72.9,Mist,0,7
+Clementi Avenue 3,C,4,4,39.1,38.5,41.9,Haze,0,4
+Central Expressway,Y,3,16,63.6,59.5,70.1,Mist,0,7
+Bukit Timah Expressway,Y,3,12,35.7,36.2,36.9,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,5,16,68.2,70.5,59.3,Haze,0,7
+Seletar Expressway,Y,2,17,53.1,52.3,54.6,Clouds,1,5
+Bukit Timah Expressway,Y,6,6,75.0,73.7,72.9,Clouds,0,8
+Bedok North Avenue 3,C,5,0,19.1,19.3,12.9,Thunderstorm,0,2
+Ayer Rajah Expressway,Y,0,22,66.8,70.2,66.9,Mist,0,7
+Kallang Paya Lebar Expressway,Y,3,23,64.1,65.2,55.2,Mist,0,7
+Upper Thomson Road,B,5,16,35.7,37.1,40.0,Rain,0,4
+Nicoll Highway,B,2,4,40.2,42.5,42.6,Rain,0,5
+Upper Thomson Road,B,3,11,38.3,39.1,35.5,Haze,0,5
+Nicoll Highway,B,3,5,49.3,50.8,54.2,Clouds,0,5
+Ayer Rajah Expressway,Y,6,12,68.5,68.7,73.2,Clear,0,7
+Woodlands Avenue 12,B,3,3,41.5,41.3,36.8,Clouds,0,5
+Seletar Expressway,Y,4,10,65.5,59.0,62.6,Clouds,0,7
+Pan Island Expressway,Y,5,14,72.7,77.6,70.9,Clouds,0,8
+East Coast Parkway,Y,5,4,71.9,70.7,65.6,Haze,0,7
+Tampines Expressway,Y,3,6,65.5,69.7,61.6,Mist,0,7
+Seletar Expressway,Y,1,14,69.4,69.9,69.6,Clouds,0,8
+Bukit Timah Expressway,Y,1,9,52.7,56.5,46.8,Clear,1,6
+Tampines Expressway,Y,2,9,10.2,12.4,11.6,Thunderstorm,1,2
+Nicoll Highway,B,0,18,9.1,14.3,9.8,Thunderstorm,1,1
+Bedok North Avenue 3,C,4,4,18.2,17.8,14.2,Thunderstorm,0,2
+Bedok North Avenue 3,C,1,21,17.9,14.9,21.8,Thunderstorm,0,2
+Woodlands Avenue 12,B,0,12,36.3,34.6,32.6,Mist,0,4
+Kallang Paya Lebar Expressway,Y,5,5,47.8,44.4,51.7,Rain,0,5
+Kallang Paya Lebar Expressway,Y,3,20,44.5,44.5,45.7,Clouds,1,5
+Upper Thomson Road,B,0,19,30.2,27.0,31.5,Clear,1,3
+East Coast Parkway,Y,1,5,79.6,81.4,78.2,Clear,0,8
+Seletar Expressway,Y,2,15,39.9,43.8,42.0,Thunderstorm,0,4
+Tampines Avenue 10,B,5,14,37.3,37.6,29.8,Mist,0,4
+Woodlands Avenue 12,B,4,11,43.9,43.2,43.0,Clouds,0,5
+Orchard Road,B,6,17,42.4,40.0,40.0,Clouds,0,5
+Woodlands Avenue 12,B,2,20,14.9,15.3,11.9,Rain,1,2
+Bukit Timah Expressway,Y,6,12,59.6,58.4,64.6,Mist,0,7
+Clementi Avenue 3,C,1,15,39.5,39.8,42.2,Clouds,0,4
+Orchard Road,B,1,9,18.5,17.2,23.2,Rain,1,2
+Tampines Expressway,Y,1,7,12.5,9.9,12.1,Thunderstorm,1,2
+East Coast Parkway,Y,2,1,77.3,77.4,76.5,Clouds,0,8
+Bedok North Avenue 3,C,6,1,32.0,31.3,38.7,Drizzle,0,3
+Ayer Rajah Expressway,Y,4,8,46.7,50.6,56.0,Haze,1,5
+Clementi Avenue 3,C,6,15,37.2,35.0,25.4,Haze,0,4
+Central Expressway,Y,6,3,53.7,54.1,45.1,Rain,0,6
+Kallang Paya Lebar Expressway,Y,2,12,55.5,54.2,63.5,Rain,0,6
+Tampines Avenue 10,B,5,22,41.6,45.3,43.5,Mist,0,5
+Tampines Avenue 10,B,0,4,43.9,41.0,49.9,Clouds,0,5
+Bedok North Avenue 3,C,6,3,31.8,32.9,41.4,Clouds,0,4
+Bukit Timah Expressway,Y,4,17,41.7,44.0,34.9,Haze,1,5
+Tampines Avenue 10,B,5,6,40.1,42.5,33.0,Clouds,0,4
+Orchard Road,B,4,0,19.3,15.7,17.9,Thunderstorm,0,2
+Upper Thomson Road,B,3,9,26.0,27.5,24.3,Clouds,1,3
+Upper Thomson Road,B,2,2,41.3,37.4,39.7,Mist,0,4
+Seletar Expressway,Y,1,22,71.9,69.1,76.4,Clouds,0,8
+Orchard Road,B,1,9,3.2,3.7,2.0,Thunderstorm,1,1
+Pan Island Expressway,Y,2,2,69.9,64.4,73.5,Clouds,0,7
+Woodlands Avenue 12,B,0,2,43.6,42.4,44.0,Clear,0,5
+Bedok North Avenue 3,C,1,22,19.9,19.8,20.9,Thunderstorm,0,2
+Pan Island Expressway,Y,3,17,27.7,24.3,19.1,Rain,1,3
+Bedok North Avenue 3,C,1,6,30.1,30.4,26.8,Drizzle,0,4
+Pan Island Expressway,Y,6,17,52.5,49.9,51.6,Rain,0,6
+Central Expressway,Y,6,2,69.6,70.3,66.8,Clear,0,7
+Seletar Expressway,Y,4,20,48.6,44.6,42.2,Clouds,1,5
+Nicoll Highway,B,6,4,48.5,48.0,58.4,Haze,0,5
+Tampines Avenue 10,B,1,8,16.5,15.4,12.5,Drizzle,1,2
+Central Expressway,Y,6,7,67.1,69.3,70.5,Clouds,0,7
+Bedok North Avenue 3,C,3,3,26.0,23.1,25.3,Rain,0,3
+East Coast Parkway,Y,1,11,80.9,77.3,79.8,Clear,0,8
+Seletar Expressway,Y,4,14,64.1,65.6,65.4,Mist,0,7
+Pan Island Expressway,Y,1,15,76.6,79.3,76.9,Clouds,0,8
+Bukit Timah Expressway,Y,1,15,46.6,45.8,47.3,Rain,0,6
+Tampines Expressway,Y,1,22,67.5,66.8,70.2,Haze,0,7
+Bedok North Avenue 3,C,3,8,23.0,22.2,22.4,Clouds,1,3
+Upper Thomson Road,B,3,15,26.7,31.8,27.2,Thunderstorm,0,4
+Tampines Avenue 10,B,0,1,32.8,34.0,37.1,Rain,0,4
+East Coast Parkway,Y,6,13,74.0,73.0,71.2,Haze,0,8
+Kallang Paya Lebar Expressway,Y,3,1,67.0,65.9,67.5,Mist,0,7
+East Coast Parkway,Y,5,18,78.9,75.3,77.4,Clear,0,8
+Upper Thomson Road,B,0,6,42.4,43.2,36.4,Haze,0,5
+Woodlands Avenue 12,B,2,8,27.9,27.3,33.6,Mist,1,4
+Kallang Paya Lebar Expressway,Y,2,7,17.1,19.4,23.8,Thunderstorm,1,2
+Orchard Road,B,5,16,24.1,23.6,20.0,Rain,0,3
+Kallang Paya Lebar Expressway,Y,0,5,64.0,63.0,64.9,Drizzle,0,7
+Upper Thomson Road,B,1,7,13.4,11.0,13.0,Thunderstorm,1,2
+Pan Island Expressway,Y,4,20,33.4,35.2,29.5,Rain,1,5
+Clementi Avenue 3,C,3,2,35.7,38.3,32.0,Haze,0,4
+Seletar Expressway,Y,4,17,18.3,15.6,17.2,Rain,1,2
+East Coast Parkway,Y,0,10,43.4,41.5,41.8,Thunderstorm,0,5
+East Coast Parkway,Y,3,20,47.3,46.4,50.2,Clouds,1,5
+Central Expressway,Y,2,9,41.6,46.1,42.4,Clouds,1,5
+Bedok North Avenue 3,C,4,17,11.3,8.3,10.5,Rain,1,2
+Central Expressway,Y,4,20,42.6,40.9,47.7,Mist,1,4
+East Coast Parkway,Y,6,14,70.4,71.6,70.5,Mist,0,8
+Tampines Avenue 10,B,4,10,29.9,30.0,29.4,Rain,0,3
+Kallang Paya Lebar Expressway,Y,4,13,65.4,59.7,63.5,Mist,0,7
+Bukit Timah Expressway,Y,1,10,34.3,39.2,44.6,Thunderstorm,0,4
+Nicoll Highway,B,5,4,49.6,56.5,48.2,Clouds,0,5
+Nicoll Highway,B,4,2,23.6,20.2,32.2,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,2,8,52.3,50.6,50.9,Clear,1,5
+Nicoll Highway,B,4,23,54.4,52.2,63.1,Clear,0,6
+Kallang Paya Lebar Expressway,Y,0,14,31.9,29.2,31.3,Thunderstorm,0,4
+Upper Thomson Road,B,3,5,48.3,47.3,43.6,Clouds,0,5
+East Coast Parkway,Y,3,23,39.2,37.0,37.4,Thunderstorm,0,4
+Pan Island Expressway,Y,6,3,39.0,33.3,44.8,Thunderstorm,0,4
+Bedok North Avenue 3,C,6,23,30.6,30.6,34.0,Mist,0,4
+Kallang Paya Lebar Expressway,Y,0,3,58.6,54.4,66.0,Drizzle,0,6
+Bukit Timah Expressway,Y,3,12,61.9,61.6,64.1,Drizzle,0,7
+Bedok North Avenue 3,C,0,17,23.9,27.9,20.5,Drizzle,1,3
+Tampines Avenue 10,B,2,2,40.2,37.3,38.6,Drizzle,0,5
+Seletar Expressway,Y,6,15,55.1,53.1,52.3,Rain,0,6
+Nicoll Highway,B,6,15,26.3,28.7,17.1,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,4,22,73.5,75.6,70.0,Clear,0,8
+Nicoll Highway,B,4,18,30.2,31.7,31.1,Clouds,1,3
+Ayer Rajah Expressway,Y,2,18,44.8,48.3,43.3,Mist,1,5
+Bukit Timah Expressway,Y,4,0,68.1,66.8,64.9,Haze,0,7
+Tampines Avenue 10,B,3,7,32.7,30.7,42.2,Clouds,1,4
+Orchard Road,B,0,2,45.0,45.8,39.3,Clear,0,5
+Pan Island Expressway,Y,4,4,71.3,75.9,66.4,Clouds,0,8
+Tampines Avenue 10,B,1,23,48.0,53.7,48.6,Clouds,0,5
+Woodlands Avenue 12,B,1,0,37.4,36.2,36.5,Mist,0,4
+Pan Island Expressway,Y,4,21,54.9,55.3,58.0,Rain,0,6
+Bedok North Avenue 3,C,4,13,34.6,32.8,37.6,Haze,0,3
+Nicoll Highway,B,0,8,8.4,2.0,3.3,Thunderstorm,1,2
+Tampines Avenue 10,B,3,15,24.5,26.4,18.0,Thunderstorm,0,3
+Upper Thomson Road,B,2,7,27.0,28.8,31.4,Clear,1,3
+Bukit Timah Expressway,Y,3,3,59.5,50.4,65.3,Haze,0,7
+Seletar Expressway,Y,3,16,56.7,58.3,52.7,Rain,0,6
+Clementi Avenue 3,C,0,12,35.2,33.8,36.7,Clouds,0,3
+Upper Thomson Road,B,4,5,46.6,41.8,46.1,Haze,0,5
+Pan Island Expressway,Y,3,23,80.0,78.9,75.5,Clear,0,8
+Bedok North Avenue 3,C,4,18,25.2,24.6,25.5,Haze,1,2
+Seletar Expressway,Y,5,12,72.5,77.0,73.2,Clouds,0,8
+Upper Thomson Road,B,0,22,45.7,47.3,49.7,Clouds,0,5
+Orchard Road,B,3,4,39.1,39.5,42.7,Mist,0,4
+Bedok North Avenue 3,C,0,18,19.1,17.8,19.3,Clear,1,2
+Tampines Avenue 10,B,4,6,31.1,38.0,30.6,Rain,0,3
+East Coast Parkway,Y,6,2,79.5,78.3,82.8,Clear,0,8
+Tampines Expressway,Y,1,14,67.2,74.0,76.2,Mist,0,8
+Ayer Rajah Expressway,Y,2,5,58.0,57.3,57.4,Rain,0,7
+Kallang Paya Lebar Expressway,Y,3,9,45.4,43.5,46.5,Haze,1,5
+Bedok North Avenue 3,C,4,0,26.5,25.0,22.5,Rain,0,3
+Kallang Paya Lebar Expressway,Y,1,6,64.1,65.0,61.1,Haze,0,7
+Woodlands Avenue 12,B,6,11,40.1,40.6,51.5,Mist,0,4
+Bukit Timah Expressway,Y,0,14,63.2,58.3,59.2,Drizzle,0,7
+Pan Island Expressway,Y,4,4,52.7,53.8,59.5,Rain,0,6
+Bedok North Avenue 3,C,4,5,37.7,31.3,36.6,Clouds,0,4
+Tampines Avenue 10,B,0,23,36.4,38.5,32.1,Mist,0,4
+Seletar Expressway,Y,3,23,69.0,62.7,64.7,Haze,0,7
+Bedok North Avenue 3,C,2,7,24.6,25.0,25.3,Drizzle,1,3
+Pan Island Expressway,Y,6,3,65.8,66.1,71.3,Haze,0,7
+Tampines Expressway,Y,5,13,76.6,82.0,80.2,Clouds,0,8
+Tampines Expressway,Y,1,1,43.3,48.5,42.4,Thunderstorm,0,5
+Clementi Avenue 3,C,6,3,40.0,38.5,40.4,Clear,0,5
+Seletar Expressway,Y,3,3,61.3,58.9,60.0,Drizzle,0,7
+Central Expressway,Y,0,23,53.4,50.9,63.3,Rain,0,5
+Tampines Expressway,Y,3,10,77.1,75.5,73.6,Clouds,0,8
+Pan Island Expressway,Y,1,15,80.0,82.7,73.6,Clear,0,8
+Seletar Expressway,Y,2,12,65.9,63.6,68.8,Mist,0,7
+Orchard Road,B,6,20,21.3,24.4,27.5,Thunderstorm,0,3
+Central Expressway,Y,6,14,35.1,35.7,43.0,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,0,21,67.1,71.5,70.8,Mist,0,7
+Clementi Avenue 3,C,4,19,18.8,18.2,19.8,Clear,1,3
+Pan Island Expressway,Y,2,23,71.6,67.1,79.4,Clear,0,7
+Central Expressway,Y,4,1,68.3,71.7,69.4,Clear,0,7
+Tampines Expressway,Y,6,20,61.0,62.4,62.8,Drizzle,0,6
+Nicoll Highway,B,0,23,39.5,37.9,36.8,Drizzle,0,5
+Clementi Avenue 3,C,6,23,29.0,29.3,30.4,Rain,0,3
+Orchard Road,B,6,2,24.1,23.2,21.5,Thunderstorm,0,2
+Woodlands Avenue 12,B,1,1,19.7,21.0,19.3,Thunderstorm,0,3
+Bedok North Avenue 3,C,4,7,11.6,7.9,9.8,Drizzle,1,2
+Kallang Paya Lebar Expressway,Y,3,0,68.2,66.5,83.0,Haze,0,7
+Tampines Expressway,Y,6,17,46.7,46.0,50.9,Thunderstorm,0,5
+Nicoll Highway,B,3,18,36.5,30.9,37.3,Clear,1,4
+Tampines Expressway,Y,0,9,46.3,49.4,45.7,Mist,1,4
+Woodlands Avenue 12,B,3,19,17.4,20.6,22.1,Rain,1,3
+Tampines Expressway,Y,6,14,59.0,56.9,56.6,Rain,0,6
+Orchard Road,B,5,13,37.9,37.8,33.9,Drizzle,0,3
+Ayer Rajah Expressway,Y,2,13,66.5,63.6,65.3,Clouds,0,7
+East Coast Parkway,Y,0,0,73.7,74.2,68.5,Clouds,0,8
+Central Expressway,Y,6,0,55.0,59.4,59.6,Drizzle,0,6
+Upper Thomson Road,B,3,5,42.8,50.7,43.8,Drizzle,0,4
+Pan Island Expressway,Y,2,1,69.8,74.3,74.5,Mist,0,7
+Bukit Timah Expressway,Y,1,15,64.0,60.8,52.8,Drizzle,0,7
+Pan Island Expressway,Y,1,16,72.1,67.2,74.2,Clouds,0,8
+Central Expressway,Y,5,14,65.9,68.4,70.7,Haze,0,7
+Seletar Expressway,Y,2,22,59.8,60.0,72.0,Drizzle,0,6
+Tampines Avenue 10,B,1,20,27.9,32.0,25.8,Haze,1,3
+Tampines Avenue 10,B,3,6,45.6,48.3,47.6,Clear,0,4
+East Coast Parkway,Y,6,6,61.3,62.5,61.4,Rain,0,7
+Clementi Avenue 3,C,6,22,33.7,33.8,44.5,Drizzle,0,4
+Orchard Road,B,2,3,35.9,37.6,36.4,Mist,0,4
+Bukit Timah Expressway,Y,5,13,37.1,39.2,34.2,Thunderstorm,0,4
+Tampines Expressway,Y,2,5,35.8,36.9,42.2,Thunderstorm,0,4
+Clementi Avenue 3,C,2,2,33.4,35.2,35.0,Mist,0,3
+Seletar Expressway,Y,2,2,68.6,68.1,70.4,Haze,0,7
+Bukit Timah Expressway,Y,6,6,65.9,64.8,69.8,Mist,0,7
+Tampines Avenue 10,B,0,8,7.4,12.5,3.8,Thunderstorm,1,1
+Nicoll Highway,B,2,17,26.6,26.8,20.3,Mist,1,2
+Pan Island Expressway,Y,0,14,62.2,66.1,62.1,Mist,0,7
+Nicoll Highway,B,4,11,38.7,37.2,40.3,Rain,0,5
+Tampines Expressway,Y,1,20,34.5,32.4,32.4,Rain,1,4
+Clementi Avenue 3,C,5,21,39.1,38.9,40.9,Clear,0,4
+Orchard Road,B,6,6,41.9,39.0,52.1,Clouds,0,5
+Bukit Timah Expressway,Y,0,13,49.9,50.5,51.8,Rain,0,5
+Kallang Paya Lebar Expressway,Y,4,11,71.1,76.6,72.0,Haze,0,7
+Upper Thomson Road,B,0,16,38.8,39.9,36.0,Drizzle,0,4
+Woodlands Avenue 12,B,5,8,24.0,19.6,21.1,Rain,0,3
+Orchard Road,B,0,22,34.0,40.0,32.7,Drizzle,0,4
+Woodlands Avenue 12,B,3,7,19.5,22.8,22.2,Drizzle,1,3
+Orchard Road,B,3,9,23.0,23.6,22.5,Mist,1,2
+Orchard Road,B,3,4,23.2,21.7,20.9,Thunderstorm,0,3
+East Coast Parkway,Y,1,18,44.6,44.5,36.1,Haze,1,5
+Seletar Expressway,Y,6,3,59.8,57.0,57.5,Mist,0,7
+Tampines Avenue 10,B,3,16,40.0,40.6,39.1,Drizzle,0,4
+Bedok North Avenue 3,C,6,19,34.7,35.7,41.6,Clouds,0,4
+Central Expressway,Y,2,16,57.1,51.5,56.3,Mist,0,6
+Tampines Expressway,Y,0,13,78.8,80.0,76.9,Clear,0,8
+Seletar Expressway,Y,1,13,50.5,51.4,61.2,Rain,0,6
+Upper Thomson Road,B,6,23,47.8,50.0,39.3,Haze,0,5
+Orchard Road,B,6,9,38.6,36.4,38.3,Drizzle,0,4
+Woodlands Avenue 12,B,1,12,36.6,36.4,38.0,Drizzle,0,4
+Bedok North Avenue 3,C,5,13,25.8,32.1,22.1,Rain,0,3
+Bukit Timah Expressway,Y,5,17,63.8,69.6,60.0,Mist,0,7
+Ayer Rajah Expressway,Y,5,7,75.2,75.8,81.5,Clear,0,8
+Seletar Expressway,Y,1,2,64.3,64.4,64.7,Drizzle,0,6
+Tampines Expressway,Y,2,23,37.8,35.1,43.1,Thunderstorm,0,5
+Pan Island Expressway,Y,5,11,56.9,55.5,63.1,Rain,0,6
+Upper Thomson Road,B,5,16,41.5,45.2,47.5,Drizzle,0,3
+Woodlands Avenue 12,B,3,0,25.2,27.2,23.9,Thunderstorm,0,4
+Bukit Timah Expressway,Y,3,21,71.6,71.3,76.6,Clouds,0,8
+Ayer Rajah Expressway,Y,5,23,35.9,37.8,32.4,Thunderstorm,0,5
+Orchard Road,B,5,16,43.3,42.3,39.5,Clear,0,5
+Bukit Timah Expressway,Y,5,7,69.6,71.8,72.4,Haze,0,8
+Orchard Road,B,1,17,12.9,12.9,15.4,Rain,1,2
+Pan Island Expressway,Y,6,15,72.7,75.2,70.3,Clouds,0,8
+Pan Island Expressway,Y,3,6,68.5,69.4,70.5,Mist,0,7
+Clementi Avenue 3,C,2,17,12.9,16.1,8.6,Mist,1,2
+Bedok North Avenue 3,C,4,18,18.4,18.1,29.0,Rain,1,2
+Woodlands Avenue 12,B,2,11,45.0,45.6,34.6,Clouds,0,4
+Kallang Paya Lebar Expressway,Y,5,7,45.4,47.5,39.8,Rain,0,5
+Seletar Expressway,Y,3,21,65.3,61.3,68.4,Mist,0,7
+Orchard Road,B,4,21,30.1,32.8,30.4,Rain,0,3
+Central Expressway,Y,6,5,69.5,70.0,66.0,Clear,0,8
+Orchard Road,B,0,15,37.8,42.0,44.8,Haze,0,5
+Pan Island Expressway,Y,4,23,67.2,56.9,71.6,Drizzle,0,8
+Seletar Expressway,Y,4,4,68.7,64.9,68.4,Mist,0,7
+Seletar Expressway,Y,1,1,71.4,66.3,64.7,Clear,0,8
+Tampines Expressway,Y,0,10,77.0,77.3,79.7,Clear,0,8
+Nicoll Highway,B,5,10,53.2,57.9,57.2,Clear,0,6
+Kallang Paya Lebar Expressway,Y,6,14,39.2,40.7,40.7,Thunderstorm,0,4
+Orchard Road,B,0,23,42.9,44.9,42.3,Haze,0,5
+Woodlands Avenue 12,B,1,4,31.3,32.5,35.2,Rain,0,3
+Kallang Paya Lebar Expressway,Y,1,8,28.7,29.1,28.2,Drizzle,1,4
+Tampines Avenue 10,B,0,13,45.1,44.4,40.8,Clear,0,5
+Tampines Avenue 10,B,1,23,45.7,47.0,44.2,Clouds,0,5
+Bedok North Avenue 3,C,3,2,37.1,38.2,35.2,Haze,0,4
+Tampines Avenue 10,B,2,8,24.9,23.7,31.3,Haze,1,3
+Kallang Paya Lebar Expressway,Y,0,14,67.6,64.5,65.3,Clouds,0,8
+Woodlands Avenue 12,B,6,10,36.2,36.9,37.6,Drizzle,0,4
+Upper Thomson Road,B,2,21,48.3,48.3,49.6,Clear,0,5
+Central Expressway,Y,4,18,51.6,48.7,53.4,Haze,1,6
+East Coast Parkway,Y,2,13,76.0,77.1,78.4,Haze,0,8
+Nicoll Highway,B,6,8,25.6,22.2,26.5,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,0,11,64.2,59.9,66.9,Haze,0,7
+Tampines Avenue 10,B,2,9,15.6,14.0,17.3,Rain,1,2
+Clementi Avenue 3,C,6,5,30.6,27.5,30.7,Mist,0,4
+Nicoll Highway,B,2,17,30.2,30.3,30.4,Haze,1,4
+Pan Island Expressway,Y,0,0,68.8,63.7,57.4,Drizzle,0,8
+Upper Thomson Road,B,3,5,38.5,35.7,31.4,Drizzle,0,4
+Clementi Avenue 3,C,3,2,37.5,39.1,42.3,Clear,0,4
+Kallang Paya Lebar Expressway,Y,6,18,76.0,80.3,65.2,Clear,0,8
+Central Expressway,Y,5,4,72.7,71.0,65.3,Clear,0,7
+Tampines Avenue 10,B,0,21,38.8,43.1,40.8,Mist,0,4
+Bedok North Avenue 3,C,2,8,5.6,5.8,7.6,Thunderstorm,1,1
+Bukit Timah Expressway,Y,4,4,75.0,75.9,74.0,Clear,0,8
+Ayer Rajah Expressway,Y,0,19,41.4,39.6,40.5,Drizzle,1,4
+East Coast Parkway,Y,4,6,71.8,70.0,68.5,Mist,0,8
+Woodlands Avenue 12,B,0,16,37.5,38.0,28.5,Mist,0,3
+Bukit Timah Expressway,Y,0,21,52.7,52.0,62.5,Rain,0,6
+Upper Thomson Road,B,3,1,45.5,46.9,46.9,Mist,0,5
+Woodlands Avenue 12,B,0,14,30.6,27.5,37.8,Rain,0,4
+Orchard Road,B,3,19,23.3,22.9,28.0,Clouds,1,3
+Central Expressway,Y,1,2,66.3,71.1,70.4,Clouds,0,7
+Orchard Road,B,5,18,42.7,42.8,46.1,Haze,0,5
+Clementi Avenue 3,C,3,0,25.1,23.1,23.7,Rain,0,3
+Orchard Road,B,4,16,25.7,25.1,26.6,Thunderstorm,0,3
+Clementi Avenue 3,C,0,18,20.4,20.0,21.7,Haze,1,3
+Central Expressway,Y,4,7,40.5,47.8,38.6,Haze,1,5
+Upper Thomson Road,B,6,6,47.6,46.3,43.5,Clear,0,5
+Tampines Expressway,Y,0,6,64.9,69.5,63.9,Mist,0,7
+East Coast Parkway,Y,0,15,79.4,74.0,88.4,Clear,0,8
+Seletar Expressway,Y,1,22,55.4,54.0,63.5,Rain,0,6
+Tampines Avenue 10,B,2,7,33.9,32.2,27.6,Clear,1,3
+Orchard Road,B,3,3,33.3,26.2,47.6,Drizzle,0,4
+Upper Thomson Road,B,5,13,44.5,46.5,40.7,Mist,0,4
+Bedok North Avenue 3,C,3,15,32.5,32.3,33.8,Clouds,0,3
+Kallang Paya Lebar Expressway,Y,3,17,22.7,17.7,22.0,Thunderstorm,1,3
+Seletar Expressway,Y,4,2,37.0,34.0,44.9,Thunderstorm,0,5
+East Coast Parkway,Y,5,6,65.9,65.3,64.7,Drizzle,0,8
+East Coast Parkway,Y,6,19,78.2,80.3,82.5,Clear,0,8
+Orchard Road,B,2,2,40.4,40.1,47.4,Haze,0,5
+Bukit Timah Expressway,Y,2,22,63.6,66.9,64.6,Drizzle,0,7
+Tampines Avenue 10,B,2,4,39.3,43.9,33.8,Mist,0,5
+Clementi Avenue 3,C,0,15,34.6,33.1,29.3,Haze,0,4
+Kallang Paya Lebar Expressway,Y,4,16,56.6,54.4,59.0,Rain,0,6
+Upper Thomson Road,B,6,17,34.9,31.6,27.3,Rain,0,5
+Pan Island Expressway,Y,5,17,72.3,63.9,85.6,Clouds,0,7
+Woodlands Avenue 12,B,5,17,37.4,37.1,43.1,Clear,0,4
+Kallang Paya Lebar Expressway,Y,1,12,35.1,36.7,38.1,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,6,21,70.0,69.8,63.9,Haze,0,8
+Pan Island Expressway,Y,6,21,76.8,76.6,87.1,Clouds,0,8
+Bedok North Avenue 3,C,5,1,33.0,33.4,30.1,Mist,0,4
+Pan Island Expressway,Y,5,19,69.5,67.5,58.8,Drizzle,0,7
+Tampines Avenue 10,B,3,2,42.1,46.3,38.2,Mist,0,5
+Ayer Rajah Expressway,Y,3,21,63.0,58.0,58.5,Mist,0,7
+Woodlands Avenue 12,B,2,1,19.7,25.4,26.8,Thunderstorm,0,2
+East Coast Parkway,Y,5,13,82.0,87.4,81.5,Clear,0,8
+Kallang Paya Lebar Expressway,Y,3,18,18.3,20.4,13.0,Rain,1,2
+Seletar Expressway,Y,1,11,69.9,74.2,68.9,Haze,0,8
+Tampines Avenue 10,B,4,20,21.9,25.3,28.6,Rain,1,2
+Ayer Rajah Expressway,Y,2,1,75.8,77.4,73.1,Clear,0,8
+Woodlands Avenue 12,B,6,5,35.5,38.4,33.4,Rain,0,4
+Upper Thomson Road,B,5,14,25.9,21.0,21.0,Thunderstorm,0,3
+Woodlands Avenue 12,B,4,3,42.8,40.5,39.9,Clouds,0,5
+Orchard Road,B,2,20,22.2,21.7,33.0,Haze,1,2
+Clementi Avenue 3,C,1,0,33.4,34.8,37.6,Mist,0,4
+Tampines Expressway,Y,3,20,49.5,47.5,53.7,Mist,1,6
+Seletar Expressway,Y,1,1,65.3,66.8,64.2,Haze,0,7
+Bedok North Avenue 3,C,6,8,34.8,33.7,36.5,Drizzle,0,4
+Bukit Timah Expressway,Y,0,14,61.6,60.7,53.6,Drizzle,0,6
+Upper Thomson Road,B,5,11,34.7,36.6,37.6,Rain,0,4
+Tampines Avenue 10,B,3,10,37.2,40.4,46.1,Mist,0,4
+Bukit Timah Expressway,Y,0,12,75.0,75.8,80.0,Clear,0,8
+Tampines Avenue 10,B,1,19,31.6,37.5,35.8,Clouds,1,4
+Orchard Road,B,0,10,21.4,22.6,17.0,Thunderstorm,0,3
+Clementi Avenue 3,C,0,5,35.3,36.0,40.3,Clouds,0,4
+Ayer Rajah Expressway,Y,5,19,60.3,62.1,58.1,Drizzle,0,6
+Kallang Paya Lebar Expressway,Y,6,8,65.2,64.3,60.8,Mist,0,7
+Tampines Avenue 10,B,5,20,21.2,16.4,30.0,Thunderstorm,0,3
+Pan Island Expressway,Y,3,4,75.6,78.1,78.9,Clouds,0,8
+Nicoll Highway,B,0,7,30.3,31.3,29.0,Clear,1,3
+Tampines Expressway,Y,5,3,57.8,55.5,56.8,Rain,0,6
+Tampines Expressway,Y,3,0,75.1,74.7,72.9,Haze,0,8
+Kallang Paya Lebar Expressway,Y,2,6,42.6,43.1,38.1,Thunderstorm,0,4
+Woodlands Avenue 12,B,6,20,45.0,45.4,42.8,Clouds,0,5
+Tampines Expressway,Y,0,2,68.3,69.3,66.0,Mist,0,7
+Woodlands Avenue 12,B,3,20,24.3,29.9,33.2,Haze,1,3
+Seletar Expressway,Y,6,21,62.9,64.5,67.9,Mist,0,7
+East Coast Parkway,Y,5,19,34.2,33.2,35.0,Thunderstorm,0,4
+Nicoll Highway,B,1,13,30.5,30.5,25.0,Thunderstorm,0,3
+Orchard Road,B,6,7,30.6,31.2,29.3,Rain,0,3
+Ayer Rajah Expressway,Y,3,7,25.2,26.3,37.2,Rain,1,4
+Bedok North Avenue 3,C,4,19,9.8,3.3,11.4,Thunderstorm,1,1
+Central Expressway,Y,1,11,44.1,41.0,51.8,Thunderstorm,0,4
+Upper Thomson Road,B,3,0,39.9,36.1,37.7,Haze,0,5
+Central Expressway,Y,1,3,48.3,50.4,50.0,Rain,0,5
+Central Expressway,Y,2,18,46.3,44.7,43.5,Drizzle,1,5
+Clementi Avenue 3,C,0,18,26.2,29.1,28.8,Clouds,1,3
+Ayer Rajah Expressway,Y,1,22,72.5,75.4,83.6,Clear,0,7
+Bedok North Avenue 3,C,3,14,36.2,36.0,35.5,Clouds,0,4
+Ayer Rajah Expressway,Y,2,12,63.5,59.1,67.5,Drizzle,0,7
+Tampines Avenue 10,B,4,9,4.5,5.3,7.0,Thunderstorm,1,1
+East Coast Parkway,Y,2,11,77.5,81.3,83.2,Clouds,0,8
+Woodlands Avenue 12,B,4,5,35.6,33.8,32.5,Mist,0,4
+Nicoll Highway,B,6,22,51.0,47.5,58.9,Mist,0,6
+Woodlands Avenue 12,B,2,15,20.8,20.9,12.8,Thunderstorm,0,3
+Pan Island Expressway,Y,2,6,39.9,39.9,39.8,Thunderstorm,0,5
+Bukit Timah Expressway,Y,4,16,38.1,41.1,39.7,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,5,21,39.1,41.4,43.2,Thunderstorm,0,5
+Seletar Expressway,Y,0,6,63.4,60.4,65.1,Mist,0,7
+Pan Island Expressway,Y,6,7,63.5,62.4,67.6,Mist,0,7
+Bukit Timah Expressway,Y,1,4,35.7,36.8,48.5,Thunderstorm,0,4
+Bukit Timah Expressway,Y,3,0,68.3,65.2,63.2,Clouds,0,7
+Pan Island Expressway,Y,1,16,77.2,75.8,85.9,Clear,0,8
+Bedok North Avenue 3,C,5,2,33.7,36.7,35.4,Mist,0,4
+Woodlands Avenue 12,B,3,9,23.4,22.7,25.2,Mist,1,3
+Bukit Timah Expressway,Y,5,4,75.0,73.5,83.9,Clear,0,8
+Upper Thomson Road,B,3,9,6.9,9.8,2.5,Thunderstorm,1,1
+Kallang Paya Lebar Expressway,Y,2,9,42.4,39.2,36.3,Mist,1,4
+Tampines Expressway,Y,3,7,24.2,23.1,21.5,Thunderstorm,1,3
+Woodlands Avenue 12,B,3,20,22.9,19.2,22.6,Clouds,1,3
+Orchard Road,B,0,21,38.7,37.4,36.7,Clouds,0,4
+Bukit Timah Expressway,Y,0,10,65.4,66.3,61.5,Haze,0,7
+Ayer Rajah Expressway,Y,0,2,64.5,63.5,61.4,Mist,0,7
+Tampines Avenue 10,B,6,16,31.9,33.7,35.8,Rain,0,3
+Bukit Timah Expressway,Y,0,21,65.4,68.2,70.2,Drizzle,0,7
+Clementi Avenue 3,C,1,8,22.7,23.9,25.1,Clear,1,2
+Clementi Avenue 3,C,0,5,17.4,22.1,17.8,Thunderstorm,0,3
+Nicoll Highway,B,2,5,37.1,38.6,36.0,Rain,0,4
+Ayer Rajah Expressway,Y,0,3,62.9,57.0,59.0,Drizzle,0,6
+Tampines Expressway,Y,0,22,80.0,84.4,80.7,Clouds,0,8
+Tampines Avenue 10,B,1,7,33.1,31.4,34.1,Mist,1,4
+Tampines Avenue 10,B,0,21,36.2,34.9,39.5,Drizzle,0,5
+Clementi Avenue 3,C,4,5,33.6,30.9,40.0,Mist,0,4
+Woodlands Avenue 12,B,0,16,45.0,44.5,38.2,Haze,0,5
+Seletar Expressway,Y,2,7,46.4,51.0,38.7,Clouds,1,5
+Bukit Timah Expressway,Y,4,8,41.1,42.3,44.1,Drizzle,1,4
+East Coast Parkway,Y,4,21,77.3,73.7,78.3,Clear,0,8
+Orchard Road,B,1,12,39.8,45.7,43.6,Haze,0,5
+Tampines Expressway,Y,0,14,75.0,78.6,62.3,Clouds,0,8
+East Coast Parkway,Y,2,16,79.1,82.1,81.3,Haze,0,8
+Ayer Rajah Expressway,Y,3,8,42.6,40.6,38.2,Drizzle,1,5
+Woodlands Avenue 12,B,2,22,37.6,34.2,44.5,Mist,0,5
+Bedok North Avenue 3,C,4,3,29.8,26.5,29.9,Drizzle,0,4
+Orchard Road,B,4,10,23.6,25.8,25.4,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,1,22,57.6,58.4,55.4,Drizzle,0,6
+Tampines Avenue 10,B,0,14,43.8,42.3,41.1,Clear,0,4
+Tampines Avenue 10,B,2,13,44.5,46.8,44.3,Clouds,0,5
+Nicoll Highway,B,6,16,27.4,30.2,33.4,Thunderstorm,0,4
+Seletar Expressway,Y,0,14,68.9,73.0,67.7,Haze,0,7
+Seletar Expressway,Y,4,6,69.4,69.6,71.4,Clear,0,8
+East Coast Parkway,Y,0,13,78.8,73.1,75.9,Clear,0,8
+Pan Island Expressway,Y,4,2,38.8,36.9,38.6,Thunderstorm,0,4
+Tampines Expressway,Y,4,15,57.2,52.3,59.0,Rain,0,6
+Upper Thomson Road,B,5,16,49.2,54.4,50.1,Clouds,0,5
+East Coast Parkway,Y,3,3,57.1,62.3,57.1,Rain,0,6
+Tampines Avenue 10,B,1,5,48.0,47.4,37.7,Clouds,0,5
+Upper Thomson Road,B,4,10,33.2,33.9,34.4,Rain,0,4
+Kallang Paya Lebar Expressway,Y,5,18,68.4,66.1,67.5,Haze,0,7
+Bukit Timah Expressway,Y,2,8,47.2,47.2,49.3,Drizzle,1,6
+Orchard Road,B,5,14,40.2,42.2,46.0,Clouds,0,4
+Ayer Rajah Expressway,Y,6,16,66.3,65.3,64.8,Mist,0,7
+Kallang Paya Lebar Expressway,Y,1,16,61.4,60.8,59.5,Mist,0,7
+Tampines Expressway,Y,1,4,58.4,51.8,64.3,Rain,0,6
+Central Expressway,Y,3,0,56.9,54.0,51.0,Drizzle,0,6
+East Coast Parkway,Y,4,2,73.3,73.7,73.0,Haze,0,8
+Orchard Road,B,2,14,45.0,43.9,51.2,Clear,0,5
+Woodlands Avenue 12,B,2,14,40.7,44.4,42.1,Clear,0,5
+Upper Thomson Road,B,6,14,23.6,16.3,18.2,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,0,20,50.7,48.0,52.1,Clear,1,5
+Ayer Rajah Expressway,Y,1,10,64.7,62.4,60.8,Haze,0,8
+Bedok North Avenue 3,C,3,2,33.2,32.8,39.0,Haze,0,4
+Upper Thomson Road,B,2,12,45.3,47.8,49.0,Clouds,0,5
+Orchard Road,B,3,1,38.8,41.9,39.4,Clouds,0,4
+Orchard Road,B,6,6,42.3,43.9,49.2,Drizzle,0,5
+Bedok North Avenue 3,C,5,2,22.1,28.0,19.4,Thunderstorm,0,3
+Orchard Road,B,1,14,39.9,40.4,32.8,Clear,0,5
+Seletar Expressway,Y,0,17,37.1,37.6,41.1,Mist,1,4
+Central Expressway,Y,0,0,60.0,59.0,65.9,Mist,0,7
+Nicoll Highway,B,4,19,30.4,31.1,38.1,Mist,1,3
+Bedok North Avenue 3,C,6,2,33.2,32.3,36.8,Haze,0,4
+Bukit Timah Expressway,Y,3,12,57.1,52.9,56.8,Drizzle,0,6
+Nicoll Highway,B,4,19,37.4,38.1,45.8,Clear,1,4
+Ayer Rajah Expressway,Y,5,22,66.5,67.9,59.7,Haze,0,7
+Pan Island Expressway,Y,4,7,46.5,44.5,45.6,Drizzle,1,5
+Orchard Road,B,4,23,34.1,29.2,28.0,Drizzle,0,3
+East Coast Parkway,Y,0,9,43.2,49.1,47.1,Haze,1,5
+Central Expressway,Y,2,5,59.2,57.6,57.4,Haze,0,7
+Woodlands Avenue 12,B,6,15,37.2,36.2,40.7,Haze,0,5
+Tampines Expressway,Y,3,22,52.4,56.1,52.0,Thunderstorm,0,5
+Upper Thomson Road,B,1,18,7.5,3.3,2.0,Thunderstorm,1,1
+Upper Thomson Road,B,5,20,40.3,38.4,37.6,Drizzle,0,5
+Kallang Paya Lebar Expressway,Y,6,22,58.6,60.0,60.6,Drizzle,0,7
+Seletar Expressway,Y,6,3,63.4,59.5,67.4,Clouds,0,7
+Seletar Expressway,Y,0,19,38.3,38.0,44.4,Haze,1,4
+Bedok North Avenue 3,C,1,7,28.3,31.6,29.7,Haze,1,4
+Woodlands Avenue 12,B,0,6,18.3,17.9,19.5,Thunderstorm,0,2
+Kallang Paya Lebar Expressway,Y,1,13,64.1,65.9,63.3,Mist,0,7
+Ayer Rajah Expressway,Y,1,6,47.8,42.9,54.2,Thunderstorm,0,6
+Tampines Expressway,Y,2,13,63.9,62.7,61.0,Mist,0,7
+Bedok North Avenue 3,C,3,12,25.4,21.9,19.5,Rain,0,3
+Woodlands Avenue 12,B,1,16,41.6,44.0,38.8,Clouds,0,5
+Nicoll Highway,B,6,5,30.3,28.9,36.8,Rain,0,3
+Woodlands Avenue 12,B,2,17,27.9,25.9,27.2,Drizzle,1,3
+Nicoll Highway,B,3,5,44.6,46.6,39.7,Mist,0,4
+Pan Island Expressway,Y,4,5,60.8,65.2,54.8,Rain,0,7
+Tampines Expressway,Y,1,15,70.5,76.5,70.6,Haze,0,7
+Seletar Expressway,Y,6,2,68.3,70.2,72.4,Mist,0,7
+Pan Island Expressway,Y,0,23,73.6,76.5,74.3,Clear,0,8
+East Coast Parkway,Y,0,21,65.0,66.8,73.2,Drizzle,0,7
+Bedok North Avenue 3,C,2,21,35.1,35.0,31.2,Haze,0,4
+Kallang Paya Lebar Expressway,Y,4,8,30.5,29.0,26.5,Drizzle,1,4
+Nicoll Highway,B,1,10,37.1,36.4,43.4,Rain,0,3
+Upper Thomson Road,B,6,4,50.0,50.4,46.5,Clear,0,5
+Clementi Avenue 3,C,1,15,35.3,34.3,38.3,Clear,0,4
+Orchard Road,B,0,9,28.2,23.0,24.8,Drizzle,1,4
+Pan Island Expressway,Y,3,14,65.2,69.0,66.8,Drizzle,0,7
+Ayer Rajah Expressway,Y,6,18,45.6,42.0,37.3,Rain,0,5
+Ayer Rajah Expressway,Y,3,7,30.1,27.4,34.5,Mist,1,3
+Central Expressway,Y,5,9,56.3,55.4,59.6,Drizzle,0,6
+Bedok North Avenue 3,C,0,20,9.6,8.1,13.7,Thunderstorm,1,1
+Tampines Avenue 10,B,5,17,39.6,43.0,45.9,Haze,0,5
+Bukit Timah Expressway,Y,6,9,69.9,70.1,69.1,Clear,0,7
+Tampines Avenue 10,B,4,4,43.1,40.8,38.8,Haze,0,4
+Tampines Avenue 10,B,3,6,42.8,44.3,47.9,Mist,0,5
+Bedok North Avenue 3,C,0,16,29.0,30.6,21.6,Mist,0,3
+Bedok North Avenue 3,C,6,0,36.1,33.2,38.7,Clear,0,4
+Upper Thomson Road,B,6,23,44.7,47.8,44.4,Clear,0,4
+Orchard Road,B,3,5,39.1,34.8,36.7,Drizzle,0,4
+Seletar Expressway,Y,5,15,67.3,63.7,67.4,Drizzle,0,8
+Tampines Avenue 10,B,5,15,26.5,27.9,26.0,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,3,10,69.9,74.3,72.4,Mist,0,7
+Woodlands Avenue 12,B,4,4,44.6,40.7,38.2,Mist,0,4
+Woodlands Avenue 12,B,0,13,39.7,40.3,43.6,Haze,0,5
+Woodlands Avenue 12,B,3,9,22.6,26.8,28.7,Clear,1,3
+Bukit Timah Expressway,Y,4,14,75.0,78.3,75.6,Clear,0,8
+Central Expressway,Y,3,22,73.3,75.2,82.1,Clear,0,7
+East Coast Parkway,Y,0,1,69.3,69.9,64.1,Haze,0,7
+Ayer Rajah Expressway,Y,2,23,69.5,75.4,64.7,Clear,0,7
+Tampines Expressway,Y,2,1,54.2,54.9,53.6,Rain,0,6
+Tampines Avenue 10,B,5,3,35.5,38.8,41.6,Drizzle,0,5
+Central Expressway,Y,4,21,55.0,57.2,56.2,Drizzle,0,6
+Seletar Expressway,Y,4,21,53.7,53.3,49.8,Mist,0,6
+Clementi Avenue 3,C,1,15,34.9,31.7,31.6,Mist,0,4
+East Coast Parkway,Y,0,2,77.9,79.2,83.0,Clouds,0,8
+Nicoll Highway,B,2,21,50.2,53.5,54.7,Clear,0,5
+Seletar Expressway,Y,2,0,39.9,41.8,41.3,Thunderstorm,0,5
+Upper Thomson Road,B,0,21,45.4,42.1,44.9,Clouds,0,5
+Orchard Road,B,6,7,39.2,40.0,38.1,Clouds,0,4
+Kallang Paya Lebar Expressway,Y,0,6,63.2,64.3,64.3,Drizzle,0,7
+Orchard Road,B,2,7,28.4,23.4,37.2,Clouds,1,2
+Central Expressway,Y,4,8,30.8,35.2,34.4,Rain,1,3
+Pan Island Expressway,Y,6,23,55.2,56.1,48.7,Rain,0,6
+Woodlands Avenue 12,B,6,19,40.7,42.6,42.7,Clouds,0,5
+Ayer Rajah Expressway,Y,1,3,54.6,55.5,51.8,Rain,0,5
+Tampines Expressway,Y,4,10,48.6,53.4,45.9,Thunderstorm,0,6
+Bukit Timah Expressway,Y,5,7,70.9,71.0,66.4,Clear,0,8
+Clementi Avenue 3,C,2,4,33.1,35.3,33.0,Haze,0,4
+Tampines Avenue 10,B,1,5,39.0,40.0,47.1,Haze,0,4
+Kallang Paya Lebar Expressway,Y,2,18,40.6,38.5,32.6,Clouds,1,5
+Tampines Avenue 10,B,1,21,42.7,41.9,44.9,Haze,0,4
+Tampines Avenue 10,B,1,16,38.3,38.4,36.1,Mist,0,4
+Ayer Rajah Expressway,Y,5,12,72.1,70.0,76.2,Haze,0,8
+Central Expressway,Y,2,13,70.2,64.6,76.7,Mist,0,8
+Kallang Paya Lebar Expressway,Y,3,11,63.8,65.9,64.0,Drizzle,0,7
+Bukit Timah Expressway,Y,0,23,68.0,67.7,79.3,Mist,0,8
+Bedok North Avenue 3,C,6,6,28.6,29.8,27.8,Mist,0,3
+Tampines Avenue 10,B,3,2,41.2,34.0,38.3,Mist,0,5
+Kallang Paya Lebar Expressway,Y,1,19,53.4,52.1,46.5,Clouds,1,5
+Pan Island Expressway,Y,5,13,80.0,82.3,78.7,Clear,0,8
+Upper Thomson Road,B,5,9,44.2,45.3,42.9,Haze,0,4
+Bukit Timah Expressway,Y,6,11,65.6,60.8,58.8,Drizzle,0,6
+Clementi Avenue 3,C,0,12,35.9,32.5,38.5,Clouds,0,4
+Seletar Expressway,Y,3,16,69.7,72.4,70.8,Haze,0,7
+Orchard Road,B,3,3,19.5,21.5,10.9,Thunderstorm,0,2
+Tampines Expressway,Y,1,20,49.1,48.0,44.9,Mist,1,6
+Ayer Rajah Expressway,Y,5,12,63.7,64.9,64.1,Mist,0,6
+Orchard Road,B,6,4,34.2,38.0,34.0,Drizzle,0,5
+Bedok North Avenue 3,C,0,2,16.4,12.0,24.5,Thunderstorm,0,2
+Seletar Expressway,Y,4,15,77.0,76.8,70.6,Clear,0,8
+Pan Island Expressway,Y,1,11,41.0,45.4,39.5,Thunderstorm,0,4
+East Coast Parkway,Y,2,0,78.5,78.7,83.1,Clear,0,8
+Ayer Rajah Expressway,Y,4,19,51.5,48.2,64.0,Haze,1,5
+Central Expressway,Y,2,8,14.9,13.2,16.6,Thunderstorm,1,2
+Tampines Expressway,Y,4,11,73.2,75.1,73.1,Mist,0,7
+Central Expressway,Y,5,23,74.1,77.7,65.6,Clear,0,8
+East Coast Parkway,Y,4,12,58.2,50.6,59.1,Rain,0,6
+Central Expressway,Y,5,9,59.1,56.0,51.8,Mist,0,6
+Nicoll Highway,B,0,6,48.8,51.0,51.3,Haze,0,5
+Tampines Avenue 10,B,5,10,41.2,43.6,41.0,Haze,0,5
+Woodlands Avenue 12,B,6,15,41.2,45.0,43.2,Clear,0,5
+Seletar Expressway,Y,6,11,75.8,77.0,73.9,Clouds,0,8
+Ayer Rajah Expressway,Y,1,8,21.4,22.3,23.9,Thunderstorm,1,2
+Upper Thomson Road,B,6,4,47.4,49.0,49.2,Haze,0,6
+Kallang Paya Lebar Expressway,Y,4,22,61.3,59.0,66.8,Drizzle,0,7
+Seletar Expressway,Y,4,14,68.2,69.9,69.5,Haze,0,7
+Orchard Road,B,3,12,41.9,38.3,40.1,Clouds,0,5
+Bedok North Avenue 3,C,5,21,31.8,30.1,43.3,Mist,0,4
+Tampines Avenue 10,B,6,10,27.0,29.4,27.8,Thunderstorm,0,4
+Central Expressway,Y,1,16,64.9,68.9,68.6,Haze,0,7
+Pan Island Expressway,Y,4,12,73.5,75.5,61.7,Clouds,0,8
+Orchard Road,B,0,10,29.1,23.7,34.6,Rain,0,4
+Ayer Rajah Expressway,Y,6,10,49.4,49.8,52.7,Rain,0,6
+Bukit Timah Expressway,Y,1,8,16.3,18.6,21.9,Thunderstorm,1,2
+Pan Island Expressway,Y,3,3,67.8,66.5,68.0,Haze,0,7
+Orchard Road,B,3,0,22.9,21.4,23.1,Thunderstorm,0,3
+Orchard Road,B,3,11,37.6,41.0,37.0,Haze,0,4
+Tampines Avenue 10,B,3,15,36.0,33.9,32.2,Drizzle,0,4
+Pan Island Expressway,Y,4,12,71.8,71.3,63.1,Mist,0,8
+Bukit Timah Expressway,Y,5,19,70.8,68.7,78.5,Clear,0,7
+Tampines Expressway,Y,1,13,66.8,68.5,73.6,Drizzle,0,8
+Bukit Timah Expressway,Y,3,1,35.7,41.0,41.0,Thunderstorm,0,4
+Tampines Avenue 10,B,2,6,21.4,21.6,12.8,Thunderstorm,0,2
+Nicoll Highway,B,6,7,54.3,54.7,55.5,Clouds,0,5
+Ayer Rajah Expressway,Y,6,10,67.6,63.3,67.1,Haze,0,8
+East Coast Parkway,Y,6,21,56.0,61.6,58.9,Rain,0,6
+Bedok North Avenue 3,C,6,10,31.3,27.8,32.6,Mist,0,3
+Tampines Expressway,Y,2,17,44.1,43.3,43.7,Mist,1,5
+Tampines Avenue 10,B,5,2,44.6,42.1,43.4,Haze,0,5
+Nicoll Highway,B,4,2,42.0,37.6,37.1,Mist,0,5
+Upper Thomson Road,B,2,9,33.4,30.7,42.0,Haze,1,4
+Kallang Paya Lebar Expressway,Y,5,3,41.6,43.2,39.5,Thunderstorm,0,5
+Clementi Avenue 3,C,3,21,33.5,34.3,32.4,Drizzle,0,4
+Woodlands Avenue 12,B,2,23,38.6,37.8,41.4,Mist,0,4
+Nicoll Highway,B,1,4,43.8,48.9,40.0,Mist,0,5
+Orchard Road,B,2,17,15.2,13.5,17.2,Rain,1,2
+Ayer Rajah Expressway,Y,5,18,72.7,72.6,74.1,Haze,0,8
+Nicoll Highway,B,2,4,35.5,33.7,32.0,Rain,0,4
+Nicoll Highway,B,0,14,43.8,36.7,45.6,Haze,0,4
+Tampines Expressway,Y,5,0,49.2,50.6,48.0,Thunderstorm,0,6
+Bukit Timah Expressway,Y,6,17,65.1,60.8,64.9,Mist,0,7
+Pan Island Expressway,Y,4,3,71.5,71.3,69.0,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,6,2,63.2,63.5,65.3,Haze,0,7
+Ayer Rajah Expressway,Y,4,11,65.7,66.5,71.0,Drizzle,0,8
+Tampines Avenue 10,B,0,19,31.7,32.7,39.8,Clear,1,4
+Seletar Expressway,Y,4,23,70.4,69.4,71.7,Clouds,0,7
+Woodlands Avenue 12,B,4,19,21.3,20.3,16.8,Mist,1,3
+Bukit Timah Expressway,Y,6,11,63.1,65.7,65.4,Drizzle,0,7
+Woodlands Avenue 12,B,0,20,26.7,22.5,32.8,Clear,1,3
+East Coast Parkway,Y,0,20,5.0,2.0,4.8,Thunderstorm,1,1
+Kallang Paya Lebar Expressway,Y,6,12,33.5,32.7,36.0,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,4,23,72.7,77.5,64.3,Clear,0,8
+Ayer Rajah Expressway,Y,5,7,67.3,65.1,65.4,Haze,0,7
+Nicoll Highway,B,5,6,54.1,57.1,49.5,Clear,0,5
+Central Expressway,Y,0,1,55.3,60.5,61.5,Rain,0,7
+Nicoll Highway,B,4,1,52.1,52.3,58.2,Haze,0,5
+Kallang Paya Lebar Expressway,Y,1,14,67.0,70.2,61.5,Haze,0,7
+Orchard Road,B,5,5,38.2,43.7,41.9,Clear,0,4
+Nicoll Highway,B,5,8,41.9,43.0,32.2,Drizzle,0,5
+Pan Island Expressway,Y,5,1,69.2,70.3,75.8,Mist,0,7
+Seletar Expressway,Y,1,12,38.2,40.1,33.8,Thunderstorm,0,3
+Bedok North Avenue 3,C,0,21,28.6,29.4,24.2,Drizzle,0,3
+East Coast Parkway,Y,2,1,72.4,69.8,73.1,Haze,0,8
+Orchard Road,B,2,12,45.0,49.9,43.9,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,3,6,68.7,70.9,64.3,Clouds,0,7
+Seletar Expressway,Y,2,21,70.9,74.2,63.9,Clouds,0,8
+Bukit Timah Expressway,Y,0,0,66.2,66.9,72.0,Drizzle,0,7
+Clementi Avenue 3,C,1,3,40.0,45.7,32.5,Clear,0,4
+Ayer Rajah Expressway,Y,5,11,41.6,44.3,37.0,Thunderstorm,0,4
+East Coast Parkway,Y,1,13,77.5,78.8,79.8,Clear,0,8
+Ayer Rajah Expressway,Y,3,10,47.7,45.9,54.2,Rain,0,4
+Orchard Road,B,1,1,43.7,42.1,48.5,Clear,0,4
+Upper Thomson Road,B,1,8,9.3,10.5,8.9,Thunderstorm,1,2
+Pan Island Expressway,Y,2,9,28.8,29.5,27.9,Rain,1,4
+Central Expressway,Y,6,21,69.4,66.3,77.6,Haze,0,8
+Tampines Avenue 10,B,6,21,48.0,51.4,47.7,Clouds,0,5
+Woodlands Avenue 12,B,1,17,22.3,21.6,25.7,Clear,1,3
+Nicoll Highway,B,1,3,55.0,50.4,56.5,Clear,0,6
+Ayer Rajah Expressway,Y,2,15,67.9,67.9,77.7,Haze,0,7
+Central Expressway,Y,6,6,71.0,71.0,72.6,Clear,0,8
+Seletar Expressway,Y,1,3,58.6,59.9,71.6,Rain,0,6
+Bukit Timah Expressway,Y,1,0,65.8,65.0,68.1,Haze,0,7
+Bedok North Avenue 3,C,4,6,16.7,20.0,12.2,Thunderstorm,0,2
+Nicoll Highway,B,0,19,29.9,33.7,26.7,Haze,1,3
+Nicoll Highway,B,0,1,48.3,52.2,50.9,Clouds,0,6
+Upper Thomson Road,B,5,0,35.6,39.2,31.0,Rain,0,5
+East Coast Parkway,Y,2,18,41.9,38.1,51.1,Mist,1,4
+Upper Thomson Road,B,6,17,45.6,48.7,45.0,Haze,0,5
+Pan Island Expressway,Y,1,18,61.1,61.4,66.1,Clear,1,7
+Kallang Paya Lebar Expressway,Y,0,22,66.6,67.7,65.1,Haze,0,7
+Nicoll Highway,B,4,7,33.4,37.2,35.6,Clouds,1,4
+Woodlands Avenue 12,B,5,5,41.9,39.6,30.0,Clear,0,5
+Tampines Expressway,Y,1,8,27.4,24.9,26.6,Rain,1,3
+Nicoll Highway,B,3,13,43.9,43.9,42.1,Mist,0,5
+Tampines Avenue 10,B,6,13,25.5,27.1,23.2,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,4,14,39.5,31.2,35.6,Thunderstorm,0,5
+Orchard Road,B,6,1,35.9,37.1,37.1,Drizzle,0,4
+Bedok North Avenue 3,C,4,17,12.1,13.0,13.1,Rain,1,2
+Tampines Expressway,Y,2,18,51.9,49.5,44.7,Haze,1,6
+Upper Thomson Road,B,5,15,40.3,43.9,36.9,Drizzle,0,4
+Kallang Paya Lebar Expressway,Y,4,8,11.0,11.1,9.1,Thunderstorm,1,2
+Upper Thomson Road,B,4,20,21.7,20.4,29.0,Rain,1,3
+Pan Island Expressway,Y,1,4,65.8,70.4,63.3,Mist,0,7
+Central Expressway,Y,6,22,62.3,60.2,59.4,Mist,0,6
+Ayer Rajah Expressway,Y,2,9,52.7,54.5,56.3,Clouds,1,6
+Seletar Expressway,Y,4,0,62.8,62.9,52.9,Haze,0,7
+Kallang Paya Lebar Expressway,Y,5,5,60.1,63.3,53.5,Drizzle,0,7
+Tampines Avenue 10,B,5,14,41.5,48.1,38.9,Mist,0,5
+Pan Island Expressway,Y,6,9,63.6,66.8,61.2,Haze,0,7
+Central Expressway,Y,3,17,45.0,44.0,50.8,Clouds,1,5
+Nicoll Highway,B,0,3,45.2,43.4,37.9,Haze,0,4
+Bukit Timah Expressway,Y,0,20,33.0,32.0,28.9,Rain,1,4
+Seletar Expressway,Y,2,8,17.8,18.8,21.8,Thunderstorm,1,1
+Tampines Avenue 10,B,2,19,33.7,34.6,32.4,Clouds,1,3
+East Coast Parkway,Y,5,13,64.9,70.0,69.6,Mist,0,7
+Seletar Expressway,Y,0,20,43.4,43.1,42.4,Haze,1,5
+Kallang Paya Lebar Expressway,Y,6,7,55.2,54.3,49.5,Rain,0,7
+Ayer Rajah Expressway,Y,3,17,46.4,49.8,54.7,Clouds,1,6
+Orchard Road,B,4,17,33.3,30.9,32.0,Clear,1,4
+Kallang Paya Lebar Expressway,Y,3,11,42.9,38.6,45.6,Thunderstorm,0,4
+Tampines Avenue 10,B,1,12,21.7,20.9,16.3,Thunderstorm,0,3
+Kallang Paya Lebar Expressway,Y,3,5,67.0,66.4,72.9,Clouds,0,8
+Tampines Avenue 10,B,4,22,37.3,36.1,36.3,Rain,0,5
+Seletar Expressway,Y,4,0,67.5,72.7,71.3,Clouds,0,7
+Ayer Rajah Expressway,Y,6,11,68.0,65.1,79.4,Haze,0,7
+Nicoll Highway,B,6,8,48.5,49.7,49.2,Clouds,0,5
+Tampines Expressway,Y,1,23,70.4,67.5,71.8,Clouds,0,8
+Seletar Expressway,Y,3,23,73.8,73.2,70.2,Haze,0,8
+Upper Thomson Road,B,3,21,48.2,50.4,49.9,Clouds,0,5
+Tampines Expressway,Y,6,8,48.1,46.9,54.5,Rain,0,5
+Woodlands Avenue 12,B,0,0,42.5,43.9,41.8,Clouds,0,4
+Ayer Rajah Expressway,Y,4,13,65.8,68.3,63.9,Drizzle,0,8
+Bedok North Avenue 3,C,0,6,26.7,24.9,30.4,Mist,0,3
+Nicoll Highway,B,1,23,49.2,47.9,45.8,Clouds,0,6
+Nicoll Highway,B,3,1,46.1,45.2,42.2,Haze,0,5
+Bedok North Avenue 3,C,0,18,26.4,20.3,22.1,Clear,1,3
+Central Expressway,Y,4,18,47.1,49.4,37.8,Clouds,1,6
+Pan Island Expressway,Y,1,5,41.0,45.8,40.1,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,2,21,54.2,53.1,47.7,Rain,0,6
+Tampines Expressway,Y,6,3,55.5,59.6,50.6,Rain,0,7
+Ayer Rajah Expressway,Y,0,9,47.7,51.0,41.0,Clear,1,5
+Tampines Avenue 10,B,0,15,29.2,29.9,36.1,Rain,0,4
+Kallang Paya Lebar Expressway,Y,6,17,73.3,73.9,70.9,Clear,0,8
+Upper Thomson Road,B,0,4,40.7,39.8,44.1,Drizzle,0,4
+Ayer Rajah Expressway,Y,4,2,78.0,84.5,75.8,Clear,0,8
+Bedok North Avenue 3,C,2,0,25.3,27.1,30.4,Rain,0,3
+Clementi Avenue 3,C,3,9,18.0,15.9,22.5,Clear,1,2
+Ayer Rajah Expressway,Y,1,10,66.4,63.6,67.8,Mist,0,7
+Central Expressway,Y,5,15,39.9,45.1,40.1,Thunderstorm,0,4
+Central Expressway,Y,0,10,46.0,40.2,54.2,Rain,0,5
+Tampines Avenue 10,B,4,11,39.9,41.5,39.8,Haze,0,4
+Seletar Expressway,Y,0,1,55.3,52.0,53.6,Drizzle,0,6
+Upper Thomson Road,B,6,12,45.9,44.3,54.1,Mist,0,6
+Pan Island Expressway,Y,0,5,55.7,52.5,59.5,Rain,0,6
+Central Expressway,Y,2,16,72.7,72.9,75.0,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,6,10,69.5,70.5,72.3,Haze,0,7
+Ayer Rajah Expressway,Y,5,6,41.2,43.9,47.1,Thunderstorm,0,5
+Upper Thomson Road,B,3,13,43.1,41.4,41.6,Haze,0,5
+Clementi Avenue 3,C,4,20,9.7,11.4,10.2,Thunderstorm,1,2
+Ayer Rajah Expressway,Y,5,14,36.3,33.2,46.1,Thunderstorm,0,5
+Tampines Avenue 10,B,4,18,26.1,30.0,27.4,Haze,1,4
+Pan Island Expressway,Y,0,1,56.4,55.2,55.2,Rain,0,6
+Tampines Expressway,Y,4,19,55.9,56.8,62.2,Haze,1,6
+Clementi Avenue 3,C,0,15,34.8,34.0,38.8,Rain,0,4
+Tampines Expressway,Y,4,15,54.4,52.1,59.0,Rain,0,6
+Orchard Road,B,3,2,43.2,43.8,35.0,Haze,0,5
+Bukit Timah Expressway,Y,0,4,75.0,77.9,67.1,Clear,0,8
+Bedok North Avenue 3,C,5,9,34.9,34.4,29.9,Haze,0,4
+Bedok North Avenue 3,C,4,22,28.1,30.5,24.6,Mist,0,3
+Bedok North Avenue 3,C,5,23,35.8,33.9,38.4,Clouds,0,4
+Tampines Expressway,Y,2,21,74.0,73.8,68.9,Clouds,0,8
+Central Expressway,Y,3,3,61.7,62.3,62.1,Drizzle,0,7
+Orchard Road,B,2,9,34.1,37.5,41.6,Clouds,1,4
+Bukit Timah Expressway,Y,2,22,63.6,61.3,66.9,Mist,0,7
+Tampines Expressway,Y,6,16,62.4,69.2,62.2,Drizzle,0,7
+Orchard Road,B,1,6,33.2,32.9,36.9,Drizzle,0,4
+Clementi Avenue 3,C,4,4,36.6,34.7,36.0,Haze,0,4
+Ayer Rajah Expressway,Y,2,1,63.8,60.8,74.1,Haze,0,6
+Woodlands Avenue 12,B,6,3,42.7,40.4,39.8,Mist,0,5
+Kallang Paya Lebar Expressway,Y,2,9,42.4,43.0,39.5,Haze,1,5
+Orchard Road,B,6,17,39.0,39.0,43.8,Haze,0,5
+Ayer Rajah Expressway,Y,3,0,67.8,65.3,65.6,Drizzle,0,7
+Woodlands Avenue 12,B,0,19,16.9,19.0,18.4,Rain,1,2
+Woodlands Avenue 12,B,6,2,39.5,38.5,37.2,Haze,0,4
+Woodlands Avenue 12,B,6,2,35.0,36.6,34.2,Mist,0,4
+Pan Island Expressway,Y,6,22,65.5,64.9,63.9,Mist,0,6
+Kallang Paya Lebar Expressway,Y,0,20,38.3,43.6,33.3,Haze,1,4
+Clementi Avenue 3,C,4,21,40.0,33.6,39.4,Clear,0,4
+Tampines Avenue 10,B,1,8,30.2,23.7,31.6,Clear,1,3
+Bedok North Avenue 3,C,6,0,25.9,19.9,22.6,Drizzle,0,3
+Pan Island Expressway,Y,0,13,36.8,39.2,33.5,Thunderstorm,0,4
+Bedok North Avenue 3,C,0,7,24.1,26.5,26.7,Haze,1,3
+Clementi Avenue 3,C,3,11,21.5,19.5,24.3,Thunderstorm,0,2
+East Coast Parkway,Y,1,23,82.0,81.1,80.5,Clear,0,8
+Tampines Avenue 10,B,3,6,43.3,43.4,40.8,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,2,19,32.9,27.7,31.6,Rain,1,4
+Bukit Timah Expressway,Y,5,22,67.5,72.1,73.8,Haze,0,7
+East Coast Parkway,Y,4,12,73.0,71.9,71.6,Clouds,0,7
+Woodlands Avenue 12,B,1,7,27.2,30.1,29.8,Clouds,1,3
+Tampines Avenue 10,B,6,0,40.5,39.3,31.0,Drizzle,0,4
+Nicoll Highway,B,1,13,42.4,41.1,50.1,Drizzle,0,4
+Kallang Paya Lebar Expressway,Y,4,11,74.7,71.6,81.6,Clouds,0,7
+Bedok North Avenue 3,C,4,14,34.6,39.9,36.8,Clouds,0,4
+Ayer Rajah Expressway,Y,4,10,51.1,45.8,39.8,Rain,0,5
+Seletar Expressway,Y,2,14,42.3,42.2,50.5,Thunderstorm,0,5
+Tampines Expressway,Y,2,8,48.9,51.6,48.1,Clear,1,5
+Bukit Timah Expressway,Y,4,10,38.2,39.5,40.6,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,3,6,37.9,33.3,48.0,Thunderstorm,0,4
+Tampines Expressway,Y,5,8,65.9,65.4,61.6,Haze,0,6
+Seletar Expressway,Y,0,2,67.0,76.0,76.5,Drizzle,0,8
+Clementi Avenue 3,C,2,14,30.7,30.7,31.4,Mist,0,4
+Seletar Expressway,Y,1,2,57.3,56.9,55.4,Mist,0,7
+Clementi Avenue 3,C,4,22,35.5,31.6,37.2,Haze,0,4
+Nicoll Highway,B,6,14,54.8,55.5,50.9,Haze,0,5
+Woodlands Avenue 12,B,5,13,37.9,40.2,41.2,Clear,0,4
+East Coast Parkway,Y,3,22,80.9,82.8,88.8,Clear,0,8
+Orchard Road,B,5,12,39.3,35.9,41.3,Mist,0,4
+Nicoll Highway,B,2,2,46.6,47.1,51.8,Clouds,0,5
+East Coast Parkway,Y,3,5,41.0,32.4,40.6,Thunderstorm,0,4
+Bukit Timah Expressway,Y,3,16,45.3,42.0,49.1,Rain,0,5
+Nicoll Highway,B,3,21,49.3,51.2,57.4,Drizzle,0,5
+Orchard Road,B,1,13,37.6,31.8,33.4,Haze,0,4
+Woodlands Avenue 12,B,1,7,28.4,28.6,34.1,Mist,1,3
+Orchard Road,B,5,18,37.3,38.5,39.7,Drizzle,0,5
+Ayer Rajah Expressway,Y,5,3,67.9,70.3,67.7,Haze,0,7
+Pan Island Expressway,Y,0,21,77.4,76.0,80.0,Haze,0,8
+Clementi Avenue 3,C,0,5,24.2,25.9,27.2,Thunderstorm,0,3
+Tampines Avenue 10,B,5,19,48.0,50.7,51.9,Clear,0,5
+Pan Island Expressway,Y,5,20,62.4,62.3,59.2,Mist,0,7
+Woodlands Avenue 12,B,1,0,36.5,36.9,40.2,Drizzle,0,4
+Woodlands Avenue 12,B,2,14,40.0,39.5,41.1,Mist,0,5
+Upper Thomson Road,B,2,8,30.5,35.8,31.2,Haze,1,4
+Ayer Rajah Expressway,Y,4,1,72.2,69.6,70.7,Clear,0,7
+Bukit Timah Expressway,Y,1,1,73.6,71.0,77.2,Clear,0,8
+East Coast Parkway,Y,5,15,73.1,75.4,68.3,Clouds,0,7
+Nicoll Highway,B,2,16,32.4,30.0,32.0,Thunderstorm,0,3
+Woodlands Avenue 12,B,2,19,20.5,16.7,19.3,Rain,1,3
+Bukit Timah Expressway,Y,6,5,52.6,54.6,45.4,Rain,0,6
+Central Expressway,Y,4,18,42.3,40.2,40.4,Haze,1,5
+Tampines Avenue 10,B,4,7,4.6,3.6,4.1,Thunderstorm,1,1
+Pan Island Expressway,Y,4,18,8.5,3.9,6.1,Thunderstorm,1,2
+Ayer Rajah Expressway,Y,1,12,58.5,57.1,53.3,Drizzle,0,6
+Bedok North Avenue 3,C,5,20,32.4,31.4,33.6,Drizzle,0,4
+Seletar Expressway,Y,5,0,63.3,64.0,67.4,Haze,0,7
+Woodlands Avenue 12,B,0,12,38.7,34.6,38.9,Clear,0,4
+Woodlands Avenue 12,B,4,7,27.8,29.2,28.6,Clouds,1,3
+Upper Thomson Road,B,5,10,42.5,43.5,48.8,Drizzle,0,5
+Central Expressway,Y,5,5,54.6,56.3,53.6,Rain,0,6
+Bukit Timah Expressway,Y,2,21,37.4,39.0,41.8,Thunderstorm,0,4
+Seletar Expressway,Y,5,20,69.3,65.3,68.8,Mist,0,7
+Ayer Rajah Expressway,Y,6,22,64.9,61.0,60.6,Haze,0,7
+Clementi Avenue 3,C,3,0,34.5,32.6,32.8,Mist,0,4
+Tampines Expressway,Y,1,8,56.2,55.2,48.1,Clear,1,6
+Tampines Expressway,Y,2,7,30.6,31.0,25.6,Rain,1,4
+Woodlands Avenue 12,B,0,12,41.5,47.6,36.0,Drizzle,0,5
+East Coast Parkway,Y,6,13,74.7,73.6,73.7,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,4,22,35.2,36.9,41.8,Thunderstorm,0,4
+Pan Island Expressway,Y,3,20,49.2,52.5,49.8,Haze,1,5
+Nicoll Highway,B,5,8,50.9,48.4,52.6,Clouds,0,6
+Seletar Expressway,Y,0,13,55.2,52.7,54.7,Drizzle,0,6
+Tampines Expressway,Y,0,2,68.9,66.6,62.2,Haze,0,7
+Central Expressway,Y,2,15,71.7,73.8,77.1,Clouds,0,8
+Ayer Rajah Expressway,Y,6,10,37.7,39.0,32.7,Thunderstorm,0,4
+Pan Island Expressway,Y,0,12,80.0,81.7,76.7,Clear,0,8
+Central Expressway,Y,2,10,64.0,69.2,61.6,Drizzle,0,7
+Ayer Rajah Expressway,Y,3,16,36.0,32.3,27.1,Thunderstorm,0,4
+Tampines Expressway,Y,1,3,41.3,41.2,40.1,Thunderstorm,0,5
+Pan Island Expressway,Y,3,2,70.3,73.0,63.9,Clear,0,8
+Central Expressway,Y,1,1,74.0,80.4,73.6,Clear,0,7
+Tampines Avenue 10,B,6,17,35.1,36.1,31.0,Drizzle,0,4
+Seletar Expressway,Y,2,2,64.4,65.6,68.2,Mist,0,7
+Seletar Expressway,Y,5,6,43.0,39.3,38.9,Thunderstorm,0,5
+Seletar Expressway,Y,1,12,68.5,65.9,69.7,Clouds,0,7
+East Coast Parkway,Y,5,16,69.9,66.0,71.4,Drizzle,0,8
+Clementi Avenue 3,C,2,4,36.2,33.3,42.6,Clouds,0,5
+Central Expressway,Y,5,18,34.6,28.0,34.8,Thunderstorm,0,3
+Tampines Expressway,Y,5,2,66.9,68.9,61.0,Drizzle,0,8
+Ayer Rajah Expressway,Y,2,18,23.5,22.4,24.6,Rain,1,3
+Pan Island Expressway,Y,1,0,63.5,61.2,64.6,Drizzle,0,7
+Orchard Road,B,0,23,30.2,32.9,25.3,Rain,0,3
+Kallang Paya Lebar Expressway,Y,1,2,69.6,68.3,72.6,Clear,0,8
+Bukit Timah Expressway,Y,3,0,48.5,50.6,43.4,Thunderstorm,0,5
+Bedok North Avenue 3,C,6,13,37.9,36.5,37.4,Clear,0,4
+Clementi Avenue 3,C,0,15,21.6,25.7,20.5,Rain,0,2
+Upper Thomson Road,B,3,22,38.1,40.1,40.7,Mist,0,5
+Kallang Paya Lebar Expressway,Y,4,4,41.0,38.9,49.5,Thunderstorm,0,5
+East Coast Parkway,Y,2,15,58.2,60.3,51.3,Rain,0,6
+Orchard Road,B,2,15,39.5,36.0,40.7,Mist,0,4
+Kallang Paya Lebar Expressway,Y,2,14,70.8,67.1,73.0,Clear,0,7
+East Coast Parkway,Y,3,13,66.9,69.6,66.1,Mist,0,8
+Pan Island Expressway,Y,3,0,43.8,47.3,40.7,Thunderstorm,0,4
+Pan Island Expressway,Y,0,11,64.5,66.7,65.2,Mist,0,7
+Nicoll Highway,B,6,11,34.6,35.0,34.4,Rain,0,4
+Bukit Timah Expressway,Y,5,1,61.5,64.3,68.4,Mist,0,7
+Seletar Expressway,Y,2,14,63.0,67.3,67.5,Drizzle,0,7
+Bukit Timah Expressway,Y,0,4,34.7,36.4,36.3,Thunderstorm,0,4
+Pan Island Expressway,Y,3,14,62.6,60.3,64.9,Drizzle,0,6
+East Coast Parkway,Y,3,2,72.7,70.5,68.3,Clouds,0,8
+Woodlands Avenue 12,B,1,16,38.0,41.6,36.7,Drizzle,0,4
+Central Expressway,Y,2,3,63.3,64.2,58.0,Mist,0,7
+Seletar Expressway,Y,6,5,55.7,56.4,52.1,Rain,0,6
+Bukit Timah Expressway,Y,2,6,65.8,68.3,60.9,Haze,0,7
+Central Expressway,Y,5,8,64.8,70.1,63.3,Clouds,0,7
+Orchard Road,B,6,2,39.4,40.6,45.1,Mist,0,5
+Central Expressway,Y,1,20,30.7,30.9,27.7,Rain,1,3
+Tampines Expressway,Y,0,16,75.8,81.0,81.0,Clouds,0,8
+Seletar Expressway,Y,2,21,54.1,53.4,57.2,Rain,0,6
+Woodlands Avenue 12,B,6,9,33.5,33.7,41.0,Rain,0,3
+Bedok North Avenue 3,C,4,17,17.9,17.3,14.8,Drizzle,1,2
+Tampines Expressway,Y,5,7,63.4,68.3,57.3,Mist,0,7
+Seletar Expressway,Y,5,16,60.5,62.4,66.4,Haze,0,6
+Tampines Expressway,Y,3,13,64.4,62.6,72.1,Drizzle,0,7
+Bedok North Avenue 3,C,5,21,20.7,18.2,22.6,Rain,0,3
+Bedok North Avenue 3,C,4,20,9.4,2.9,9.8,Thunderstorm,1,1
+Bedok North Avenue 3,C,0,2,33.2,34.3,37.9,Mist,0,4
+Bukit Timah Expressway,Y,3,12,55.8,53.0,57.5,Drizzle,0,6
+East Coast Parkway,Y,3,22,74.4,73.1,80.7,Clear,0,7
+Tampines Expressway,Y,5,5,65.8,65.0,70.1,Mist,0,7
+Upper Thomson Road,B,2,11,29.0,34.6,26.2,Rain,0,4
+Nicoll Highway,B,2,3,50.7,51.3,49.4,Clouds,0,5
+Tampines Avenue 10,B,0,13,44.2,45.3,47.8,Clouds,0,5
+Clementi Avenue 3,C,5,7,34.8,38.2,42.7,Haze,0,4
+Ayer Rajah Expressway,Y,3,15,63.1,61.4,71.0,Mist,0,6
+Clementi Avenue 3,C,5,10,39.0,38.8,41.5,Clouds,0,4
+East Coast Parkway,Y,0,23,74.2,73.5,70.7,Clouds,0,8
+Kallang Paya Lebar Expressway,Y,6,22,64.0,65.4,61.9,Mist,0,6
+Upper Thomson Road,B,1,10,23.7,26.7,32.7,Thunderstorm,0,3
+Bedok North Avenue 3,C,3,4,14.3,15.0,10.3,Thunderstorm,0,2
+Clementi Avenue 3,C,5,23,29.8,38.6,34.8,Mist,0,4
+Nicoll Highway,B,5,15,50.2,48.1,47.3,Haze,0,6
+Pan Island Expressway,Y,6,22,65.2,68.9,67.4,Drizzle,0,7
+Ayer Rajah Expressway,Y,6,21,74.8,76.3,76.5,Clear,0,8
+Kallang Paya Lebar Expressway,Y,1,10,54.3,56.2,60.2,Rain,0,6
+Clementi Avenue 3,C,0,22,18.5,21.8,10.5,Thunderstorm,0,3
+Pan Island Expressway,Y,4,20,10.8,11.1,11.1,Thunderstorm,1,2
+Pan Island Expressway,Y,6,7,55.2,57.7,57.2,Rain,0,6
+Pan Island Expressway,Y,2,2,53.4,57.3,63.8,Rain,0,6
+Bukit Timah Expressway,Y,1,0,37.4,26.6,45.1,Thunderstorm,0,4
+Bedok North Avenue 3,C,6,3,37.0,34.9,37.7,Clear,0,4
+East Coast Parkway,Y,1,23,65.2,62.5,62.2,Haze,0,7
+Kallang Paya Lebar Expressway,Y,3,22,61.4,55.7,53.6,Drizzle,0,7
+Seletar Expressway,Y,5,23,77.0,81.7,76.1,Clear,0,8
+Clementi Avenue 3,C,2,1,32.4,32.4,47.9,Rain,0,4
+Upper Thomson Road,B,6,1,40.0,44.1,42.4,Mist,0,4
+Orchard Road,B,3,21,45.0,45.9,40.8,Clear,0,5
+Tampines Expressway,Y,0,20,60.2,56.6,64.3,Clear,1,7
+Central Expressway,Y,0,12,68.2,69.0,62.1,Haze,0,7
+Woodlands Avenue 12,B,2,20,24.0,25.1,21.8,Drizzle,1,3
+Nicoll Highway,B,3,23,55.0,53.6,51.7,Clouds,0,5
+Nicoll Highway,B,0,16,29.0,33.6,33.4,Thunderstorm,0,3
+Seletar Expressway,Y,0,6,67.3,70.6,73.2,Mist,0,7
+Central Expressway,Y,6,21,66.8,70.3,74.6,Clouds,0,7
+East Coast Parkway,Y,4,4,41.3,41.1,37.4,Thunderstorm,0,5
+Tampines Expressway,Y,4,18,55.5,58.3,51.8,Clear,1,7
+Tampines Avenue 10,B,6,18,40.0,32.3,43.4,Haze,0,5
+Ayer Rajah Expressway,Y,5,6,77.3,76.2,75.5,Clear,0,8
+Orchard Road,B,1,5,43.0,49.5,41.5,Clear,0,5
+Bedok North Avenue 3,C,6,20,26.1,16.0,24.8,Rain,0,3
+Seletar Expressway,Y,2,13,73.9,73.1,82.9,Haze,0,8
+Bedok North Avenue 3,C,3,19,25.9,26.4,25.7,Clouds,1,3
+East Coast Parkway,Y,6,17,78.8,74.5,79.0,Clouds,0,8
+Central Expressway,Y,4,22,42.9,50.0,47.2,Thunderstorm,0,5
+Seletar Expressway,Y,2,19,34.9,32.3,34.5,Mist,1,4
+Pan Island Expressway,Y,1,3,78.7,77.1,73.7,Clouds,0,8
+Pan Island Expressway,Y,6,6,67.5,64.9,61.9,Drizzle,0,7
+Tampines Expressway,Y,2,2,72.3,73.5,68.8,Drizzle,0,8
+Bukit Timah Expressway,Y,3,7,36.0,31.5,37.3,Haze,1,4
+Nicoll Highway,B,4,4,48.1,48.9,51.1,Mist,0,5
+Bukit Timah Expressway,Y,2,5,50.4,47.2,50.7,Rain,0,5
+Tampines Expressway,Y,5,22,40.0,40.7,34.9,Thunderstorm,0,5
+Orchard Road,B,4,14,45.0,48.3,46.8,Clear,0,5
+Nicoll Highway,B,3,20,22.1,26.1,29.9,Drizzle,1,3
+Upper Thomson Road,B,3,21,41.5,40.0,37.1,Mist,0,5
+Kallang Paya Lebar Expressway,Y,6,13,67.4,62.8,74.5,Clouds,0,7
+Orchard Road,B,3,22,36.1,33.2,40.1,Drizzle,0,4
+Tampines Avenue 10,B,5,19,35.8,35.6,34.5,Drizzle,0,5
+Pan Island Expressway,Y,6,18,80.0,80.8,76.6,Clouds,0,8
+Tampines Expressway,Y,1,6,76.5,78.4,82.0,Clear,0,8
+Tampines Avenue 10,B,2,21,39.6,40.1,36.2,Drizzle,0,5
+Orchard Road,B,1,15,28.5,30.2,24.9,Rain,0,3
+Seletar Expressway,Y,2,16,60.8,64.9,62.4,Mist,0,7
+Nicoll Highway,B,4,11,49.4,48.4,41.5,Mist,0,6
+Ayer Rajah Expressway,Y,0,4,36.5,30.2,41.6,Thunderstorm,0,4
+Tampines Avenue 10,B,6,16,48.0,51.0,49.2,Clear,0,5
+Bedok North Avenue 3,C,5,2,17.0,17.1,18.6,Thunderstorm,0,2
+Central Expressway,Y,3,4,70.3,67.4,78.0,Haze,0,8
+East Coast Parkway,Y,5,20,69.2,67.3,64.2,Drizzle,0,7
+Nicoll Highway,B,2,11,47.0,44.7,40.5,Haze,0,5
+Ayer Rajah Expressway,Y,5,8,71.0,67.1,70.3,Haze,0,8
+Ayer Rajah Expressway,Y,3,20,44.3,44.3,41.9,Drizzle,1,5
+Tampines Expressway,Y,1,12,79.4,86.5,68.6,Clear,0,8
+Central Expressway,Y,3,13,66.8,63.2,59.8,Haze,0,8
+Nicoll Highway,B,2,15,49.1,48.2,50.8,Haze,0,6
+Ayer Rajah Expressway,Y,3,2,64.3,64.8,67.2,Drizzle,0,7
+Woodlands Avenue 12,B,2,11,39.7,40.8,42.9,Mist,0,4
+Woodlands Avenue 12,B,2,9,17.4,12.6,26.4,Drizzle,1,3
+Bedok North Avenue 3,C,3,8,19.5,18.3,28.3,Haze,1,2
+Central Expressway,Y,2,22,75.0,71.0,82.4,Clear,0,8
+Ayer Rajah Expressway,Y,1,14,74.5,76.3,62.6,Clear,0,8
+Central Expressway,Y,0,3,72.4,74.9,67.4,Clear,0,8
+Seletar Expressway,Y,2,16,67.7,69.8,63.5,Haze,0,7
+Pan Island Expressway,Y,3,21,62.5,58.3,50.0,Drizzle,0,7
+Bukit Timah Expressway,Y,2,5,75.0,77.7,85.3,Clear,0,8
+Bedok North Avenue 3,C,3,15,33.8,30.0,30.0,Clouds,0,3
+Kallang Paya Lebar Expressway,Y,1,18,45.3,43.2,49.2,Haze,1,5
+Woodlands Avenue 12,B,6,12,41.5,43.2,43.1,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,3,10,33.7,36.4,27.1,Thunderstorm,0,4
+Central Expressway,Y,5,20,43.6,42.4,34.9,Rain,0,6
+Bukit Timah Expressway,Y,3,15,64.3,59.6,70.9,Drizzle,0,7
+Clementi Avenue 3,C,1,0,29.0,32.6,32.6,Rain,0,3
+Seletar Expressway,Y,1,5,68.2,63.8,66.1,Mist,0,7
+Clementi Avenue 3,C,5,4,38.3,31.4,30.7,Clouds,0,4
+Bedok North Avenue 3,C,6,3,30.1,27.7,38.7,Drizzle,0,4
+Nicoll Highway,B,5,20,27.7,26.0,25.9,Thunderstorm,0,3
+Clementi Avenue 3,C,1,20,32.0,33.2,43.7,Clear,1,4
+Ayer Rajah Expressway,Y,5,0,78.0,75.5,80.3,Clear,0,8
+Tampines Avenue 10,B,3,23,45.1,39.3,36.3,Clouds,0,5
+Upper Thomson Road,B,4,1,47.1,43.2,45.2,Clear,0,5
+Tampines Avenue 10,B,6,3,42.0,46.1,38.4,Haze,0,5
+Pan Island Expressway,Y,2,1,66.8,68.6,73.0,Clouds,0,8
+Tampines Expressway,Y,5,22,65.5,63.5,64.5,Drizzle,0,7
+Bedok North Avenue 3,C,6,8,35.3,35.3,49.1,Haze,0,4
+Seletar Expressway,Y,6,20,77.0,77.2,85.3,Clouds,0,8
+Ayer Rajah Expressway,Y,2,0,54.9,58.9,54.4,Rain,0,5
+Pan Island Expressway,Y,1,0,80.0,79.4,79.5,Clouds,0,8
+Ayer Rajah Expressway,Y,6,1,63.4,62.0,68.8,Mist,0,6
+East Coast Parkway,Y,1,20,39.8,43.7,39.2,Drizzle,1,5
+Seletar Expressway,Y,2,8,50.3,50.3,51.5,Haze,1,6
+Bukit Timah Expressway,Y,4,13,70.8,71.6,67.3,Clouds,0,8
+Nicoll Highway,B,6,16,48.2,48.6,47.2,Haze,0,6
+Seletar Expressway,Y,6,2,69.6,65.6,71.2,Mist,0,7
+Pan Island Expressway,Y,3,12,40.9,39.3,36.4,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,0,21,72.6,75.2,66.4,Clear,0,8
+Upper Thomson Road,B,6,21,21.4,21.3,25.0,Thunderstorm,0,2
+Clementi Avenue 3,C,1,19,15.4,14.9,22.6,Mist,1,2
+Clementi Avenue 3,C,2,18,17.0,22.0,20.6,Mist,1,2
+Ayer Rajah Expressway,Y,1,5,43.2,46.2,45.4,Thunderstorm,0,5
+Clementi Avenue 3,C,3,2,36.0,33.1,37.2,Clouds,0,4
+Upper Thomson Road,B,5,11,38.6,38.3,47.3,Drizzle,0,4
+Bukit Timah Expressway,Y,3,4,48.1,47.2,51.6,Rain,0,5
+Ayer Rajah Expressway,Y,5,1,66.0,66.0,58.5,Haze,0,7
+East Coast Parkway,Y,2,18,54.6,52.4,51.0,Clouds,1,6
+Central Expressway,Y,4,16,57.0,62.7,60.4,Rain,0,6
+Orchard Road,B,2,19,18.7,21.2,18.5,Drizzle,1,3
+Bedok North Avenue 3,C,2,23,38.0,30.3,47.7,Haze,0,4
+Upper Thomson Road,B,0,5,24.3,23.3,23.2,Thunderstorm,0,2
+Orchard Road,B,3,22,42.4,41.6,44.6,Drizzle,0,5
+Upper Thomson Road,B,4,18,30.5,26.1,33.7,Haze,1,4
+Seletar Expressway,Y,6,2,65.7,69.9,65.8,Mist,0,7
+Bedok North Avenue 3,C,6,14,34.4,33.7,44.1,Clouds,0,4
+Upper Thomson Road,B,5,14,39.9,45.9,49.9,Haze,0,4
+Bedok North Avenue 3,C,0,1,34.5,36.0,29.8,Clear,0,4
+Tampines Avenue 10,B,3,21,36.2,33.7,34.0,Drizzle,0,4
+East Coast Parkway,Y,4,15,69.5,67.4,71.6,Drizzle,0,7
+Pan Island Expressway,Y,0,13,70.4,70.9,68.2,Mist,0,8
+Tampines Avenue 10,B,1,22,43.9,42.4,46.0,Haze,0,5
+Orchard Road,B,0,22,20.1,25.6,15.2,Thunderstorm,0,2
+Pan Island Expressway,Y,3,7,46.5,44.3,44.8,Clouds,1,5
+East Coast Parkway,Y,4,11,75.9,77.6,78.9,Clear,0,8
+Pan Island Expressway,Y,3,14,75.3,73.4,76.9,Haze,0,8
+Ayer Rajah Expressway,Y,0,14,66.8,65.8,67.4,Mist,0,7
+Bedok North Avenue 3,C,0,18,20.6,19.5,25.0,Haze,1,3
+Tampines Avenue 10,B,3,9,27.6,33.9,29.0,Clouds,1,4
+Tampines Avenue 10,B,4,8,36.1,36.7,33.0,Clear,1,4
+Central Expressway,Y,3,13,61.9,67.9,66.8,Mist,0,7
+Bedok North Avenue 3,C,5,1,33.7,32.7,38.2,Haze,0,3
+Woodlands Avenue 12,B,0,15,42.0,44.4,49.7,Haze,0,5
+Bukit Timah Expressway,Y,0,22,56.3,58.2,59.0,Mist,0,7
+Seletar Expressway,Y,0,22,66.0,69.1,69.7,Drizzle,0,7
+Tampines Avenue 10,B,0,1,45.8,53.8,48.1,Haze,0,5
+Seletar Expressway,Y,2,7,44.1,44.5,61.9,Mist,1,5
+Ayer Rajah Expressway,Y,4,23,69.4,68.7,76.8,Clouds,0,8
+Nicoll Highway,B,6,18,33.7,37.1,27.5,Rain,0,4
+East Coast Parkway,Y,4,7,41.3,45.0,41.0,Drizzle,1,5
+Seletar Expressway,Y,0,8,49.2,53.6,47.0,Clear,1,5
+Upper Thomson Road,B,3,23,27.4,24.2,28.5,Thunderstorm,0,3
+Seletar Expressway,Y,4,17,43.3,38.9,45.6,Clear,1,6
+Bukit Timah Expressway,Y,5,3,63.4,61.9,56.9,Mist,0,6
+Kallang Paya Lebar Expressway,Y,5,18,47.1,50.1,50.6,Rain,0,5
+Kallang Paya Lebar Expressway,Y,5,11,74.4,73.6,77.1,Clear,0,7
+Woodlands Avenue 12,B,4,0,41.7,50.5,44.2,Clear,0,4
+Bukit Timah Expressway,Y,4,11,64.3,65.6,64.3,Haze,0,7
+Bedok North Avenue 3,C,1,14,24.1,27.3,16.8,Rain,0,2
+Central Expressway,Y,0,6,63.6,65.0,63.7,Drizzle,0,8
+Tampines Avenue 10,B,1,14,40.6,41.8,46.8,Drizzle,0,4
+Clementi Avenue 3,C,0,22,35.3,33.0,33.8,Mist,0,4
+Ayer Rajah Expressway,Y,1,2,73.4,69.5,83.2,Clouds,0,8
+Nicoll Highway,B,1,1,45.4,44.1,49.7,Mist,0,4
+Upper Thomson Road,B,5,15,43.2,46.2,52.3,Haze,0,5
+Nicoll Highway,B,4,7,27.7,31.4,40.7,Drizzle,1,4
+Tampines Avenue 10,B,3,9,22.8,22.6,24.5,Drizzle,1,3
+Kallang Paya Lebar Expressway,Y,6,15,62.3,61.1,58.3,Haze,0,7
+Pan Island Expressway,Y,1,7,41.1,40.7,44.3,Haze,1,5
+Tampines Expressway,Y,1,13,42.5,45.2,39.9,Thunderstorm,0,5
+Nicoll Highway,B,6,14,39.2,34.6,35.6,Rain,0,4
+Orchard Road,B,3,10,40.1,42.5,35.0,Haze,0,5
+Bedok North Avenue 3,C,0,0,32.3,33.7,30.7,Haze,0,4
+Central Expressway,Y,5,8,56.1,56.8,63.9,Drizzle,0,6
+Clementi Avenue 3,C,2,15,35.6,38.6,42.3,Clouds,0,5
+Seletar Expressway,Y,6,3,77.0,77.3,76.5,Clouds,0,8
+Upper Thomson Road,B,3,0,45.3,46.5,43.5,Haze,0,4
+Kallang Paya Lebar Expressway,Y,3,2,67.8,74.3,76.9,Clear,0,8
+Pan Island Expressway,Y,1,2,71.5,74.4,68.5,Clear,0,8
+Central Expressway,Y,6,13,64.9,62.2,66.4,Haze,0,6
+Clementi Avenue 3,C,3,14,26.9,21.6,26.1,Rain,0,3
+Central Expressway,Y,1,21,49.8,45.9,47.8,Rain,0,6
+East Coast Parkway,Y,1,1,64.8,69.8,76.1,Drizzle,0,7
+Central Expressway,Y,2,1,68.0,66.5,66.2,Haze,0,7
+Upper Thomson Road,B,3,19,25.1,25.5,13.9,Haze,1,3
+Central Expressway,Y,3,11,38.4,44.9,42.4,Thunderstorm,0,5
+Bukit Timah Expressway,Y,2,3,70.4,68.5,67.9,Clear,0,8
+Clementi Avenue 3,C,0,10,34.5,33.5,38.8,Haze,0,4
+Tampines Avenue 10,B,0,3,24.0,25.5,24.3,Thunderstorm,0,3
+Central Expressway,Y,5,0,46.9,50.2,49.5,Rain,0,6
+Bedok North Avenue 3,C,3,2,35.7,34.6,30.3,Clear,0,4
+Tampines Expressway,Y,2,11,76.9,78.2,78.7,Clouds,0,8
+Woodlands Avenue 12,B,5,11,44.1,43.2,50.6,Clouds,0,5
+Kallang Paya Lebar Expressway,Y,6,8,65.1,67.3,72.1,Drizzle,0,8
+Ayer Rajah Expressway,Y,2,11,40.6,40.3,40.4,Thunderstorm,0,5
+Upper Thomson Road,B,4,5,43.1,38.0,45.5,Mist,0,5
+Tampines Avenue 10,B,0,11,37.3,34.4,36.1,Mist,0,4
+Upper Thomson Road,B,3,14,42.9,43.1,41.3,Drizzle,0,4
+Pan Island Expressway,Y,5,11,59.4,60.3,61.1,Rain,0,6
+Seletar Expressway,Y,6,4,37.3,41.4,43.5,Thunderstorm,0,4
+Clementi Avenue 3,C,4,21,33.3,31.9,38.5,Mist,0,3
+East Coast Parkway,Y,4,22,73.8,72.9,79.4,Haze,0,8
+Bukit Timah Expressway,Y,1,12,65.1,70.5,70.8,Haze,0,7
+Bedok North Avenue 3,C,4,7,18.3,22.9,18.3,Rain,1,3
+Orchard Road,B,4,2,38.1,40.0,32.2,Mist,0,4
+Kallang Paya Lebar Expressway,Y,3,8,30.5,30.6,36.4,Rain,1,4
+Nicoll Highway,B,0,3,46.9,49.1,47.6,Haze,0,5
+Bukit Timah Expressway,Y,2,8,43.9,48.0,48.8,Clouds,1,5
+Woodlands Avenue 12,B,1,13,37.8,34.8,38.2,Haze,0,4
+Bukit Timah Expressway,Y,0,10,55.2,53.4,44.3,Drizzle,0,6
+Bukit Timah Expressway,Y,0,9,25.0,18.8,20.1,Rain,1,3
+Seletar Expressway,Y,0,18,41.6,41.6,45.2,Clear,1,4
+Orchard Road,B,4,9,12.0,11.1,6.1,Rain,1,2
+Clementi Avenue 3,C,5,4,34.7,32.5,30.9,Clouds,0,3
+East Coast Parkway,Y,5,6,66.6,64.5,73.8,Haze,0,7
+Bedok North Avenue 3,C,6,17,32.1,32.5,31.9,Drizzle,0,3
+Central Expressway,Y,2,19,39.8,38.5,38.9,Mist,1,4
+Woodlands Avenue 12,B,5,17,38.2,42.5,36.6,Drizzle,0,4
+Bedok North Avenue 3,C,4,21,27.6,30.7,32.9,Rain,0,3
+Tampines Expressway,Y,1,21,48.9,53.1,52.3,Rain,0,6
+Tampines Avenue 10,B,5,23,44.7,42.9,40.1,Clear,0,5
+East Coast Parkway,Y,4,13,44.6,42.5,43.5,Thunderstorm,0,5
+East Coast Parkway,Y,5,12,82.0,82.1,81.4,Clouds,0,8
+Central Expressway,Y,2,19,44.0,44.2,42.6,Clear,1,5
+Ayer Rajah Expressway,Y,4,2,64.0,62.6,66.5,Haze,0,7
+Tampines Expressway,Y,5,1,78.9,79.4,82.0,Clear,0,8
+Central Expressway,Y,3,12,71.5,66.1,64.8,Clouds,0,7
+Tampines Expressway,Y,4,10,66.3,68.4,69.0,Drizzle,0,7
+East Coast Parkway,Y,4,10,50.7,49.5,54.0,Rain,0,5
+East Coast Parkway,Y,3,0,67.9,67.7,64.1,Mist,0,7
+Tampines Expressway,Y,3,18,33.9,32.2,39.7,Drizzle,1,3
+Orchard Road,B,0,5,26.3,23.9,26.6,Rain,0,3
+Ayer Rajah Expressway,Y,2,18,53.8,50.5,51.7,Clear,1,5
+Clementi Avenue 3,C,5,16,38.6,38.5,28.0,Clear,0,4
+Kallang Paya Lebar Expressway,Y,3,18,37.9,36.9,41.8,Mist,1,5
+Orchard Road,B,2,12,45.0,44.9,50.8,Clear,0,5
+Pan Island Expressway,Y,3,11,58.5,59.1,61.5,Drizzle,0,7
+Tampines Expressway,Y,0,4,41.7,42.8,47.2,Thunderstorm,0,5
+East Coast Parkway,Y,5,5,73.0,77.3,79.4,Mist,0,8
+Kallang Paya Lebar Expressway,Y,6,4,71.3,68.1,82.5,Haze,0,7
+Bedok North Avenue 3,C,4,7,14.4,15.9,9.2,Mist,1,2
+Bedok North Avenue 3,C,1,20,20.9,18.3,26.1,Drizzle,1,2
+Tampines Expressway,Y,5,2,64.7,66.3,63.7,Haze,0,7
+Bukit Timah Expressway,Y,1,11,65.9,68.8,64.0,Haze,0,7
+Bukit Timah Expressway,Y,2,7,44.3,41.3,36.3,Mist,1,5
+Bukit Timah Expressway,Y,1,6,60.2,60.0,57.1,Mist,0,6
+Seletar Expressway,Y,3,17,43.0,41.1,45.7,Mist,1,5
+Tampines Expressway,Y,2,4,45.1,45.5,45.7,Thunderstorm,0,5
+Nicoll Highway,B,0,2,46.6,46.5,46.2,Mist,0,5
+Orchard Road,B,1,6,35.1,37.6,38.3,Mist,0,4
+Woodlands Avenue 12,B,3,22,25.4,32.2,30.1,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,4,0,72.0,68.8,70.0,Clear,0,8
+Seletar Expressway,Y,1,15,61.7,58.6,63.0,Mist,0,7
+Pan Island Expressway,Y,1,13,50.6,50.0,55.1,Rain,0,6
+Woodlands Avenue 12,B,6,21,30.4,31.9,25.7,Rain,0,4
+Bukit Timah Expressway,Y,6,20,64.3,66.7,66.9,Mist,0,7
+Bukit Timah Expressway,Y,5,1,70.2,72.0,76.3,Clouds,0,7
+Ayer Rajah Expressway,Y,6,0,54.4,53.7,49.9,Rain,0,6
+East Coast Parkway,Y,4,18,48.9,47.6,52.1,Mist,1,5
+Seletar Expressway,Y,2,23,65.7,69.4,73.8,Haze,0,7
+Ayer Rajah Expressway,Y,2,23,66.3,63.0,57.6,Mist,0,7
+Tampines Expressway,Y,1,11,63.8,61.7,63.4,Mist,0,7
+Pan Island Expressway,Y,5,17,59.5,58.8,60.5,Mist,0,6
+Seletar Expressway,Y,5,14,77.0,75.4,80.9,Clear,0,8
+Upper Thomson Road,B,5,1,44.6,51.2,37.5,Clear,0,5
+Kallang Paya Lebar Expressway,Y,6,20,64.6,62.2,54.6,Mist,0,7
+Tampines Expressway,Y,3,17,62.4,64.1,61.4,Clouds,1,7
+Tampines Avenue 10,B,1,14,47.3,49.7,43.9,Clouds,0,5
+Nicoll Highway,B,0,22,36.5,31.1,44.7,Rain,0,5
+Clementi Avenue 3,C,0,6,27.9,23.5,19.2,Rain,0,4
+Clementi Avenue 3,C,1,18,6.2,6.5,5.2,Thunderstorm,1,1
+Orchard Road,B,6,18,28.3,27.8,35.7,Rain,0,3
+Nicoll Highway,B,6,18,49.1,48.7,42.8,Haze,0,6
+Nicoll Highway,B,1,15,50.4,52.9,50.3,Clouds,0,6
+Seletar Expressway,Y,1,17,45.6,42.4,41.9,Clear,1,6
+Upper Thomson Road,B,0,9,15.1,16.3,15.9,Rain,1,2
+Pan Island Expressway,Y,1,3,45.2,46.7,53.8,Thunderstorm,0,5
+East Coast Parkway,Y,5,14,69.3,73.7,63.6,Mist,0,7
+Central Expressway,Y,4,6,62.0,66.6,62.2,Mist,0,6
+Woodlands Avenue 12,B,0,19,15.0,17.1,4.4,Rain,1,2
+Seletar Expressway,Y,6,12,68.7,68.2,62.6,Haze,0,8
+Seletar Expressway,Y,4,9,19.9,20.4,26.5,Thunderstorm,1,2
+Orchard Road,B,1,19,19.6,13.6,23.2,Rain,1,3
+Tampines Expressway,Y,3,4,52.6,55.0,53.9,Rain,0,5
+East Coast Parkway,Y,1,3,76.4,77.7,79.2,Mist,0,8
+Nicoll Highway,B,3,2,37.6,32.7,32.3,Rain,0,4
+Seletar Expressway,Y,6,17,71.3,72.1,64.6,Clear,0,7
+Kallang Paya Lebar Expressway,Y,3,11,63.8,61.0,62.2,Clear,0,8
+Woodlands Avenue 12,B,6,20,42.0,38.4,28.5,Clouds,0,5
+East Coast Parkway,Y,6,14,42.9,46.2,38.3,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,0,10,64.0,66.7,67.5,Drizzle,0,7
+Orchard Road,B,2,11,43.1,37.8,52.0,Clear,0,4
+Woodlands Avenue 12,B,0,17,20.2,17.0,23.7,Mist,1,3
+Tampines Expressway,Y,3,17,30.2,32.3,32.8,Rain,1,4
+Upper Thomson Road,B,3,12,31.3,21.7,29.2,Rain,0,3
+Woodlands Avenue 12,B,6,19,37.7,39.6,39.3,Mist,0,4
+Central Expressway,Y,3,12,49.1,51.8,40.5,Rain,0,5
+Tampines Expressway,Y,1,22,63.8,65.6,63.1,Mist,0,7
+Orchard Road,B,5,14,40.0,38.6,36.6,Haze,0,4
+Bedok North Avenue 3,C,3,19,26.9,28.8,26.8,Clear,1,3
+Nicoll Highway,B,6,11,44.6,42.1,43.4,Haze,0,6
+Seletar Expressway,Y,4,19,34.4,35.2,37.2,Rain,1,4
+Upper Thomson Road,B,5,7,36.4,31.5,34.6,Drizzle,0,5
+Pan Island Expressway,Y,6,1,55.7,53.5,56.2,Rain,0,6
+Upper Thomson Road,B,5,18,33.8,32.2,31.4,Rain,0,4
+Clementi Avenue 3,C,3,11,29.3,31.7,18.4,Rain,0,3
+Ayer Rajah Expressway,Y,3,7,49.0,46.7,37.4,Clouds,1,6
+Clementi Avenue 3,C,2,11,39.3,38.9,41.7,Clear,0,5
+Bukit Timah Expressway,Y,4,20,32.6,25.1,30.9,Rain,1,3
+East Coast Parkway,Y,0,9,54.9,54.5,63.3,Clouds,1,6
+Tampines Expressway,Y,0,22,71.6,74.3,77.9,Clear,0,8
+East Coast Parkway,Y,6,23,46.0,45.4,36.9,Thunderstorm,0,5
+Tampines Avenue 10,B,4,3,47.3,44.2,48.1,Clear,0,5
+Tampines Expressway,Y,1,19,40.7,42.6,43.4,Clouds,1,5
+Upper Thomson Road,B,6,5,33.4,33.2,29.8,Drizzle,0,5
+Pan Island Expressway,Y,0,22,71.9,71.3,74.9,Mist,0,8
+Woodlands Avenue 12,B,3,17,25.0,27.8,18.7,Mist,1,2
+Orchard Road,B,6,14,41.3,44.7,50.5,Haze,0,4
+Upper Thomson Road,B,1,18,35.2,32.7,35.3,Haze,1,4
+Bukit Timah Expressway,Y,0,21,63.6,57.6,62.6,Mist,0,7
+Pan Island Expressway,Y,0,15,44.0,41.7,35.3,Thunderstorm,0,5
+Central Expressway,Y,0,23,68.3,65.9,70.3,Clouds,0,7
+Kallang Paya Lebar Expressway,Y,1,5,63.3,62.6,64.8,Drizzle,0,7
+Central Expressway,Y,0,19,51.2,49.7,43.4,Clouds,1,6
+Upper Thomson Road,B,4,12,39.8,37.7,32.1,Drizzle,0,5
+Tampines Avenue 10,B,5,7,39.8,41.4,44.7,Clouds,0,4
+Upper Thomson Road,B,2,17,41.8,41.1,35.6,Clouds,1,4
+Woodlands Avenue 12,B,3,5,22.6,22.1,18.2,Thunderstorm,0,2
+Nicoll Highway,B,1,17,30.1,24.8,35.2,Mist,1,4
+Bukit Timah Expressway,Y,3,19,45.8,45.6,44.9,Haze,1,4
+Tampines Avenue 10,B,4,2,45.1,45.3,52.9,Clear,0,5
+Clementi Avenue 3,C,3,10,29.1,28.0,33.5,Rain,0,4
+Clementi Avenue 3,C,6,22,20.7,17.6,20.0,Thunderstorm,0,3
+Woodlands Avenue 12,B,2,12,42.9,51.2,41.7,Clouds,0,5
+Ayer Rajah Expressway,Y,0,22,70.1,73.0,72.5,Haze,0,7
+Kallang Paya Lebar Expressway,Y,5,8,60.7,65.7,68.3,Mist,0,7
+Bukit Timah Expressway,Y,4,22,49.4,49.1,41.1,Rain,0,6
+Seletar Expressway,Y,4,6,61.4,59.6,68.7,Drizzle,0,6
+Bedok North Avenue 3,C,3,2,37.3,38.4,42.0,Haze,0,4
+Upper Thomson Road,B,3,4,39.3,39.2,37.2,Drizzle,0,5
+Upper Thomson Road,B,2,2,38.5,36.1,34.9,Drizzle,0,5
+Upper Thomson Road,B,4,19,24.1,25.7,18.4,Haze,1,3
+Ayer Rajah Expressway,Y,4,4,72.6,77.2,75.1,Clear,0,7
+Central Expressway,Y,3,6,33.7,35.9,30.1,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,6,3,38.7,37.9,37.2,Thunderstorm,0,5
+Seletar Expressway,Y,0,0,69.1,72.6,71.9,Mist,0,7
+Bukit Timah Expressway,Y,0,13,48.8,50.9,43.7,Rain,0,6
+Tampines Expressway,Y,3,14,65.2,64.4,62.6,Drizzle,0,8
+Orchard Road,B,4,23,44.1,45.4,51.4,Clear,0,5
+Pan Island Expressway,Y,1,21,78.9,79.9,83.7,Clouds,0,8
+Tampines Avenue 10,B,2,7,24.2,24.1,16.6,Mist,1,4
+Pan Island Expressway,Y,0,3,38.6,40.1,35.2,Thunderstorm,0,4
+Central Expressway,Y,1,23,67.9,68.7,65.4,Haze,0,7
+Seletar Expressway,Y,3,19,58.1,59.9,52.3,Clear,1,6
+Pan Island Expressway,Y,0,21,71.5,68.4,68.1,Clouds,0,8
+Seletar Expressway,Y,1,0,71.1,75.5,72.3,Clouds,0,7
+Tampines Expressway,Y,4,19,33.0,30.6,34.6,Mist,1,4
+East Coast Parkway,Y,5,0,34.7,35.8,34.2,Thunderstorm,0,4
+Ayer Rajah Expressway,Y,6,18,37.2,39.0,37.9,Thunderstorm,0,4
+Seletar Expressway,Y,1,6,74.6,73.7,79.3,Clear,0,8
+East Coast Parkway,Y,0,20,39.0,39.3,39.8,Drizzle,1,5
+Upper Thomson Road,B,4,10,44.5,42.4,44.9,Clear,0,5
+Woodlands Avenue 12,B,5,22,39.3,40.0,34.3,Drizzle,0,4
+Woodlands Avenue 12,B,1,14,42.3,42.1,35.5,Haze,0,5
+Kallang Paya Lebar Expressway,Y,1,15,63.4,65.4,70.5,Mist,0,7
+Tampines Expressway,Y,6,5,67.7,66.5,73.3,Clouds,0,7
+Nicoll Highway,B,3,12,48.9,48.9,54.4,Haze,0,6
+Orchard Road,B,2,2,40.9,41.6,27.2,Haze,0,5
+Clementi Avenue 3,C,6,5,35.3,33.6,32.5,Haze,0,4
+Woodlands Avenue 12,B,3,1,37.3,38.5,40.4,Drizzle,0,4
+Upper Thomson Road,B,0,11,46.8,45.4,35.1,Mist,0,5
+Tampines Avenue 10,B,2,18,37.2,29.7,37.1,Clouds,1,4
+Seletar Expressway,Y,0,16,54.2,56.8,52.2,Rain,0,7
+East Coast Parkway,Y,4,5,64.4,61.5,57.3,Drizzle,0,7
+Nicoll Highway,B,1,22,46.2,47.7,43.8,Mist,0,5
+Upper Thomson Road,B,5,7,44.8,46.8,45.2,Haze,0,5
+Tampines Expressway,Y,5,19,73.3,75.5,79.2,Clouds,0,8
+Seletar Expressway,Y,5,3,71.7,71.4,75.2,Clear,0,7
+Upper Thomson Road,B,4,14,34.8,30.7,27.1,Rain,0,4
+Kallang Paya Lebar Expressway,Y,5,15,57.3,58.0,51.5,Rain,0,6
+Orchard Road,B,6,19,38.6,39.3,36.4,Mist,0,4
+Ayer Rajah Expressway,Y,1,18,36.5,31.2,39.4,Drizzle,1,4
+Seletar Expressway,Y,0,20,44.5,45.4,47.6,Mist,1,5
+Clementi Avenue 3,C,0,10,20.4,14.6,20.3,Thunderstorm,0,2
+East Coast Parkway,Y,2,20,21.2,22.8,23.5,Thunderstorm,1,3
+Upper Thomson Road,B,6,3,40.8,40.5,42.7,Drizzle,0,4
+Clementi Avenue 3,C,6,5,27.3,24.3,36.8,Rain,0,3
+Seletar Expressway,Y,1,11,77.0,77.0,76.3,Clear,0,7
+Woodlands Avenue 12,B,4,15,25.1,27.0,30.9,Thunderstorm,0,3
+Tampines Avenue 10,B,2,13,47.5,47.0,50.6,Clear,0,5
+Nicoll Highway,B,3,11,28.7,28.5,29.3,Thunderstorm,0,3
+Clementi Avenue 3,C,5,5,23.1,22.6,28.9,Thunderstorm,0,3
+Clementi Avenue 3,C,3,14,34.9,37.7,27.0,Mist,0,3
+Nicoll Highway,B,5,4,40.3,40.2,42.7,Rain,0,4
+Bedok North Avenue 3,C,5,18,33.2,35.5,35.6,Mist,0,4
+Ayer Rajah Expressway,Y,2,11,41.4,36.8,39.8,Thunderstorm,0,5
+Tampines Avenue 10,B,5,14,42.3,45.4,41.2,Mist,0,5
+East Coast Parkway,Y,5,0,65.7,64.7,64.1,Mist,0,6
+Bukit Timah Expressway,Y,1,18,42.5,46.3,39.8,Clouds,1,5
+Nicoll Highway,B,4,14,48.3,49.4,46.3,Haze,0,6
+Bukit Timah Expressway,Y,3,22,42.7,39.9,45.1,Thunderstorm,0,5
+Upper Thomson Road,B,5,1,22.7,19.4,32.5,Thunderstorm,0,3
+Upper Thomson Road,B,3,8,30.8,34.0,30.9,Clear,1,3
+Tampines Expressway,Y,2,20,47.7,46.8,43.8,Clear,1,5
+Central Expressway,Y,1,11,62.5,61.6,61.7,Drizzle,0,7
+Clementi Avenue 3,C,0,22,39.4,39.3,38.8,Clear,0,4
+Orchard Road,B,6,13,45.0,38.8,43.9,Clouds,0,5
+Tampines Avenue 10,B,5,20,34.3,37.2,33.3,Rain,0,5
+Kallang Paya Lebar Expressway,Y,2,0,37.4,37.3,39.3,Thunderstorm,0,5
+East Coast Parkway,Y,2,4,57.5,58.7,56.7,Rain,0,6
+Upper Thomson Road,B,2,10,39.9,39.3,36.9,Drizzle,0,4
+Clementi Avenue 3,C,3,23,20.5,18.9,22.8,Rain,0,2
+East Coast Parkway,Y,4,12,43.4,40.8,42.4,Thunderstorm,0,5
+Clementi Avenue 3,C,2,13,20.0,12.8,17.3,Thunderstorm,0,3
+Woodlands Avenue 12,B,5,14,36.0,37.6,37.9,Drizzle,0,4
+Tampines Avenue 10,B,4,10,41.6,41.1,54.3,Drizzle,0,5
+Nicoll Highway,B,3,21,38.8,41.6,44.6,Rain,0,5
+Ayer Rajah Expressway,Y,3,0,37.7,37.4,41.7,Thunderstorm,0,4
+Kallang Paya Lebar Expressway,Y,0,9,47.4,45.7,48.5,Drizzle,1,5
+Bukit Timah Expressway,Y,3,6,75.0,75.4,79.2,Clear,0,8
+Tampines Avenue 10,B,0,11,25.1,28.4,27.8,Thunderstorm,0,3
+Bedok North Avenue 3,C,3,12,38.0,38.0,28.2,Haze,0,4
+East Coast Parkway,Y,2,9,44.1,44.1,43.4,Clouds,1,5
+Clementi Avenue 3,C,6,11,27.5,28.3,33.5,Rain,0,3
+Pan Island Expressway,Y,6,5,62.9,61.0,55.6,Drizzle,0,7
+East Coast Parkway,Y,4,21,67.3,65.8,56.8,Drizzle,0,7
+Woodlands Avenue 12,B,1,23,40.1,45.3,40.3,Mist,0,4
+Bedok North Avenue 3,C,6,8,26.3,24.3,23.4,Rain,0,3
+East Coast Parkway,Y,3,0,78.2,78.4,68.6,Haze,0,8
+Tampines Avenue 10,B,6,21,35.9,35.2,41.4,Rain,0,4
+Pan Island Expressway,Y,4,9,58.3,57.1,66.1,Clouds,1,6
+Bukit Timah Expressway,Y,1,21,67.4,65.8,65.6,Haze,0,7
+Clementi Avenue 3,C,1,12,37.6,42.7,42.9,Haze,0,4
+Central Expressway,Y,2,23,52.8,55.0,47.1,Rain,0,6
+Ayer Rajah Expressway,Y,6,17,67.1,68.3,70.4,Mist,0,7
+Pan Island Expressway,Y,2,12,79.9,83.0,83.3,Clear,0,8
+Nicoll Highway,B,6,16,41.8,37.2,44.9,Mist,0,4
+Clementi Avenue 3,C,1,9,24.6,22.2,29.5,Drizzle,1,3
+Upper Thomson Road,B,2,0,46.0,46.4,44.9,Mist,0,5
+East Coast Parkway,Y,5,13,69.1,72.1,61.1,Haze,0,7
+Kallang Paya Lebar Expressway,Y,3,10,72.8,68.5,67.5,Haze,0,8
+Clementi Avenue 3,C,4,1,38.8,37.4,39.0,Clouds,0,4
+Upper Thomson Road,B,3,8,20.8,15.7,20.3,Rain,1,3
+Bedok North Avenue 3,C,3,19,26.8,28.2,31.3,Clouds,1,3
+Pan Island Expressway,Y,1,8,35.9,38.8,38.1,Rain,1,4
+Bedok North Avenue 3,C,6,4,35.4,36.3,34.5,Clear,0,4
+Bukit Timah Expressway,Y,2,17,53.1,52.2,56.1,Clear,1,6
+Upper Thomson Road,B,5,8,34.7,32.2,34.6,Rain,0,4
+Clementi Avenue 3,C,2,13,35.6,41.1,31.9,Clouds,0,3
+Tampines Avenue 10,B,0,19,21.1,18.3,12.9,Mist,1,3
+Upper Thomson Road,B,2,21,39.2,41.1,44.9,Drizzle,0,4
+Orchard Road,B,2,11,31.2,29.9,32.7,Rain,0,4
+Tampines Expressway,Y,0,15,69.5,71.2,68.1,Haze,0,8
+Tampines Expressway,Y,6,14,66.4,68.8,65.0,Mist,0,7
+Woodlands Avenue 12,B,5,6,27.2,27.0,33.4,Rain,0,3
+Central Expressway,Y,6,21,60.6,57.4,58.0,Mist,0,7
+East Coast Parkway,Y,4,16,62.3,59.3,54.3,Drizzle,0,7
+Woodlands Avenue 12,B,3,3,31.7,31.0,38.7,Rain,0,4
+Nicoll Highway,B,5,10,25.8,26.4,26.9,Thunderstorm,0,2
+Central Expressway,Y,4,3,63.8,67.6,63.1,Mist,0,7
+Ayer Rajah Expressway,Y,4,5,49.2,52.4,47.4,Rain,0,6
+Orchard Road,B,3,19,28.1,28.3,13.4,Drizzle,1,3
+Tampines Expressway,Y,4,10,40.5,40.8,47.8,Thunderstorm,0,5
+Bedok North Avenue 3,C,1,4,31.1,32.7,31.4,Mist,0,4
+Tampines Expressway,Y,3,8,49.0,44.5,51.4,Haze,1,6
+Seletar Expressway,Y,5,13,72.7,71.9,72.4,Clouds,0,8
+Tampines Avenue 10,B,3,18,28.4,25.2,26.0,Mist,1,3
+Bedok North Avenue 3,C,6,20,31.0,31.9,30.4,Mist,0,4
+Seletar Expressway,Y,2,3,59.3,57.5,63.5,Mist,0,6
+Central Expressway,Y,0,16,60.1,60.1,47.7,Drizzle,0,7
+Pan Island Expressway,Y,1,8,51.2,48.0,55.1,Haze,1,6
+Tampines Avenue 10,B,5,6,41.6,45.3,42.7,Clouds,0,5
+Central Expressway,Y,0,2,63.8,62.9,67.8,Mist,0,6
+Kallang Paya Lebar Expressway,Y,1,18,36.9,35.4,37.9,Drizzle,1,4
+Orchard Road,B,2,20,28.4,26.9,27.7,Mist,1,3
+Clementi Avenue 3,C,1,15,29.1,28.5,29.1,Drizzle,0,4
+Ayer Rajah Expressway,Y,5,13,61.2,60.7,59.4,Drizzle,0,7
+Seletar Expressway,Y,1,20,42.4,39.2,39.8,Haze,1,5
+Tampines Expressway,Y,4,18,53.9,59.5,50.6,Clear,1,7
+Nicoll Highway,B,3,1,45.0,38.6,38.0,Drizzle,0,5
+Central Expressway,Y,4,12,67.4,65.5,70.0,Clouds,0,7
+Central Expressway,Y,0,14,60.6,58.4,63.3,Drizzle,0,6
+Tampines Expressway,Y,4,7,54.4,53.6,56.1,Haze,1,5
+Tampines Avenue 10,B,6,7,43.5,40.5,40.4,Clouds,0,5
+Tampines Avenue 10,B,2,0,40.3,41.1,44.0,Mist,0,5
+Seletar Expressway,Y,2,17,46.8,41.3,35.4,Mist,1,5
+Kallang Paya Lebar Expressway,Y,6,23,63.8,67.9,57.2,Drizzle,0,8
+Bukit Timah Expressway,Y,4,8,40.2,42.9,36.9,Haze,1,4
+Kallang Paya Lebar Expressway,Y,1,12,55.6,58.5,62.0,Rain,0,6
+Nicoll Highway,B,0,4,33.4,38.7,29.9,Rain,0,4
+Orchard Road,B,3,18,11.5,10.6,5.0,Thunderstorm,1,1
+Nicoll Highway,B,3,16,44.4,44.0,43.0,Drizzle,0,5
+Central Expressway,Y,2,23,55.2,58.7,53.6,Rain,0,6
+Pan Island Expressway,Y,1,13,52.8,55.9,48.7,Rain,0,6
+Pan Island Expressway,Y,3,11,69.0,67.4,69.3,Mist,0,7
+Pan Island Expressway,Y,1,14,73.8,69.7,72.0,Clear,0,8
+Orchard Road,B,5,22,43.3,47.0,32.2,Clear,0,5
+Bukit Timah Expressway,Y,3,19,35.2,31.4,35.8,Mist,1,4
+Kallang Paya Lebar Expressway,Y,2,23,71.6,72.2,75.9,Clear,0,8
+Seletar Expressway,Y,2,0,64.8,64.8,68.0,Mist,0,7
+Bukit Timah Expressway,Y,1,22,67.8,69.5,70.4,Mist,0,8
+Pan Island Expressway,Y,1,11,77.1,76.5,68.2,Clear,0,8
+Seletar Expressway,Y,6,16,62.8,63.1,57.5,Drizzle,0,7
+Orchard Road,B,3,7,12.2,12.7,12.0,Thunderstorm,1,2
+Kallang Paya Lebar Expressway,Y,6,12,71.9,71.3,82.2,Clouds,0,8
+Bukit Timah Expressway,Y,4,22,74.5,74.1,87.0,Clear,0,8
+Pan Island Expressway,Y,5,12,64.8,67.0,63.1,Mist,0,7
+Nicoll Highway,B,2,17,36.7,36.7,30.4,Clouds,1,4
+Clementi Avenue 3,C,1,0,37.8,35.2,41.0,Clear,0,4
+Orchard Road,B,6,3,23.2,19.8,26.8,Thunderstorm,0,3
+East Coast Parkway,Y,0,6,74.2,75.9,86.2,Haze,0,8
+Woodlands Avenue 12,B,0,3,24.0,22.4,17.8,Thunderstorm,0,3
+Tampines Expressway,Y,6,21,80.0,75.7,80.1,Clouds,0,8
+Bedok North Avenue 3,C,1,20,11.1,9.7,10.6,Rain,1,2
+Upper Thomson Road,B,0,4,49.0,49.2,43.0,Clear,0,6
+Tampines Avenue 10,B,3,12,37.5,32.8,36.7,Rain,0,4
+Upper Thomson Road,B,3,23,46.9,43.6,48.9,Clouds,0,5
+Woodlands Avenue 12,B,3,13,40.0,40.7,37.0,Drizzle,0,5
+Bukit Timah Expressway,Y,0,20,22.4,24.4,18.0,Rain,1,3
+Tampines Avenue 10,B,3,0,43.1,44.6,49.5,Drizzle,0,5
+Orchard Road,B,3,10,42.9,38.7,44.4,Haze,0,5
+Upper Thomson Road,B,1,18,17.1,17.1,16.8,Rain,1,2
+Kallang Paya Lebar Expressway,Y,0,7,39.2,41.8,38.4,Haze,1,5
+Tampines Expressway,Y,6,8,46.7,48.9,40.0,Thunderstorm,0,6
+Woodlands Avenue 12,B,4,7,12.6,14.0,12.7,Thunderstorm,1,1
+Bukit Timah Expressway,Y,2,0,70.5,73.3,84.1,Haze,0,8
+Pan Island Expressway,Y,6,16,74.4,70.6,78.9,Mist,0,8
+Pan Island Expressway,Y,4,6,77.5,74.8,82.1,Clear,0,8
+Bedok North Avenue 3,C,0,9,24.0,22.8,27.6,Clouds,1,3
+Woodlands Avenue 12,B,1,10,26.8,27.9,30.7,Rain,0,3
+Kallang Paya Lebar Expressway,Y,1,3,35.8,35.1,42.2,Thunderstorm,0,5
+Ayer Rajah Expressway,Y,6,20,68.7,68.6,75.2,Haze,0,8
+East Coast Parkway,Y,0,3,79.1,78.1,80.1,Clouds,0,8
+Tampines Avenue 10,B,5,4,43.5,45.0,44.2,Drizzle,0,5
+Tampines Avenue 10,B,3,16,46.5,51.8,51.8,Clouds,0,5
+Ayer Rajah Expressway,Y,4,9,34.9,35.1,35.7,Rain,1,4
+Upper Thomson Road,B,4,14,42.4,40.2,33.2,Haze,0,5
+Seletar Expressway,Y,5,17,66.8,66.2,69.4,Haze,0,7
+Bukit Timah Expressway,Y,4,7,13.7,15.5,11.6,Thunderstorm,1,2
+Upper Thomson Road,B,4,3,26.8,26.9,26.7,Thunderstorm,0,3
+Clementi Avenue 3,C,4,23,34.8,36.3,43.6,Clouds,0,4
+Nicoll Highway,B,6,16,51.1,52.1,62.6,Clear,0,5
+Upper Thomson Road,B,1,13,44.5,40.3,41.9,Clouds,0,5
+Nicoll Highway,B,2,18,12.2,13.2,15.7,Thunderstorm,1,2
+Bedok North Avenue 3,C,5,6,32.9,34.3,30.8,Haze,0,4
+Seletar Expressway,Y,0,14,71.2,68.1,68.9,Clouds,0,8
+Central Expressway,Y,6,9,51.4,49.7,44.9,Rain,0,6
+Orchard Road,B,2,11,39.6,37.8,44.7,Mist,0,5
+Pan Island Expressway,Y,6,23,44.2,47.4,33.6,Thunderstorm,0,5
+Seletar Expressway,Y,5,6,73.7,76.0,72.8,Clear,0,8
+Upper Thomson Road,B,0,9,29.0,26.1,25.1,Mist,1,3
+Bedok North Avenue 3,C,3,1,37.2,34.2,37.3,Clear,0,4
+Pan Island Expressway,Y,2,5,73.0,72.0,82.7,Clear,0,8
+Central Expressway,Y,2,19,56.7,55.1,55.3,Clear,1,7
+Kallang Paya Lebar Expressway,Y,2,3,55.1,58.3,53.8,Rain,0,6
+Seletar Expressway,Y,4,19,34.2,34.3,37.8,Drizzle,1,4
+Seletar Expressway,Y,2,12,66.5,68.1,70.3,Drizzle,0,7
+Orchard Road,B,4,8,23.4,23.7,26.8,Rain,1,4
+Woodlands Avenue 12,B,0,4,43.6,46.4,35.6,Clear,0,5
+Tampines Expressway,Y,0,14,71.2,71.8,70.3,Mist,0,8
+Kallang Paya Lebar Expressway,Y,5,6,42.2,42.2,31.8,Thunderstorm,0,5
+Seletar Expressway,Y,2,0,56.4,53.6,49.8,Rain,0,6
+Orchard Road,B,0,20,21.1,18.1,17.9,Drizzle,1,3
+Bedok North Avenue 3,C,3,12,18.5,16.5,21.9,Thunderstorm,0,3
+Upper Thomson Road,B,5,14,35.4,35.7,32.5,Mist,0,5
+Woodlands Avenue 12,B,0,14,31.4,31.2,38.4,Rain,0,3
+Nicoll Highway,B,5,14,40.2,37.8,36.2,Rain,0,5
+Upper Thomson Road,B,0,5,44.7,44.9,48.5,Clouds,0,5
+Orchard Road,B,1,23,41.9,38.9,46.2,Haze,0,5
+Clementi Avenue 3,C,6,6,23.6,23.6,26.1,Rain,0,2
+East Coast Parkway,Y,3,18,13.4,16.7,12.3,Thunderstorm,1,2
+Woodlands Avenue 12,B,0,9,9.2,6.6,16.5,Thunderstorm,1,2
+Tampines Avenue 10,B,5,0,43.3,47.4,49.4,Mist,0,5
+Ayer Rajah Expressway,Y,5,0,43.6,42.5,46.1,Thunderstorm,0,5
+Seletar Expressway,Y,4,14,47.8,46.7,54.3,Rain,0,5
+Tampines Avenue 10,B,3,11,28.6,26.7,19.9,Thunderstorm,0,3
+Ayer Rajah Expressway,Y,0,20,37.8,38.7,33.8,Rain,1,4
+Tampines Expressway,Y,4,11,38.2,36.6,36.3,Thunderstorm,0,6
+Tampines Avenue 10,B,2,16,41.0,46.6,42.7,Mist,0,5
+Orchard Road,B,1,18,15.7,17.5,18.4,Rain,1,2
+Kallang Paya Lebar Expressway,Y,4,6,63.4,58.3,59.1,Mist,0,7
+Pan Island Expressway,Y,6,19,70.0,67.5,79.8,Haze,0,7
+Bukit Timah Expressway,Y,0,8,41.1,42.9,46.0,Drizzle,1,5
+Kallang Paya Lebar Expressway,Y,4,18,37.2,38.7,39.7,Drizzle,1,5
+Bedok North Avenue 3,C,3,8,26.2,30.4,21.5,Clouds,1,4
+Ayer Rajah Expressway,Y,1,7,50.1,52.8,43.7,Clear,1,5
+Tampines Expressway,Y,2,1,78.7,78.4,85.4,Clouds,0,8
+East Coast Parkway,Y,2,16,76.2,75.8,85.7,Clouds,0,8
+Clementi Avenue 3,C,6,5,30.0,27.2,24.0,Drizzle,0,3
+Woodlands Avenue 12,B,3,14,27.9,24.6,27.6,Rain,0,3
+Pan Island Expressway,Y,3,4,67.3,72.2,68.3,Mist,0,7
+Woodlands Avenue 12,B,5,21,42.4,40.9,40.4,Haze,0,5
+Woodlands Avenue 12,B,1,18,26.2,24.5,27.7,Drizzle,1,4
+Bedok North Avenue 3,C,5,19,36.7,41.1,40.6,Clear,0,4
+Ayer Rajah Expressway,Y,0,4,65.6,70.9,64.8,Mist,0,7
+Central Expressway,Y,4,5,74.1,74.1,70.5,Clouds,0,7
+Bedok North Avenue 3,C,1,1,29.0,29.0,37.7,Drizzle,0,4
+Kallang Paya Lebar Expressway,Y,4,9,41.6,48.0,37.8,Clouds,1,4
+Central Expressway,Y,4,23,68.5,62.4,74.5,Clear,0,7
+East Coast Parkway,Y,6,6,69.1,68.0,66.8,Mist,0,8
+Bedok North Avenue 3,C,3,4,31.3,32.5,41.5,Mist,0,4
+Seletar Expressway,Y,6,4,74.2,76.8,71.6,Clouds,0,8
+Bedok North Avenue 3,C,2,1,35.8,33.4,36.3,Haze,0,4
+Pan Island Expressway,Y,3,8,43.2,43.6,31.1,Clouds,1,5
+Tampines Avenue 10,B,3,22,41.7,42.6,48.5,Clouds,0,5
+Central Expressway,Y,3,5,65.0,63.9,52.7,Mist,0,7
+Kallang Paya Lebar Expressway,Y,4,9,45.0,47.1,41.8,Clear,1,5
+Nicoll Highway,B,2,16,43.6,39.8,39.5,Mist,0,5
+Pan Island Expressway,Y,4,12,61.1,56.5,64.8,Drizzle,0,7
+Pan Island Expressway,Y,3,20,57.7,54.6,56.0,Clouds,1,6
+Upper Thomson Road,B,4,13,46.8,46.7,44.0,Mist,0,5
+Orchard Road,B,4,7,12.7,17.3,6.2,Rain,1,2
+Kallang Paya Lebar Expressway,Y,3,23,53.5,56.1,47.1,Rain,0,6
+Pan Island Expressway,Y,4,3,77.1,81.0,68.3,Clouds,0,7
+Upper Thomson Road,B,2,5,50.0,52.6,48.5,Clouds,0,6
+Kallang Paya Lebar Expressway,Y,0,21,39.8,46.5,35.3,Thunderstorm,0,5

@@ -45,6 +45,7 @@
       <a href="#route-planner" class="nav-tab" data-page="route-planner">Route Planner</a>
       <a href="#weather" class="nav-tab" data-page="weather">Weather</a>
       <a href="#alerts" class="nav-tab" data-page="alerts">Alerts</a>
+      <a href="#admin-users" class="nav-tab hidden" data-page="admin-users" id="admin-users-tab">Admin Users</a>
     </nav>
 
     <!-- Login -->
@@ -281,28 +282,6 @@
         <div id="dashboard-evidence-list" class="evidence-grid"></div>
       </section>
 
-      <section class="admin-users-panel hidden" id="admin-users-panel">
-        <div class="admin-users-head">
-          <h2 class="subsection-title">User Registration Analytics</h2>
-          <button type="button" class="btn-dark" id="admin-users-refresh-btn">REFRESH</button>
-        </div>
-        <div class="admin-user-stats" id="admin-user-stats"></div>
-        <div class="admin-users-table-wrap">
-          <table class="admin-users-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Verified</th>
-                <th>Created At</th>
-              </tr>
-            </thead>
-            <tbody id="admin-users-tbody"></tbody>
-          </table>
-        </div>
-      </section>
     </main>
 
     <!-- Map View -->
@@ -316,8 +295,9 @@
         <div class="map-toolbar">
           <button type="button" class="btn-dark"><span class="dot red"></span> LIVE MONITORING</button>
           <button type="button" class="btn-dark" id="map-toggle-incidents-btn"><span class="icon-warning red"></span> SHOW LTA INCIDENTS</button>
+          <button type="button" class="btn-dark hidden" id="map-toggle-feedback-btn"><span class="icon-pin"></span> SHOW USER FEEDBACK</button>
           <button type="button" class="btn-dark" id="map-toggle-favorites-btn"><span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES</button>
-          <button type="button" class="btn-dark"><span class="icon-plane"></span> SUBMIT FEEDBACK</button>
+          <button type="button" class="btn-dark" id="fabFeedback"><span class="icon-plane"></span> SUBMIT FEEDBACK <span class="fb-count-badge" id="fbCountBadge" style="display:none"></span></button>
         </div>
         <div id="liveMap"></div>
         <span class="help-icon">?</span>
@@ -550,6 +530,83 @@
             </div>
           </div>
         </section>
+
+        <section class="ml-traffic-impact" id="mlTrafficImpact">
+          <h2 class="subsection-title">ML TRAFFIC IMPACT PREDICTION</h2>
+          <div class="impact-main-row">
+            <div class="impact-ring-container">
+              <div class="impact-ring impact-low" id="impactRing">
+                <div class="impact-ring-inner">
+                  <span class="impact-score-num" id="impactScore">--</span>
+                  <span class="impact-score-denom">/10</span>
+                </div>
+              </div>
+              <div class="impact-ring-label">Impact Score</div>
+            </div>
+            <div class="impact-info">
+              <div class="impact-level-badge impact-low" id="impactLevelBadge">-- Enter a location --</div>
+              <p class="impact-summary" id="impactSummary">
+                Enter a location above to generate an ML-powered traffic impact prediction based on live weather conditions.
+              </p>
+              <div class="impact-meta-row">
+                <div class="impact-meta-item">
+                  <span class="impact-meta-icon">⏱</span>
+                  <div>
+                    <div class="impact-meta-label">ESTIMATED CLEARING TIME</div>
+                    <div class="impact-meta-val" id="impactClearingTime">--</div>
+                  </div>
+                </div>
+                <div class="impact-meta-item">
+                  <span class="impact-meta-icon">🎯</span>
+                  <div>
+                    <div class="impact-meta-label">MODEL CONFIDENCE</div>
+                    <div class="impact-meta-val" id="impactConfidence">--%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="impact-factors-panel">
+            <div class="impact-factors-heading">CONTRIBUTING WEATHER FACTORS</div>
+
+            <div class="factor-row">
+              <span class="factor-label">Rain Probability</span>
+              <div class="factor-bar-track">
+                <div class="factor-bar factor-bar-rain" id="bar-rain" style="width:0%"></div>
+              </div>
+              <span class="factor-val" id="val-rain">--%</span>
+            </div>
+
+            <div class="factor-row">
+              <span class="factor-label">Wind Speed</span>
+              <div class="factor-bar-track">
+                <div class="factor-bar factor-bar-wind" id="bar-wind" style="width:0%"></div>
+              </div>
+              <span class="factor-val" id="val-wind">-- m/s</span>
+            </div>
+
+            <div class="factor-row">
+              <span class="factor-label">Visibility Impact</span>
+              <div class="factor-bar-track">
+                <div class="factor-bar factor-bar-vis" id="bar-vis" style="width:0%"></div>
+              </div>
+              <span class="factor-val" id="val-vis">-- km</span>
+            </div>
+
+            <div class="factor-row">
+              <span class="factor-label">Heat Stress</span>
+              <div class="factor-bar-track">
+                <div class="factor-bar factor-bar-heat" id="bar-heat" style="width:0%"></div>
+              </div>
+              <span class="factor-val" id="val-heat">--°C</span>
+            </div>
+          </div>
+
+          <div class="ml-model-badge" id="mlModelBadge">
+            ML Engine · Random Forest · Weather-based traffic impact model
+          </div>
+        </section>
       </div>
     </main>
 
@@ -588,8 +645,141 @@
         </div>
       </div>
     </main>
+    <main id="admin-users" class="page">
+      <section class="admin-users-page hidden" id="admin-users-panel">
+        <div class="admin-users-head">
+          <div>
+            <h1 class="section-head">Admin User Management</h1>
+            <p class="alerts-sub">Manage registered users and review detailed user feedback.</p>
+          </div>
+          <button type="button" class="btn-dark" id="admin-users-refresh-btn">REFRESH</button>
+        </div>
+        <div class="admin-user-stats" id="admin-user-stats"></div>
+        <div class="admin-users-table-wrap">
+          <table class="admin-users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Verified</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody"></tbody>
+          </table>
+        </div>
+
+        <section class="admin-feedback-panel">
+          <div class="admin-users-head">
+            <div>
+              <h2 class="subsection-title">User Feedback History</h2>
+              <p class="sidebar-sub">Detailed opinions submitted by different users at different times.</p>
+            </div>
+          </div>
+          <div class="admin-feedback-filters">
+            <label>
+              <span>Time</span>
+              <select id="admin-feedback-time-filter">
+                <option value="all">All Time</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
+            </label>
+            <label>
+              <span>Severity</span>
+              <select id="admin-feedback-severity-filter">
+                <option value="all">All Severities</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-feedback-table-wrap">
+            <table class="admin-users-table admin-feedback-table">
+              <thead>
+                <tr>
+                  <th>Submitted At</th>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Location</th>
+                  <th>Type</th>
+                  <th>Severity</th>
+                  <th>Feedback</th>
+                </tr>
+              </thead>
+              <tbody id="admin-feedback-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
   </div>
+  <div class="modal-overlay" id="feedbackOverlay">
+    <div class="modal-box" id="feedbackModal">
+      <div class="modal-header">
+        <h2 class="modal-title">SUBMIT ROAD FEEDBACK</h2>
+        <button type="button" class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-field">
+          <label class="modal-label">LOCATION</label>
+          <div class="modal-input-row">
+            <input type="text" class="modal-input" id="fb-location" placeholder="Enter location or use current..." />
+            <button type="button" class="btn-locate" id="fbLocateBtn" title="Use current location">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12"/>
+                <circle cx="12" cy="12" r="4"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="err-location"></span>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">CONDITION TYPE</label>
+          <div class="fb-type-group" id="fbTypeGroup">
+            <button type="button" class="fb-type-btn active" data-type="CONGESTION">CONGESTION</button>
+            <button type="button" class="fb-type-btn" data-type="ACCIDENT">ACCIDENT</button>
+            <button type="button" class="fb-type-btn" data-type="ROAD WORK">ROAD WORK</button>
+            <button type="button" class="fb-type-btn" data-type="CLEAR">CLEAR</button>
+          </div>
+          <span class="field-error" id="err-type"></span>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">SEVERITY</label>
+          <div class="fb-severity-group" id="fbSeverityGroup">
+            <button type="button" class="fb-severity-btn" data-severity="LOW"><span class="sev-dot low"></span> LOW</button>
+            <button type="button" class="fb-severity-btn active" data-severity="MEDIUM"><span class="sev-dot medium"></span> MEDIUM</button>
+            <button type="button" class="fb-severity-btn" data-severity="HIGH"><span class="sev-dot high"></span> HIGH</button>
+          </div>
+          <span class="field-error" id="err-severity"></span>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">COMMENTS</label>
+          <textarea class="modal-textarea" id="fb-comments" placeholder="Describe the road condition..."></textarea>
+          <span class="field-error" id="err-comments"></span>
+        </div>
+        <div class="recent-submissions" id="recentSubmissions" style="display:none">
+          <div class="recent-title">YOUR RECENT REPORTS</div>
+          <div class="recent-list" id="recentList"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-post-feedback" id="fbSubmitBtn">
+          POST FEEDBACK
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="feedback-toast" id="feedbackToast">Feedback submitted. Thank you for helping the community.</div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="ml-traffic-model.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
