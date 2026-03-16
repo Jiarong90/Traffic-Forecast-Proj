@@ -3,7 +3,30 @@
 // 1) 本自执行模块负责登录/注册/登出、右上角用户菜单、Profile/Settings 数据读写。
 // 2) 会话信息保存在 sessionStorage，并通过自定义事件通知其他模块（地图、告警）同步刷新。
 // 3) 该模块不做复杂业务计算，主要承担 UI 状态与后端接口之间的编排。
+
+const IS_PRODUCTION = true;
+
+const FASTAPI_BASE = IS_PRODUCTION 
+    ? "https://traffic-forecast-backend.onrender.com" 
+    : "http://127.0.0.1:8000";
+
+const SUPABASE_URL = "https://vwywaannhemxefrrqrtv.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_FfuRkw4At-Nlko5mVXoGaQ_ib_jrEFr";
+
+const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+async function getSupabaseAccessToken() {
+  try {
+    const result = await supabaseClient.auth.getSession();
+    return result?.data?.session?.access_token || null;
+  } catch (err) {
+    console.error("Supabase session error:", err);
+    return null;
+  }
+}
+
 (function () {
+
   var STORAGE_KEY = "fast_auth";
   var navTabs = document.querySelectorAll(".nav-tab");
   var pages = document.querySelectorAll(".page");
@@ -45,6 +68,8 @@
     commuteToHomeTime: "",
     frequentRoutes: []
   };
+
+
 
   // 停止“发送验证码”按钮的倒计时，并恢复可点击状态
   function stopSignupCodeCooldown() {
@@ -254,7 +279,7 @@
 
   function getPageFromHash() {
     var hash = (window.location.hash || '#dashboard').slice(1);
-    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'alerts', 'alert-detail', 'profile', 'settings', 'admin-users', 'login', 'signup'];
+    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'habit-routes', 'alerts', 'alert-detail', 'profile', 'settings', 'admin-users', 'login', 'signup'];
     return valid.indexOf(hash) !== -1 ? hash : 'dashboard';
   }
 
@@ -298,6 +323,17 @@
         });
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Login failed');
+
+        // TRY Supabase integration here for login
+        const { error: sbError } = await supabaseClient.auth.signInWithPassword({
+          email: email,
+          password: password
+        });
+
+        if (sbError) 
+          console.error("Supabase Auth Error: ", sbError.message);
+        // END Supabase integration
+
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
         try {
@@ -415,6 +451,29 @@
         });
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Sign up failed');
+
+        // Supabase Integration: Create matching Supabase account
+        // const { error: sbSignupError } = await supabaseClient.auth.signUp({
+        //   email: payload.email,
+        //   password: payload.password
+        // });
+
+        // if (sbSignupError) {
+        //   throw new Error("Supabase signup failed: " + sbSignupError.message);
+        // }
+
+        // // sign in immediately after signup?
+        // const { error: sbLoginError } = await supabaseClient.auth.signInWithPassword({
+        //   email: payload.email,
+        //   password: payload.password
+        // });
+
+        // if (sbLoginError) {
+        //   console.error("Supabase auto-login failed:", sbLoginError.message);
+        // }
+
+        // // --- END SUPABASE
+        
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
         signupCodeRequested = false;
@@ -484,6 +543,17 @@
       try {
         await window.fastAuthFetch('/api/auth/logout', { method: 'POST' });
       } catch (_) {}
+
+      // Log out from Supabase session too
+      try {
+        if (supabaseClient) {
+          await supabaseClient.auth.signOut();
+          console.log("Supabase session cleared.");
+        }
+      } catch (sbErr) {
+        console.error("Supabase signout failed:", sbErr);
+      }
+      // End supabase
       setStoredAuth(null);
       updateHeaderAuth();
       if (userMenuWrap) userMenuWrap.classList.remove('open');
@@ -1083,6 +1153,12 @@ document.addEventListener("DOMContentLoaded", () => {
     cameras: [],
     liveMap: null,
     plannerMap: null,
+    // For Habit routes
+    habitRoutesMap: null,
+    habitRoutesBaseLayer: null,
+    habitRoutePolylineLayer: null,
+    habitSavedRoutes: [],
+    // End Habit routes
     liveLayer: null,
     liveIncidentLayer: null,
     plannerLayer: null,
@@ -1338,6 +1414,27 @@ document.addEventListener("DOMContentLoaded", () => {
       state.plannerLayer = L.layerGroup().addTo(state.plannerMap);
       state.routeLayer = L.layerGroup().addTo(state.plannerMap);
       state.adminSimulationLayer = L.layerGroup().addTo(state.plannerMap);
+    }
+
+    // For Habit Routes add-on
+    if (!state.habitRoutesMap && document.getElementById("habitRoutesMap")) {
+      state.habitRoutesMap = L.map("habitRoutesMap", {
+        center: SG_CENTER,
+        zoom: 11,
+        zoomControl: false,
+        preferCanvas: true
+      });
+
+      L.control.zoom({ position: "bottomright" }).addTo(state.habitRoutesMap);
+
+      L.tileLayer("https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png", {
+        attribution: "&copy; OneMap Singapore",
+        maxZoom: 18,
+        minZoom: 10
+      }).addTo(state.habitRoutesMap);
+
+      state.habitRoutesBaseLayer = L.layerGroup().addTo(state.habitRoutesMap);
+      state.habitRoutePolylineLayer = L.layerGroup().addTo(state.habitRoutesMap);
     }
   }
 
@@ -2683,8 +2780,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const trafficLevel = item.trafficLevel;
       const routeLabel = item.routeLabel;
       const statusTag = getStatusTag(item);
+      // Edited by JR here - added new "Save Habit Route" button
       return `
       <div class="route-card ${r.id === state.selectedRouteId ? "selected" : ""}" data-route-id="${r.id}">
+        <button type="button" class="save-habit-btn" data-save-id="${r.id}" title="Save as Habit Route">SAVE</button>
         <div class="route-card-main">${Math.round(totalMinutes)} mins</div>
         <div class="route-card-erp">+${Math.round(eva.eventDelayMin)} mins delay</div>
         <div class="route-card-status">#${idx + 1} · ${statusTag}</div>
@@ -2700,8 +2799,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
     container.querySelectorAll(".route-card").forEach((el) => {
       el.addEventListener("click", () => {
+     
+
         const id = el.getAttribute("data-route-id");
         selectRoute(id);
+      });
+    });
+
+    // For save btn logic to add habit routes
+    container.querySelectorAll(".save-habit-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation(); // Stop from selecting route on map
+        const routeId = btn.getAttribute("data-save-id");
+        const routeObj = state.routePlans.find(r => r.id === routeId);
+        if (routeObj) {
+            await saveRouteAsHabit(routeObj, btn);
+        }
       });
     });
   }
@@ -3224,6 +3337,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     }
+    // Habit Route buttons
+    const habitRefreshBtn = document.getElementById("habit-routes-refresh-btn");
+    if (habitRefreshBtn) {
+      habitRefreshBtn.addEventListener("click", async () => {
+        await loadHabitRoutesFromServer();
+        if (state.habitRoutesMap) {
+          setTimeout(() => state.habitRoutesMap.invalidateSize(), 40);
+        }
+      });
+    }
+
+    const habitClearBtn = document.getElementById("habit-routes-clear-map-btn");
+    if (habitClearBtn) {
+      habitClearBtn.addEventListener("click", () => {
+        if (state.habitRoutePolylineLayer) state.habitRoutePolylineLayer.clearLayers();
+      });
+    }
 
     const alertBackBtn = document.getElementById("alert-detail-back-btn");
     if (alertBackBtn) {
@@ -3278,9 +3408,16 @@ document.addEventListener("DOMContentLoaded", () => {
           renderAdminUsersPanel();
           renderAdminFeedbackPanel();
         }
+        if (tab.getAttribute("data-page") === "habit-routes") {
+          loadHabitRoutesFromServer().catch((err) => {
+            console.error("Failed to load habit routes:", err);
+          });
+        }
         setTimeout(() => {
           if (state.liveMap) state.liveMap.invalidateSize();
           if (state.plannerMap) state.plannerMap.invalidateSize();
+          // Added Habit Route Map invalidate
+          if (state.habitRoutesMap) state.habitRoutesMap.invalidateSize(); 
         }, 40);
       });
     });
@@ -3332,6 +3469,20 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         renderAlertDetailPage();
       }
+      // FOR TRAFFIC ALERTS. Call FastAPI to check traffic alerts every 60s
+      await loadHabitRoutesFromServer();
+      checkTrafficAlerts(); 
+      setInterval(checkTrafficAlerts, 60000); 
+
+      // Handle the alerts dropdown toggle to view alerts
+      const alertsToggle = document.getElementById("alerts-toggle");
+      if (alertsToggle) {
+        alertsToggle.addEventListener("click", (e) => {
+          e.stopPropagation();
+          document.getElementById("alerts-nav-dropdown").classList.toggle("hidden");
+        });
+      }
+
       setTimeout(() => {
         if (state.liveMap) state.liveMap.invalidateSize();
         if (state.plannerMap) state.plannerMap.invalidateSize();
@@ -3737,6 +3888,470 @@ document.addEventListener("DOMContentLoaded", () => {
     renderCooldownText();
   })();
 
+
+
+  // Habit Routes section for JR.
+  // To try to integrate dual auth structure, load habit routes
+  // and handle the route mapping to LTA road links
+  // and also handle habit routes alerts management
+
+  
+  // Try to load habit routes from Supabase using the access token from dual approach
+  async function loadHabitRoutesFromServer() {
+
+
+    const token = await getSupabaseAccessToken();
+    if (!token) {
+      state.habitSavedRoutes = [];
+      renderHabitRoutesList();
+      return;
+    }
+
+    // Call habit route endpoint.
+    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    // Retrieve the data
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Habit routes load failed:", data);
+      state.habitSavedRoutes = [];
+      renderHabitRoutesList();
+      return;
+    }
+
+    // Load all the required data and render
+    state.habitSavedRoutes = (data.routes || []).map((r) => ({
+      id: r.id,
+      from: r.from_label || "Unknown start",
+      to: r.to_label || "Unknown destination",
+      coords: r.coords_json || [],
+      distance_m: r.distance_m || 0,
+      link_ids: r.link_ids || [],
+      alert_enabled: r.alert_enabled,
+      alert_start_time: r.alert_start_time,
+      alert_end_time: r.alert_end_time,
+      route_name: r.route_name || ""
+    }));
+
+    renderHabitRoutesList();
+  }
+
+  // Render the data
+  // Should load the list of saved habit routes, display the relevant details 
+  // and put action buttons for each row
+  function renderHabitRoutesList() {
+    const container = document.getElementById("habit-routes-list");
+    if (!container) return;
+
+    if (!state.habitSavedRoutes.length) {
+      container.innerHTML = `<div class="habit-route-card">No saved habit routes yet.</div>`;
+      return;
+    }
+
+    container.innerHTML = "";
+
+    state.habitSavedRoutes.forEach((route, i) => {
+      const card = document.createElement("div");
+      card.className = "habit-route-card";
+
+      const routeDisplayName = route.route_name || "My Route";
+      const directions = `${escapeHtml(route.from)} → ${escapeHtml(route.to)}`;
+
+      // Update the list to enable users to update name of their route
+      card.innerHTML = `
+      <div style="padding: 16px; position: relative;">
+        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+            <div style="flex: 1; padding-right: 10px;">
+                <div class="habit-route-title" id="title-${route.id}" style="font-weight: 700; font-size: 16px; color: #1e293b; line-height: 1.2;">
+                    ${escapeHtml(route.route_name || "My Route")}
+                </div>
+                <div style="font-size: 12px; color: #64748b; line-height: 1.4; margin-top: 4px;">
+                    ${escapeHtml(route.from)} → ${escapeHtml(route.to)}
+                </div>
+            </div>
+            <button type="button" class="btn-rename-edit" style="border:none; background:none; color:#94a3b8; cursor:pointer; padding-left:8px;">
+              ✎
+            </button>
+        </div>
+
+        <div class="habit-rename-group hidden mb-3 p-2 bg-light rounded" id="rename-group-${route.id}">
+            <input type="text" class="form-control form-control-sm mb-2 habit-new-name-input" value="${escapeHtml(route.route_name || "")}">
+            <button class="btn btn-sm btn-primary habit-confirm-rename">Save</button>
+            <button class="btn btn-sm btn-link habit-cancel-rename text-muted">Cancel</button>
+        </div>
+
+        <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">${(Number(route.distance_m || 0) / 1000).toFixed(1)} km</div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+            <button class="btn btn-sm btn-outline-primary habit-load-btn" style="font-weight: 600; font-size: 11px; padding: 6px 0;">LOAD</button>
+            <button class="btn btn-sm btn-outline-secondary habit-alerts-btn" style="font-weight: 600; font-size: 11px; padding: 6px 0;">ALERTS</button>
+            <button class="btn btn-sm btn-outline-danger habit-delete-btn" style="font-weight: 600; font-size: 11px; padding: 6px 0;">DELETE</button>
+        </div>
+
+        <div class="habit-route-settings hidden mt-3 p-3" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; width: 100%; overflow: hidden;">
+            <label style="font-size: 12px; display: block; margin-bottom: 8px; font-weight: 600; color: #475569;">
+                <input type="checkbox" class="habit-alert-toggle" ${route.alert_enabled ? "checked" : ""}> Monitor Traffic
+            </label>
+            
+            <div style="display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 12px; color: #64748b; margin-bottom: 12px; width: 100%;">
+                <span>Window:</span>
+                <input type="time" class="habit-alert-start" style="flex: 1; min-width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px;" value="${route.alert_start_time || "07:30"}">
+                <span>to</span>
+                <input type="time" class="habit-alert-end" style="flex: 1; min-width: 70px; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px;" value="${route.alert_end_time || "09:00"}">
+            </div>
+            
+            <button type="button" class="btn btn-dark habit-save-settings-btn w-100" style="font-size: 11px; font-weight: 700; padding: 8px; box-sizing: border-box;">SAVE SETTINGS</button>
+        </div>
+      </div>
+    `;
+      const renameGroup = card.querySelector(`#rename-group-${route.id}`);
+      const titleEl = card.querySelector(`#title-${route.id}`);
+
+      card.querySelector(".btn-rename-edit").onclick = () => renameGroup.classList.remove("hidden");
+      card.querySelector(".habit-cancel-rename").onclick = () => renameGroup.classList.add("hidden");
+
+      // send the patch request
+      card.querySelector(".habit-confirm-rename").onclick = async () => {
+        // get the new name
+        const newName = card.querySelector(".habit-new-name-input").value.trim();
+        if (!newName) return;
+
+        const token = await getSupabaseAccessToken();
+        const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${route.id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            },
+            body: JSON.stringify({ route_name: newName })
+        });
+
+        if (res.ok) {
+            titleEl.innerText = newName;
+            renameGroup.classList.add("hidden");
+            route.route_name = newName; 
+        } else {
+            alert("Failed to rename route.");
+        }
+      };
+      // Handle save, update alerts and delete button
+      const settingsPanel = card.querySelector(".habit-route-settings");
+
+      card.querySelector(".habit-load-btn").addEventListener("click", async () => {
+        await drawHabitRouteOnMap(route);
+      });
+
+      card.querySelector(".habit-alerts-btn").addEventListener("click", () => {
+        settingsPanel.classList.toggle("hidden");
+      });
+
+      card.querySelector(".habit-save-settings-btn").addEventListener("click", async () => {
+        await saveHabitRouteSettings(route.id, card);
+      });
+
+      card.querySelector(".habit-delete-btn").addEventListener("click", async () => {
+        await deleteHabitRoute(route.id);
+      });
+
+      container.appendChild(card);
+    });
+  }
+
+  // Load route to map
+  async function drawHabitRouteOnMap(route) {
+    if (!state.habitRoutesMap || !state.habitRoutePolylineLayer) return;
+    if (!route || !Array.isArray(route.coords) || route.coords.length < 2) return;
+
+    const token = await getSupabaseAccessToken();
+    if (!token) {
+      alert("Please log in first.");
+      return;
+    }
+    
+    // Call FastAPI endpoint to retrieve mapped LTA road links
+    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/analyze`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        coords_json: route.coords
+      })
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Habit route analyze failed:", data);
+      alert("Failed to load saved route.");
+      return;
+    }
+
+    state.habitRoutePolylineLayer.clearLayers();
+
+    
+    const coords = data.coords || route.coords;
+    const matchInfo = data.match_info || {};
+    const segmentMatches = matchInfo.segment_matches || [];
+    const segments = [];
+    // Get the coords from retrieved data
+    // and retrieve the segments that match LTA road links
+    // Then display the current and predicted speedbands from prediction model
+    for (let j = 0; j < coords.length - 1; j += 1) {
+      const matchData = segmentMatches[j];
+
+      if (matchData) {
+        let lineColor = "#3b82f6";
+        let trafficStatus = "Collecting Data...";
+        const currentBand = matchData.current_band || "N/A";
+        const predBand = matchData.pred_band;
+
+        if (predBand) {
+          if (predBand >= 6) {
+            lineColor = "#22c55e";
+            trafficStatus = "Free Flow";
+          } else if (predBand >= 4) {
+            lineColor = "#eab308";
+            trafficStatus = "Moderate Traffic";
+          } else {
+            lineColor = "#ef4444";
+            trafficStatus = "Heavy Congestion";
+          }
+        }
+
+        const line = L.polyline([coords[j], coords[j + 1]], {
+          color: lineColor,
+          weight: 7,
+          opacity: 1
+        });
+
+        line.bindPopup(`
+          <div style="font-size:12px;max-width:260px;">
+            <strong>${escapeHtml(matchData.road_name || "LTA Road")}</strong><br/>
+            <b>Link ID:</b> ${escapeHtml(matchData.link_id || "")}<br/>
+            <b>Current Band:</b> ${escapeHtml(currentBand)}<br/>
+            <b>XGBoost Predicted Band (T+15):</b> ${escapeHtml(predBand ?? "N/A")} (${escapeHtml(trafficStatus)})
+          </div>
+        `);
+
+        line.addTo(state.habitRoutePolylineLayer);
+        segments.push(line);
+      } else {
+        const line = L.polyline([coords[j], coords[j + 1]], {
+          color: "#94a3b8",
+          weight: 4,
+          opacity: 0.6,
+          dashArray: "5, 10"
+        });
+        line.addTo(state.habitRoutePolylineLayer);
+        segments.push(line);
+      }
+    }
+
+    if (segments.length) {
+      const fg = L.featureGroup(segments);
+      state.habitRoutesMap.fitBounds(fg.getBounds(), { padding: [40, 40] });
+    }
+  }
+
+  // Update Habit Route settings
+  async function saveHabitRouteSettings(routeId, card) {
+    const token = await getSupabaseAccessToken();
+    if (!token) {
+      alert("Please log in first.");
+      return;
+    }
+    
+    const alert_enabled = card.querySelector(".habit-alert-toggle").checked;
+    const alert_start_time = card.querySelector(".habit-alert-start").value;
+    const alert_end_time = card.querySelector(".habit-alert-end").value;
+
+    // Call FastAPI endpoint to edit habit-routes alert settings
+    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${routeId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        alert_enabled,
+        alert_start_time,
+        alert_end_time
+      })
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      console.error("Habit route settings update failed:", data);
+      alert("Failed to save route settings.");
+      return;
+    }
+
+    await loadHabitRoutesFromServer();
+
+  }
+
+  // Delete Habit Route
+  async function deleteHabitRoute(routeId) {
+    const token = await getSupabaseAccessToken();
+    if (!token) {
+      alert("Please log in first.");
+      return;
+    }
+
+    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${routeId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) {
+      console.error("Habit route delete failed:", data);
+      alert("Failed to delete habit route.");
+      return;
+    }
+
+    await loadHabitRoutesFromServer();
+    if (state.habitRoutePolylineLayer) state.habitRoutePolylineLayer.clearLayers();
+  }
+
+  // Save to Habit Routes
+  async function saveRouteAsHabit(routeObj, btn) {
+      
+    const token = await getSupabaseAccessToken();
+    if (!token) {
+      alert("Please log in to your ML account (Supabase) to save habit routes.");
+      return;
+    }
+
+    // Modify button to showed that it has been clicked
+    const originalText = btn.innerHTML;
+    btn.innerHTML = "Saving..."; 
+    btn.style.pointerEvents = "none";
+
+    // Create a default name first, to design a name input panel later
+    const startInput = document.getElementById("route-start-postal")?.value || "Start";
+    const endInput = document.getElementById("route-end-postal")?.value || "Destination";
+    
+    const autoName = `${startInput} → ${endInput}`;
+
+    // Send to FastAPI Analyze endpoint to retrieve LTA roadlinks
+    try {
+      const analyzeRes = await fetch(`${FASTAPI_BASE}/api/habit-routes/analyze`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ coords_json: routeObj.coords })
+      });
+      const analysis = await analyzeRes.json();
+      
+      if (!analyzeRes.ok) throw new Error("Link analysis failed");
+
+      // Send endpoint to FastAPi habit-routes to save habit routes 
+      const saveRes = await fetch(`${FASTAPI_BASE}/api/habit-routes`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          route_name: autoName, 
+          from_label: startInput,
+          to_label: endInput,
+          coords_json: routeObj.coords,
+          distance_m: routeObj.totalDist,
+          link_ids: analysis.match_info.matched_links.map(l => l.link_id)
+        })
+      });
+
+      if (saveRes.ok) {
+        // Update button to show that route was saved successfully
+        btn.innerHTML = "✓";
+        btn.style.background = "#10b981";
+        btn.style.color = "white";
+        btn.style.borderColor = "#10b981";
+        loadHabitRoutesFromServer();
+
+        // Revert back button
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style = "";
+        }, 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("System error while saving.");
+    }
+  }
+
+  // ALERTS section
+  async function checkTrafficAlerts() {
+
+    if (!state.habitSavedRoutes || state.habitSavedRoutes.length === 0) {
+      // If routes aren't loaded yet, try to load them once
+      await loadHabitRoutesFromServer(); 
+    }
+    const token = await getSupabaseAccessToken();
+    if (!token) return;
+
+    try {
+      // Call FastAPI endpoint to retrieve user alerts
+        const res = await fetch(`${FASTAPI_BASE}/api/my-alerts`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const alerts = await res.json();
+        
+        const badge = document.getElementById("nav-alert-badge");
+        const list = document.getElementById("nav-alerts-list");
+
+        if (alerts && alerts.length > 0) {
+            badge.innerText = alerts.length;
+            badge.classList.remove("hidden");
+            
+            // Populate the dropdown list from alerts navbar
+            list.innerHTML = "";
+            alerts.forEach(alert => {
+                // Lookup the route name from your state cache
+                const routeInfo = state.habitSavedRoutes.find(r => r.id === alert.route_id);
+                const routeDisplayName = routeInfo ? (routeInfo.route_name || routeInfo.from) : `ID: ${alert.route_id}`;
+
+                list.innerHTML += `
+                    <li class="nav-alert-item-wrap">
+                        <div class="nav-alert-card">
+                            <div class="nav-alert-title">Traffic Alert!</div>
+                            <div class="nav-alert-text">Route <strong>${escapeHtml(routeDisplayName)}</strong> is facing delays.</div>
+                            <button type="button" class="btn-dismiss-alert" onclick="dismissAlert(${alert.id}, this)">Dismiss</button>
+                        </div>
+                    </li>
+                `;
+            });
+        } else {
+            badge.classList.add("hidden");
+            list.innerHTML = `<li class="no-alerts" style="padding:15px; color:#94a3b8; font-size:12px;">No active traffic jams.</li>`;
+        }
+    } catch (err) {
+        console.error("Alert check failed:", err);
+    }
+  }
+
+    
+
+
+
   // 模块真实启动点
   document.addEventListener("DOMContentLoaded", bootstrapDemo);
 })();
+
+
