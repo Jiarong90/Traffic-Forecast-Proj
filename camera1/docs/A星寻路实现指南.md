@@ -1,68 +1,102 @@
-# A* 寻路实现指南（新版：后端 Python 统一计算）
+# A* 寻路实现指南
 
-本文档对应当前版本：路径规划已从前端本地计算切换为后端 Python 计算，前端只负责输入、展示与交互。
+本文档说明当前版本 A* 路径规划的实际实现方式。
 
-## 1. 当前实现结论
+## 1. 当前版本结论
 
-1. 前端路径规划统一调用 `POST /api/route-plan`。
-2. A* 算法在 `camera1/py/compute_engine.py` 中实现。
-3. 返回三条路线：`fastest`、`fewerLights`、`balanced`。
-4. 管理员模拟路线也复用同一后端接口，保证算法一致。
+当前 A* 寻路已经不是前端本地计算，也不只是 Node.js 调 Python 子进程。
+
+当前主链路是：
+
+1. 前端调用 `POST /api/route-plan`
+2. Node.js 聚合道路数据和信号点
+3. Node.js 调 FastAPI `/compute/plan-routes`
+4. FastAPI 调用 `compute_engine.py` 中的 `plan_routes`
+5. FastAPI 失败时，Node.js 才回退到旧的 Python 子进程方式
 
 ## 2. 代码位置
 
-- 前端入口：`/Users/apple/Desktop/fyp_demo/UI 2/script.js`
-  - `fetchRoutePlansFromPython(...)`
+1. 前端入口：
+- [/Users/apple/Desktop/fyp_demo/UI 2/script.js](/Users/apple/Desktop/fyp_demo/UI%202/script.js)
   - `calculateRoutes()`
-  - `buildStandaloneSimulation()`
-- 后端 API：`/Users/apple/Desktop/fyp_demo/camera1/server.js`
+  - `fetchRoutePlansFromPython()` 这类前端入口仍然是调用后端 `/api/route-plan`
+
+2. Node.js 后端：
+- [/Users/apple/Desktop/fyp_demo/camera1/server.js](/Users/apple/Desktop/fyp_demo/camera1/server.js)
   - `app.post('/api/route-plan', ...)`
-- Python 算法：`/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py`
+
+3. FastAPI 服务：
+- [/Users/apple/Desktop/fyp_demo/camera1/py/api_server.py](/Users/apple/Desktop/fyp_demo/camera1/py/api_server.py)
+
+4. Python 算法：
+- [/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py](/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py)
   - `plan_routes(payload)`
   - `a_star(...)`
 
-## 3. API 流程
+## 3. 当前 API 流程
 
-1. 前端通过 `/api/geocode` 把起点/终点（邮编、地名、MRT）解析为经纬度。
-2. 前端调用 `/api/route-plan` 提交 `start/end`。
-3. 后端根据起终点自动计算 bbox，并向 Overpass 拉取道路数据。
-4. 后端加载信号点位（LTA GeoJSON）作为红绿灯计数输入。
-5. 后端调用 Python `plan_routes` 返回三条方案。
-6. 前端按时间排序展示，并结合事故评估更新“当前最快”。
+1. 前端先通过 `/api/geocode` 解析输入地点
+2. 前端把起点终点经纬度提交到 `/api/route-plan`
+3. Node.js 根据起终点计算 bbox
+4. Node.js 调 Overpass 获取道路网络
+5. Node.js 加载红绿灯信号点
+6. Node.js 调 FastAPI `/compute/plan-routes`
+7. FastAPI 执行 `plan_routes`
+8. 返回三条路线给前端
 
-## 4. A* 与权重策略（与旧逻辑保持一致）
+## 4. A* 当前实现逻辑
 
 ### 4.1 图构建
 
-- 节点合并规则：经纬度四舍五入到小数点后 4 位（`node_key`）。
-- 边权重基础值：`distance(km) / 40`（小时）。
-- 道路来自 Overpass 的 `way.geometry`，双向建边。
+在 `compute_engine.py` 中：
 
-### 4.2 启发函数
+1. 基于 Overpass 返回的道路几何构图
+2. 节点通过 `node_key` 归一化
+3. 边按道路几何双向建边
 
-- `h(n) = Haversine(n, end) / 1000 / 50`（小时）。
+### 4.2 边权重
 
-### 4.3 三类策略
+基础时间权重：
 
-1. `fastest`：基础时间优先，叠加少量重复边惩罚。
-2. `fewerLights`：对路口（度数>=3）增加更高惩罚，降低红绿灯等待。
-3. `balanced`：介于两者之间。
+- `distance(km) / 40` 小时
 
-### 4.4 红绿灯计数
+### 4.3 启发函数
 
-- 优先使用真实信号点位：
-  - 路径附近半径匹配（默认 35m）
-  - 去重聚类半径（默认 65m）
-- 若信号点命中不足，再退回“节点度数法”估算。
+启发函数使用 Haversine 距离：
 
-## 5. /api/route-plan 接口说明
+- `h(n) = Haversine(n, end) / 1000 / 50`
 
-### 5.1 请求
+### 4.4 三类策略
+
+当前固定返回三条：
+
+1. `fastest`
+- 时间优先
+
+2. `fewerLights`
+- 对路口额外惩罚，减少红绿灯等待
+
+3. `balanced`
+- 在时间与红绿灯之间折中
+
+### 4.5 红绿灯统计
+
+优先使用真实信号点：
+
+1. 路线附近命中
+2. 半径去重
+
+若真实信号点不足，再退回路口度数法估算。
+
+## 5. 接口说明
+
+### 5.1 外层接口
 
 ```http
 POST /api/route-plan
-Content-Type: application/json
 ```
+
+请求示例：
 
 ```json
 {
@@ -72,7 +106,17 @@ Content-Type: application/json
 }
 ```
 
-### 5.2 响应（简化）
+### 5.2 内层 FastAPI 接口
+
+```http
+POST /compute/plan-routes
+```
+
+这是 Node.js 内部调 FastAPI 时使用的接口。
+
+## 6. 当前返回结果
+
+后端返回结构（简化）：
 
 ```json
 {
@@ -81,7 +125,6 @@ Content-Type: application/json
       "id": "fastest",
       "label": "FASTEST",
       "color": "#2563eb",
-      "desc": "Prioritize total time",
       "totalDist": 12345.6,
       "estMinutes": 22.1,
       "trafficLights": 19,
@@ -89,49 +132,53 @@ Content-Type: application/json
     }
   ],
   "meta": {
-    "engine": "python",
+    "engine": "fastapi",
     "signalCount": 2000,
-    "generatedAt": "2026-03-09T...Z"
+    "generatedAt": "2026-03-23T...Z"
   }
 }
 ```
 
-## 6. 前端接入方式（当前状态）
+如果 FastAPI 不可用，`meta.engine` 会回退为：
 
-前端已完成切换：
-
-1. 普通路径规划：`calculateRoutes()` -> `fetchRoutePlansFromPython()`
-2. 管理员模拟路线：`buildStandaloneSimulation()` -> `fetchRoutePlansFromPython()`
-3. 地图绘制直接用后端返回 `coords`。
+- `python-fallback`
 
 ## 7. 运行要求
 
-1. Node 18+
+1. Node.js 18+
 2. Python 3+
-3. PostgreSQL 可连接（与导航算法本身无耦合，但服务启动需要）
+3. FastAPI 依赖已安装
+4. `.venv` 可用
 
-建议 `.env`：
+建议：
 
-```env
-PYTHON_BIN=python3
-DATABASE_URL=postgresql://<user>:<pass>@localhost:5432/fyp_demo
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-fastapi.txt
 ```
 
-## 8. 本地验证
+## 8. 启动方式
+
+终端 1：
+
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
+source .venv/bin/activate
+npm run start:fastapi
+```
+
+终端 2：
 
 ```bash
 cd /Users/apple/Desktop/fyp_demo/camera1
 npm start
 ```
 
-```bash
-curl -X POST http://localhost:3000/api/route-plan \
-  -H "Content-Type: application/json" \
-  -d '{"start":{"lat":1.3521,"lon":103.8198},"end":{"lat":1.3009,"lon":103.8452}}'
-```
-
 ## 9. 已知限制
 
-1. Overpass 网络波动会影响路由响应时间。
-2. 目前未接入道路封闭/匝道限制等更细粒度交通规则。
-3. 路况延误仍在前端按事故叠加评估，不改变 Python 基础路径本体。
+1. Overpass 网络波动会直接影响路由响应时间
+2. 当前仍未接入更细粒度的封路、单行、临时交通限制
+3. 路线本体由 A* 给出，事故叠加延误仍在后续事件评分中处理
+4. 当前 FastAPI 主路径已接入，但 Node.js 仍保留回退逻辑

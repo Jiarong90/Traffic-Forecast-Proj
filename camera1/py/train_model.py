@@ -9,6 +9,8 @@ Usage:
 """
 
 import os
+import sys
+from pathlib import Path
 import numpy as np
 import pandas as pd
 import joblib
@@ -17,7 +19,13 @@ from sklearn.preprocessing import LabelEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 
-from ml_config import MLConfig
+if __package__:
+    from .ml_config import MLConfig
+else:
+    CURRENT_DIR = Path(__file__).resolve().parent
+    if str(CURRENT_DIR) not in sys.path:
+        sys.path.insert(0, str(CURRENT_DIR))
+    from ml_config import MLConfig
 
 cfg = MLConfig()
 cfg.validate()

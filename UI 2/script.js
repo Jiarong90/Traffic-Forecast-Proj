@@ -4,27 +4,6 @@
 // 2) 会话信息保存在 sessionStorage，并通过自定义事件通知其他模块（地图、告警）同步刷新。
 // 3) 该模块不做复杂业务计算，主要承担 UI 状态与后端接口之间的编排。
 
-const IS_PRODUCTION = true;
-
-const FASTAPI_BASE = IS_PRODUCTION 
-    ? "https://traffic-forecast-backend.onrender.com" 
-    : "http://127.0.0.1:8000";
-
-const SUPABASE_URL = "https://vwywaannhemxefrrqrtv.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_FfuRkw4At-Nlko5mVXoGaQ_ib_jrEFr";
-
-const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-
-async function getSupabaseAccessToken() {
-  try {
-    const result = await supabaseClient.auth.getSession();
-    return result?.data?.session?.access_token || null;
-  } catch (err) {
-    console.error("Supabase session error:", err);
-    return null;
-  }
-}
-
 (function () {
 
   var STORAGE_KEY = "fast_auth";
@@ -61,12 +40,30 @@ async function getSupabaseAccessToken() {
   var settingsPasswordNewInput = document.getElementById("settings-password-new");
   var profileNameEl = document.getElementById("profile-name");
   var profileEmailEl = document.getElementById("profile-email");
+  var profileBioInput = document.getElementById("profile-bio");
+  var profileGenderInput = document.getElementById("profile-gender");
+  var profileBirthdayInput = document.getElementById("profile-birthday");
+  var profileRegionInput = document.getElementById("profile-region");
+  var profileProfessionInput = document.getElementById("profile-profession");
+  var profileSchoolInput = document.getElementById("profile-school");
+  var profileSaveBtn = document.getElementById("profile-save-btn");
+  var profileFeedback = document.getElementById("profile-feedback");
+  var profileAutoSaveTimer = null;
+  var profileMutationSeq = 0;
   var userSettingsCache = {
     companyLocation: "",
     homeLocation: "",
     commuteToWorkTime: "",
     commuteToHomeTime: "",
     frequentRoutes: []
+  };
+  var userProfileCache = {
+    bio: "",
+    gender: "",
+    birthday: "",
+    region: "",
+    profession: "",
+    school: ""
   };
 
 
@@ -141,6 +138,16 @@ async function getSupabaseAccessToken() {
     settingsFeedback.style.color = isError ? "#dc2626" : "#166534";
   }
 
+  function setProfileFeedback(text, isError) {
+    if (!profileFeedback) return;
+    profileFeedback.textContent = text || "";
+    profileFeedback.style.color = isError ? "#dc2626" : "#166534";
+  }
+
+  function markProfileDirty() {
+    profileMutationSeq += 1;
+  }
+
   // 更新内存中的用户偏好缓存，并广播事件让路径规划/地图模块更新“常用地点/路线”
   function setUserSettings(settings) {
     userSettingsCache = {
@@ -156,6 +163,26 @@ async function getSupabaseAccessToken() {
   window.getFastUserSettings = function () {
     return userSettingsCache;
   };
+
+  function setUserProfile(profile) {
+    userProfileCache = {
+      bio: String(profile?.bio || ""),
+      gender: String(profile?.gender || ""),
+      birthday: String(profile?.birthday || ""),
+      region: String(profile?.region || ""),
+      profession: String(profile?.profession || ""),
+      school: String(profile?.school || "")
+    };
+  }
+
+  function normalizeDateInputValue(value) {
+    var raw = String(value || "").trim();
+    if (!raw) return "";
+    if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+    var parsed = new Date(raw);
+    if (!Number.isFinite(parsed.getTime())) return "";
+    return parsed.toISOString().slice(0, 10);
+  }
 
   // 从设置页读取最多 3 条常用路线；如果某一行只填了起点/终点之一则直接报错阻止保存
   function readRouteRowsFromForm() {
@@ -200,10 +227,58 @@ async function getSupabaseAccessToken() {
     }
   }
 
-  // Profile 页面仅展示基础信息（名称 + 邮箱）
+  function fillProfileForm(profile) {
+    var data = profile || userProfileCache;
+    if (profileBioInput) profileBioInput.value = data.bio || "";
+    if (profileGenderInput) profileGenderInput.value = data.gender || "";
+    if (profileBirthdayInput) profileBirthdayInput.value = normalizeDateInputValue(data.birthday);
+    if (profileRegionInput) profileRegionInput.value = data.region || "";
+    if (profileProfessionInput) profileProfessionInput.value = data.profession || "";
+    if (profileSchoolInput) profileSchoolInput.value = data.school || "";
+  }
+
+  function syncProfileCacheFromForm(options) {
+    markProfileDirty();
+    userProfileCache.bio = (profileBioInput && profileBioInput.value || "").trim();
+    userProfileCache.gender = (profileGenderInput && profileGenderInput.value || "").trim();
+    userProfileCache.birthday = (profileBirthdayInput && profileBirthdayInput.value || "").trim();
+    userProfileCache.region = (profileRegionInput && profileRegionInput.value || "").trim();
+    userProfileCache.profession = (profileProfessionInput && profileProfessionInput.value || "").trim();
+    userProfileCache.school = (profileSchoolInput && profileSchoolInput.value || "").trim();
+  }
+
+  async function saveUserProfileToServer(options) {
+    var auth = getStoredAuth();
+    if (!auth || !auth.user) return;
+    syncProfileCacheFromForm(options);
+    const payload = {
+      bio: userProfileCache.bio,
+      gender: userProfileCache.gender,
+      birthday: userProfileCache.birthday,
+      region: userProfileCache.region,
+      profession: userProfileCache.profession,
+      school: userProfileCache.school
+    };
+    const resp = await window.fastAuthFetch("/api/user/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Save profile failed");
+    setUserProfile(data.profile || payload);
+    try {
+      renderProfile(data.user || auth.user);
+    } catch (_) {
+      fillProfileForm(userProfileCache);
+    }
+  }
+
+  // Profile 页面展示基础信息 + 可编辑扩展资料
   function renderProfile(user) {
     if (profileNameEl) profileNameEl.textContent = user?.name || "--";
     if (profileEmailEl) profileEmailEl.textContent = user?.email || "--";
+    fillProfileForm(userProfileCache);
   }
 
   // 拉取服务端用户设置并同步到：
@@ -226,6 +301,26 @@ async function getSupabaseAccessToken() {
     }
     setUserSettings(data.settings || {});
     fillSettingsForm(data.user || auth.user, data.settings || {});
+  }
+
+  async function loadUserProfileFromServer() {
+    var auth = getStoredAuth();
+    if (!auth || !auth.token) {
+      setUserProfile({});
+      fillProfileForm({});
+      return;
+    }
+    var requestMutationSeq = profileMutationSeq;
+    const resp = await window.fastAuthFetch("/api/user/profile");
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || "Load profile failed");
+    if (requestMutationSeq !== profileMutationSeq) return;
+    if (data.user) {
+      setStoredAuth({ token: auth.token, user: data.user });
+      updateHeaderAuth();
+    }
+    setUserProfile(data.profile || {});
+    renderProfile(data.user || auth.user);
   }
 
   window.getFastAuth = getStoredAuth;
@@ -271,6 +366,11 @@ async function getSupabaseAccessToken() {
     if (userDropdown && userMenuWrap) userMenuWrap.classList.remove('open');
     if (pageId === "profile") {
       renderProfile((auth && auth.user) || null);
+      if (auth) {
+        loadUserProfileFromServer().catch(function (err) {
+          console.error(err);
+        });
+      }
     }
     if (pageId === "settings") {
       fillSettingsForm((auth && auth.user) || null, userSettingsCache);
@@ -324,20 +424,11 @@ async function getSupabaseAccessToken() {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Login failed');
 
-        // TRY Supabase integration here for login
-        const { error: sbError } = await supabaseClient.auth.signInWithPassword({
-          email: email,
-          password: password
-        });
-
-        if (sbError) 
-          console.error("Supabase Auth Error: ", sbError.message);
-        // END Supabase integration
-
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
         try {
           await loadUserSettingsFromServer();
+          await loadUserProfileFromServer();
         } catch (loadErr) {
           console.error(loadErr);
         }
@@ -452,28 +543,6 @@ async function getSupabaseAccessToken() {
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || 'Sign up failed');
 
-        // Supabase Integration: Create matching Supabase account
-        // const { error: sbSignupError } = await supabaseClient.auth.signUp({
-        //   email: payload.email,
-        //   password: payload.password
-        // });
-
-        // if (sbSignupError) {
-        //   throw new Error("Supabase signup failed: " + sbSignupError.message);
-        // }
-
-        // // sign in immediately after signup?
-        // const { error: sbLoginError } = await supabaseClient.auth.signInWithPassword({
-        //   email: payload.email,
-        //   password: payload.password
-        // });
-
-        // if (sbLoginError) {
-        //   console.error("Supabase auto-login failed:", sbLoginError.message);
-        // }
-
-        // // --- END SUPABASE
-        
         setStoredAuth({ token: data.token, user: data.user });
         updateHeaderAuth();
         signupCodeRequested = false;
@@ -543,17 +612,6 @@ async function getSupabaseAccessToken() {
       try {
         await window.fastAuthFetch('/api/auth/logout', { method: 'POST' });
       } catch (_) {}
-
-      // Log out from Supabase session too
-      try {
-        if (supabaseClient) {
-          await supabaseClient.auth.signOut();
-          console.log("Supabase session cleared.");
-        }
-      } catch (sbErr) {
-        console.error("Supabase signout failed:", sbErr);
-      }
-      // End supabase
       setStoredAuth(null);
       updateHeaderAuth();
       if (userMenuWrap) userMenuWrap.classList.remove('open');
@@ -578,7 +636,7 @@ async function getSupabaseAccessToken() {
         setStoredAuth(null);
         updateHeaderAuth();
         if (userMenuWrap) userMenuWrap.classList.remove('open');
-        alert('Account deleted. You can register this email again for testing.');
+        alert('Account deleted.');
         showPage('signup');
       } catch (err) {
         alert('Delete account failed: ' + err.message);
@@ -639,6 +697,18 @@ async function getSupabaseAccessToken() {
     });
   }
 
+  if (profileSaveBtn) {
+    profileSaveBtn.addEventListener("click", async function () {
+      try {
+        markProfileDirty();
+        await saveUserProfileToServer();
+        setProfileFeedback("Profile updated.", false);
+      } catch (err) {
+        setProfileFeedback("Profile update failed: " + err.message, true);
+      }
+    });
+  }
+
   if (settingsChangePasswordBtn) {
     settingsChangePasswordBtn.addEventListener("click", async function () {
       const currentPassword = (settingsPasswordCurrentInput && settingsPasswordCurrentInput.value || "").trim();
@@ -678,8 +748,12 @@ async function getSupabaseAccessToken() {
       loadUserSettingsFromServer().catch(function (err) {
         console.error(err);
       });
+      loadUserProfileFromServer().catch(function (err) {
+        console.error(err);
+      });
     }
   }
+
 })();
 
 // ================= 天气模块（UI_weather 融合版，继续走后端 API） =================
@@ -808,7 +882,6 @@ document.addEventListener("DOMContentLoaded", () => {
       updateAdviceUI(advice);
       updateSunUI(weather.sunrise, weather.sunset);
       updateTwoDayUI(forecast.days);
-      await updateTrafficImpact(weather, forecast);
       updateTimestamp();
     } catch (err) {
       console.error(err);
@@ -1086,51 +1159,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (wrap) wrap.style.display = "flex";
   }
 
-  async function updateTrafficImpact(weather, forecast) {
-    if (!window.TrafficMLModel) return;
-    try {
-      const result = await window.TrafficMLModel.predict(weather, forecast);
-      const scoreEl = document.getElementById("impactScore");
-      const ringEl = document.getElementById("impactRing");
-      const badgeEl = document.getElementById("impactLevelBadge");
-      const summaryEl = document.getElementById("impactSummary");
-      const clearEl = document.getElementById("impactClearingTime");
-      const confEl = document.getElementById("impactConfidence");
-      const modelBadgeEl = document.getElementById("mlModelBadge");
-      if (scoreEl) scoreEl.textContent = result.score ?? "--";
-      if (ringEl) ringEl.className = `impact-ring ${result.levelClass || "impact-low"}`;
-      if (badgeEl) {
-        badgeEl.textContent = result.level || "--";
-        badgeEl.className = `impact-level-badge ${result.levelClass || "impact-low"}`;
-      }
-      if (summaryEl) summaryEl.textContent = result.summary || "No ML summary available.";
-      if (clearEl) clearEl.textContent = result.clearingTime || "--";
-      if (confEl) confEl.textContent = `${result.confidence ?? "--"}%`;
-      if (modelBadgeEl) {
-        modelBadgeEl.textContent = result.source === "python-api"
-          ? "ML Engine · Python RandomForest · integrated backend"
-          : "ML Engine · Browser fallback forest · offline mode";
-      }
-      const f = result.features || {};
-      setImpactBar("bar-rain", "val-rain", Number(f.rainPop || 0) * 100, `${Math.round(Number(f.rainPop || 0) * 100)}%`);
-      setImpactBar("bar-wind", "val-wind", Number(f.wind || 0) * 100, `${weather.wind} m/s`);
-      setImpactBar("bar-vis", "val-vis", Number(f.visImpact || 0) * 100, `${weather.visibility} km`);
-      setImpactBar("bar-heat", "val-heat", Number(f.tempStress || 0) * 100, `${weather.temp}°C`);
-    } catch (err) {
-      console.error(err);
-      const summaryEl = document.getElementById("impactSummary");
-      const modelBadgeEl = document.getElementById("mlModelBadge");
-      if (summaryEl) summaryEl.textContent = `ML traffic prediction unavailable: ${err.message}`;
-      if (modelBadgeEl) modelBadgeEl.textContent = "ML Engine · unavailable";
-    }
-  }
-
-  function setImpactBar(barId, valId, pct, label) {
-    const bar = document.getElementById(barId);
-    const val = document.getElementById(valId);
-    if (bar) bar.style.width = `${Math.min(Math.max(Math.round(Number(pct) || 0), 0), 100)}%`;
-    if (val) val.textContent = label;
-  }
 });
 
 // ================= 摄像头 + 路径规划整合模块 =================
@@ -1168,8 +1196,10 @@ document.addEventListener("DOMContentLoaded", () => {
     routePlans: [],
     selectedRouteId: null,
     routeContext: null,
+    routeStartCurrentGeo: null,
     adminSimulationConfig: null,
     adminSimulationVisible: false,
+    adminSimulationBusy: false,
     adminSimulationData: null,
     adminSimulationSelectedRouteId: null,
     incidentSortMode: "time",
@@ -1186,7 +1216,6 @@ document.addEventListener("DOMContentLoaded", () => {
       severity: "all"
     },
     dashboardIncidents: [],
-    favoriteOverlayVisible: false,
     favoritePlannerPanelVisible: false,
     alertDismissedIds: new Set(),
     selectedAlertIncidentId: null,
@@ -1195,7 +1224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     alertLocationReady: false,
     alertIncidentById: new Map(),
     alertsInfoFeed: null,
-    favoriteMapLayer: null
+    
   };
 
   // 读取当前登录用户（来自前面 auth 模块的 sessionStorage 封装）
@@ -1290,6 +1319,32 @@ document.addEventListener("DOMContentLoaded", () => {
         reason: `${t.label} (L${severity})`
       };
     });
+  }
+
+  function mapLiveIncidentsToRouteEvents(incidents) {
+    return (Array.isArray(incidents) ? incidents : [])
+      .map((incident, index) => {
+        const lat = Number(incident?.lat);
+        const lon = Number(incident?.lon);
+        if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+        const severity = Math.max(1, Math.min(3, getIncidentSeverityScore(incident) || 1));
+        const delayMin = severity === 3 ? 12 : severity === 2 ? 8 : 4;
+        return {
+          id: incident.id || `live-incident-${index + 1}`,
+          type: String(incident?.type || "incident"),
+          label: String(incident?.type || "Traffic incident"),
+          color: severity === 3 ? "#ef4444" : severity === 2 ? "#f59e0b" : "#a855f7",
+          severity,
+          delayMin,
+          lat,
+          lon,
+          area: String(incident?.area || ""),
+          message: String(incident?.message || ""),
+          reason: String(incident?.message || incident?.type || "Live traffic incident"),
+          createdAt: incident?.createdAt || new Date().toISOString()
+        };
+      })
+      .filter(Boolean);
   }
 
   // 给事件附上附近摄像头（最多 2 个），用于详情展示证据
@@ -1387,6 +1442,29 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function useCurrentLocationAsRouteStart() {
+    const startInput = document.getElementById("route-start-postal");
+    const hintEl = document.getElementById("route-planning-hint");
+    try {
+      const currentLoc = await getUserLocation();
+      if (!currentLoc) {
+        throw new Error("Unable to get your current location. Please enable browser location access.");
+      }
+      state.routeStartCurrentGeo = currentLoc;
+      if (startInput) startInput.value = "Current Location";
+      if (hintEl) hintEl.textContent = "Current location has been set as the route start.";
+    } catch (err) {
+      state.routeStartCurrentGeo = null;
+      alert(err.message || "Failed to get current location.");
+    }
+  }
+
+  function toggleRouteStartSuggestions(visible) {
+    const box = document.getElementById("route-start-suggestions");
+    if (!box) return;
+    box.classList.toggle("hidden", !visible);
+  }
+
   // 懒加载初始化两张地图：实时地图 + 规划地图
   function ensureMaps() {
     if (!state.liveMap && document.getElementById("liveMap")) {
@@ -1400,7 +1478,6 @@ document.addEventListener("DOMContentLoaded", () => {
       state.liveLayer = L.layerGroup().addTo(state.liveMap);
       state.liveIncidentLayer = L.layerGroup().addTo(state.liveMap);
       state.adminFeedbackMapLayer = L.layerGroup().addTo(state.liveMap);
-      state.favoriteMapLayer = L.layerGroup().addTo(state.liveMap);
     }
 
     if (!state.plannerMap && document.getElementById("plannerMap")) {
@@ -1546,15 +1623,6 @@ document.addEventListener("DOMContentLoaded", () => {
       .filter((r) => r.start && r.end);
   }
 
-  // 同步 Map View 上“常用地点/路线显示开关”按钮文案
-  function renderMapFavoritesToggleButton() {
-    const btn = document.getElementById("map-toggle-favorites-btn");
-    if (!btn) return;
-    btn.innerHTML = state.favoriteOverlayVisible
-      ? `<span class="icon-pin"></span> HIDE COMMON PLACES/ROUTES`
-      : `<span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES`;
-  }
-
   // 同步 Route Planner 上“常用地点/路线面板开关”按钮文案
   function renderRouteFavoritesToggleButton() {
     const btn = document.getElementById("route-toggle-favorites-btn");
@@ -1633,55 +1701,6 @@ document.addEventListener("DOMContentLoaded", () => {
         await calculateRoutes();
       });
     });
-  }
-
-  // 在 Map View 叠加常用地点与常用路线图层（独立 layer，便于整体显示/隐藏）
-  async function drawFavoriteOverlayOnMap() {
-    if (!state.favoriteMapLayer) return;
-    state.favoriteMapLayer.clearLayers();
-    if (!state.favoriteOverlayVisible) return;
-    const settings = getCurrentUserSettings();
-    const places = getFrequentPlaces(settings);
-    const routes = getFrequentRoutes(settings);
-
-    for (const place of places) {
-      try {
-        const geo = await geocodeLocation(place.query);
-        const marker = L.circleMarker([geo.lat, geo.lon], {
-          radius: 7,
-          color: "#fff",
-          weight: 2,
-          fillColor: "#0ea5e9",
-          fillOpacity: 0.95
-        }).addTo(state.favoriteMapLayer);
-        marker.bindPopup(`<strong>${escapeHtml(place.label)}</strong><br/>${escapeHtml(place.query)}`);
-      } catch (_) {}
-    }
-
-    for (const route of routes) {
-      try {
-        const [startGeo, endGeo] = await Promise.all([
-          geocodeLocation(route.start),
-          geocodeLocation(route.end)
-        ]);
-        const plans = await fetchRoutePlansFromPython(startGeo, endGeo, 0.03);
-        const best = plans[0];
-        if (!best || !Array.isArray(best.coords) || best.coords.length < 2) continue;
-        L.polyline(best.coords.map((c) => [c[0], c[1]]), {
-          color: "#7c3aed",
-          weight: 4,
-          opacity: 0.7,
-          dashArray: "6 6"
-        }).bindPopup(`${escapeHtml(route.name)}<br/>${escapeHtml(route.start)} → ${escapeHtml(route.end)}`).addTo(state.favoriteMapLayer);
-      } catch (_) {}
-    }
-  }
-
-  // 切换 Map View 常用图层显隐
-  async function toggleMapFavoritesOverlay() {
-    state.favoriteOverlayVisible = !state.favoriteOverlayVisible;
-    renderMapFavoritesToggleButton();
-    await drawFavoriteOverlayOnMap();
   }
 
   // 切换 Route Planner 常用面板显隐
@@ -2128,9 +2147,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (state.selectedRouteId && state.routeContext) {
       pinned = getSelectedPlannedRouteIncidentsForAlerts();
       badgeText = "ROUTE";
-    } else {
-      pinned = base.filter(incidentIsNearby);
-      badgeText = "NEARBY";
     }
 
     if (!pinned.length) {
@@ -2740,6 +2756,50 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function resetRouteDetailPanel() {
+    const setText = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setText("route-detail-title", "FASTEST");
+    setText("route-detail-time", "--");
+    setText("route-detail-distance", "--");
+    setText("route-detail-delay", "--");
+    setText("route-detail-lights", "--");
+    setText("route-detail-type", "--");
+    setText("route-detail-speed", "Average speed: --");
+    setText("route-detail-cameras", "Cameras available: --");
+    const trafficEl = document.getElementById("route-detail-traffic");
+    if (trafficEl) trafficEl.innerHTML = `<span class="dot green"></span> --`;
+  }
+
+  function clearCurrentRoutePlan() {
+    const startInput = document.getElementById("route-start-postal");
+    const endInput = document.getElementById("route-end-postal");
+    const hintEl = document.getElementById("route-planning-hint");
+    const cardsEl = document.getElementById("route-cards");
+    const titleEl = document.getElementById("route-options-title");
+
+    if (startInput) startInput.value = "";
+    if (endInput) endInput.value = "";
+    if (hintEl) hintEl.textContent = "Current route cleared. Enter a new start and destination to plan again.";
+    if (cardsEl) cardsEl.innerHTML = "";
+    if (titleEl) titleEl.textContent = "ROUTE OPTIONS (0)";
+
+    state.routePlans = [];
+    state.selectedRouteId = null;
+    state.routeContext = null;
+    state.routeStartCurrentGeo = null;
+    state.selectedAlertIncidentId = null;
+
+    if (state.routeLayer) state.routeLayer.clearLayers();
+    if (state.plannerLayer) state.plannerLayer.clearLayers();
+    state.routePolylines.clear();
+
+    resetRouteDetailPanel();
+    renderAlertsPanels();
+  }
+
   // 渲染 3 条路线卡片，并按“含事件延误后的 ETA”排序
   function renderRouteCards() {
     const container = document.getElementById("route-cards");
@@ -3041,9 +3101,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 渲染管理员模拟结果卡片区（可点击切换高亮路线）
+  function renderAdminSimulationStatus() {
+    const statusEl = document.getElementById("admin-sim-status");
+    if (!statusEl) return;
+    statusEl.classList.toggle("hidden", !state.adminSimulationBusy);
+    statusEl.textContent = "Running...";
+  }
+
   function renderStandaloneSimulationInfo(sim) {
     const target = document.getElementById("admin-sim-results");
     const toggleBtn = document.getElementById("admin-toggle-sim-btn");
+    renderAdminSimulationStatus();
     if (toggleBtn) toggleBtn.textContent = state.adminSimulationVisible ? "HIDE SIMULATION" : "GENERATE SIMULATION";
     if (!target) return;
 
@@ -3138,10 +3206,13 @@ document.addEventListener("DOMContentLoaded", () => {
   async function toggleStandaloneSimulation() {
     if (!isAdmin()) return;
     state.adminSimulationVisible = !state.adminSimulationVisible;
+    state.adminSimulationBusy = state.adminSimulationVisible;
+    renderAdminSimulationStatus();
     try {
       const simulation = state.adminSimulationVisible ? await buildStandaloneSimulation() : null;
       state.adminSimulationData = simulation;
       state.adminSimulationSelectedRouteId = simulation?.notes?.fastestByTimeId || null;
+      state.adminSimulationBusy = false;
       drawStandaloneSimulation(state.adminSimulationData);
       renderStandaloneSimulationInfo(state.adminSimulationData);
       if (state.adminSimulationVisible && state.adminSimulationData) {
@@ -3152,6 +3223,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       renderAlertsPanels();
     } catch (err) {
+      state.adminSimulationBusy = false;
       state.adminSimulationVisible = false;
       state.adminSimulationData = null;
       state.adminSimulationSelectedRouteId = null;
@@ -3192,15 +3264,18 @@ document.addEventListener("DOMContentLoaded", () => {
       }, 1000);
     }
     try {
-      const [userLoc, startGeo, endGeo] = await Promise.all([getUserLocation(), geocodeLocation(startQuery), geocodeLocation(endQuery)]);
+      const startGeoPromise = state.routeStartCurrentGeo && startQuery === "Current Location"
+        ? Promise.resolve({ ...state.routeStartCurrentGeo, display: "Current Location" })
+        : geocodeLocation(startQuery);
+      const [userLoc, startGeo, endGeo] = await Promise.all([getUserLocation(), startGeoPromise, geocodeLocation(endQuery)]);
       const plans = await fetchRoutePlansFromPython(startGeo, endGeo, 0.03);
       if (!plans.length) throw new Error("No valid route plan generated.");
 
+      const realtimeCameras = state.cameras.filter(c => c.hasRealtimeImage);
+      const liveRouteEvents = mapLiveIncidentsToRouteEvents(state.dashboardIncidents);
       const defaultRoute = plans.find(r => r.id === "fastest") || plans[0];
       const baseCoords = getRouteCoords(defaultRoute, startGeo, endGeo);
-      const realtimeCameras = state.cameras.filter(c => c.hasRealtimeImage);
-      const syntheticEvents = buildSyntheticEvents(baseCoords, state.adminSimulationConfig);
-      const relevantEvents = await analyzeEventsViaBackend(syntheticEvents, userLoc, baseCoords);
+      const relevantEvents = await analyzeEventsViaBackend(liveRouteEvents, userLoc, baseCoords);
       const eventsWithCameras = attachEventCameras(relevantEvents, realtimeCameras);
       const evaluation = await evaluateRoutesByEventsViaBackend(plans, eventsWithCameras);
       const currentFastestId = evaluation.currentFastestId || deriveCurrentFastestId(plans, evaluation) || plans[0].id;
@@ -3240,6 +3315,42 @@ document.addEventListener("DOMContentLoaded", () => {
   function bindActions() {
     const calcBtn = document.getElementById("route-calculate-btn");
     if (calcBtn) calcBtn.addEventListener("click", calculateRoutes);
+
+    const cancelBtn = document.getElementById("route-cancel-btn");
+    if (cancelBtn) cancelBtn.addEventListener("click", clearCurrentRoutePlan);
+
+    const startInput = document.getElementById("route-start-postal");
+    const startSuggestions = document.getElementById("route-start-suggestions");
+    const currentLocationOption = document.getElementById("route-start-current-option");
+    if (startInput) {
+      const maybeShowSuggestions = () => {
+        const value = startInput.value.trim().toLowerCase();
+        toggleRouteStartSuggestions(!value || "current location".includes(value));
+      };
+      startInput.addEventListener("focus", maybeShowSuggestions);
+      startInput.addEventListener("click", maybeShowSuggestions);
+      startInput.addEventListener("input", () => {
+        if (startInput.value.trim() !== "Current Location") {
+          state.routeStartCurrentGeo = null;
+        }
+        maybeShowSuggestions();
+      });
+      startInput.addEventListener("blur", () => {
+        setTimeout(() => toggleRouteStartSuggestions(false), 120);
+      });
+    }
+    if (currentLocationOption) {
+      currentLocationOption.addEventListener("click", async () => {
+        await useCurrentLocationAsRouteStart();
+        toggleRouteStartSuggestions(false);
+      });
+    }
+    document.addEventListener("click", (e) => {
+      if (startSuggestions && startInput) {
+        const inStartPicker = startSuggestions.contains(e.target) || startInput.contains(e.target);
+        if (!inStartPicker) toggleRouteStartSuggestions(false);
+      }
+    });
 
     const viewCameraBtn = document.getElementById("route-view-cameras-btn");
     if (viewCameraBtn) {
@@ -3303,17 +3414,6 @@ document.addEventListener("DOMContentLoaded", () => {
           alert(`Load feedback markers failed: ${err.message}`);
         } finally {
           mapFeedbackToggleBtn.disabled = false;
-        }
-      });
-    }
-    const mapFavoritesBtn = document.getElementById("map-toggle-favorites-btn");
-    if (mapFavoritesBtn) {
-      mapFavoritesBtn.addEventListener("click", async () => {
-        mapFavoritesBtn.disabled = true;
-        try {
-          await toggleMapFavoritesOverlay();
-        } finally {
-          mapFavoritesBtn.disabled = false;
         }
       });
     }
@@ -3436,7 +3536,6 @@ document.addEventListener("DOMContentLoaded", () => {
       renderIncidentSourceButton();
       renderMapIncidentToggleButton();
       renderMapFeedbackToggleButton();
-      renderMapFavoritesToggleButton();
       renderRouteFavoritesToggleButton();
       renderRouteFavoritesPanel();
       state.cameras = await fetchCameras();
@@ -3452,7 +3551,6 @@ document.addEventListener("DOMContentLoaded", () => {
       await renderAdminUsersPanel();
       await renderAdminFeedbackPanel();
       renderLiveMapAndList();
-      if (state.favoriteOverlayVisible) await drawFavoriteOverlayOnMap();
       if (state.mapIncidentsVisible) drawLiveIncidentMarkers(state.mapLiveIncidents);
       if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
       if (isAdmin()) renderStandaloneSimulationInfo(null);
@@ -3503,11 +3601,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIncidentSourceButton();
     renderMapFeedbackToggleButton();
     if (!window.getFastAuth || !window.getFastAuth()) {
-      state.favoriteOverlayVisible = false;
       state.favoritePlannerPanelVisible = false;
-      if (state.favoriteMapLayer) state.favoriteMapLayer.clearLayers();
     }
-    renderMapFavoritesToggleButton();
     renderRouteFavoritesToggleButton();
     renderRouteFavoritesPanel();
     if (isAdmin()) {
@@ -3539,9 +3634,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.addEventListener("fast-settings-changed", async () => {
     renderRouteFavoritesPanel();
-    if (state.favoriteOverlayVisible) {
-      await drawFavoriteOverlayOnMap();
-    }
   });
 
   // 用户反馈弹窗：提交到 PostgreSQL，并在管理员端集中展示
@@ -3891,30 +3983,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   // Habit Routes section for JR.
-  // To try to integrate dual auth structure, load habit routes
-  // and handle the route mapping to LTA road links
-  // and also handle habit routes alerts management
+  // 现在统一改为走当前 demo 自己的登录态和 Node.js 后端，
+  // 不再依赖单独的 Supabase Auth / 外部 FastAPI。
 
   
-  // Try to load habit routes from Supabase using the access token from dual approach
   async function loadHabitRoutesFromServer() {
-
-
-    const token = await getSupabaseAccessToken();
-    if (!token) {
+    const auth = window.getFastAuth ? window.getFastAuth() : null;
+    if (!auth || !auth.token) {
       state.habitSavedRoutes = [];
       renderHabitRoutesList();
       return;
     }
 
-    // Call habit route endpoint.
-    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-
-    // Retrieve the data
+    const res = await window.fastAuthFetch("/api/habit-routes");
     const data = await res.json();
 
     if (!res.ok) {
@@ -4017,26 +4098,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // send the patch request
       card.querySelector(".habit-confirm-rename").onclick = async () => {
-        // get the new name
         const newName = card.querySelector(".habit-new-name-input").value.trim();
         if (!newName) return;
 
-        const token = await getSupabaseAccessToken();
-        const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${route.id}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            },
-            body: JSON.stringify({ route_name: newName })
+        const res = await window.fastAuthFetch(`/api/habit-routes/${route.id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ route_name: newName })
         });
 
         if (res.ok) {
-            titleEl.innerText = newName;
-            renameGroup.classList.add("hidden");
-            route.route_name = newName; 
+          titleEl.innerText = newName;
+          renameGroup.classList.add("hidden");
+          route.route_name = newName; 
         } else {
-            alert("Failed to rename route.");
+          alert("Failed to rename route.");
         }
       };
       // Handle save, update alerts and delete button
@@ -4066,19 +4144,11 @@ document.addEventListener("DOMContentLoaded", () => {
   async function drawHabitRouteOnMap(route) {
     if (!state.habitRoutesMap || !state.habitRoutePolylineLayer) return;
     if (!route || !Array.isArray(route.coords) || route.coords.length < 2) return;
-
-    const token = await getSupabaseAccessToken();
-    if (!token) {
-      alert("Please log in first.");
-      return;
-    }
     
-    // Call FastAPI endpoint to retrieve mapped LTA road links
-    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/analyze`, {
+    const res = await window.fastAuthFetch("/api/habit-routes/analyze", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         coords_json: route.coords
@@ -4100,30 +4170,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const matchInfo = data.match_info || {};
     const segmentMatches = matchInfo.segment_matches || [];
     const segments = [];
-    // Get the coords from retrieved data
-    // and retrieve the segments that match LTA road links
-    // Then display the current and predicted speedbands from prediction model
     for (let j = 0; j < coords.length - 1; j += 1) {
       const matchData = segmentMatches[j];
 
       if (matchData) {
-        let lineColor = "#3b82f6";
-        let trafficStatus = "Collecting Data...";
+        const lineColor = matchData.color || "#3b82f6";
+        const trafficStatus = matchData.traffic_status || "Collecting Data...";
         const currentBand = matchData.current_band || "N/A";
         const predBand = matchData.pred_band;
-
-        if (predBand) {
-          if (predBand >= 6) {
-            lineColor = "#22c55e";
-            trafficStatus = "Free Flow";
-          } else if (predBand >= 4) {
-            lineColor = "#eab308";
-            trafficStatus = "Moderate Traffic";
-          } else {
-            lineColor = "#ef4444";
-            trafficStatus = "Heavy Congestion";
-          }
-        }
 
         const line = L.polyline([coords[j], coords[j + 1]], {
           color: lineColor,
@@ -4135,8 +4189,9 @@ document.addEventListener("DOMContentLoaded", () => {
           <div style="font-size:12px;max-width:260px;">
             <strong>${escapeHtml(matchData.road_name || "LTA Road")}</strong><br/>
             <b>Link ID:</b> ${escapeHtml(matchData.link_id || "")}<br/>
+            <b>Distance to incident:</b> ${escapeHtml(matchData.distance_m ?? "N/A")} m<br/>
             <b>Current Band:</b> ${escapeHtml(currentBand)}<br/>
-            <b>XGBoost Predicted Band (T+15):</b> ${escapeHtml(predBand ?? "N/A")} (${escapeHtml(trafficStatus)})
+            <b>Predicted Band:</b> ${escapeHtml(predBand ?? "N/A")} (${escapeHtml(trafficStatus)})
           </div>
         `);
 
@@ -4162,22 +4217,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update Habit Route settings
   async function saveHabitRouteSettings(routeId, card) {
-    const token = await getSupabaseAccessToken();
-    if (!token) {
-      alert("Please log in first.");
-      return;
-    }
-    
     const alert_enabled = card.querySelector(".habit-alert-toggle").checked;
     const alert_start_time = card.querySelector(".habit-alert-start").value;
     const alert_end_time = card.querySelector(".habit-alert-end").value;
 
-    // Call FastAPI endpoint to edit habit-routes alert settings
-    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${routeId}`, {
+    const res = await window.fastAuthFetch(`/api/habit-routes/${routeId}`, {
       method: "PATCH",
       headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
+        "Content-Type": "application/json"
       },
       body: JSON.stringify({
         alert_enabled,
@@ -4200,17 +4247,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Delete Habit Route
   async function deleteHabitRoute(routeId) {
-    const token = await getSupabaseAccessToken();
-    if (!token) {
-      alert("Please log in first.");
-      return;
-    }
-
-    const res = await fetch(`${FASTAPI_BASE}/api/habit-routes/${routeId}`, {
+    const res = await window.fastAuthFetch(`/api/habit-routes/${routeId}`, {
       method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
     });
 
     const data = await res.json().catch(() => ({}));
@@ -4227,10 +4265,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Save to Habit Routes
   async function saveRouteAsHabit(routeObj, btn) {
-      
-    const token = await getSupabaseAccessToken();
-    if (!token) {
-      alert("Please log in to your ML account (Supabase) to save habit routes.");
+    const auth = window.getFastAuth ? window.getFastAuth() : null;
+    if (!auth || !auth.token) {
+      alert("Please log in first.");
       return;
     }
 
@@ -4244,14 +4281,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const endInput = document.getElementById("route-end-postal")?.value || "Destination";
     
     const autoName = `${startInput} → ${endInput}`;
+    let savedOk = false;
 
-    // Send to FastAPI Analyze endpoint to retrieve LTA roadlinks
     try {
-      const analyzeRes = await fetch(`${FASTAPI_BASE}/api/habit-routes/analyze`, {
+      const analyzeRes = await window.fastAuthFetch("/api/habit-routes/analyze", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({ coords_json: routeObj.coords })
       });
@@ -4259,12 +4295,10 @@ document.addEventListener("DOMContentLoaded", () => {
       
       if (!analyzeRes.ok) throw new Error("Link analysis failed");
 
-      // Send endpoint to FastAPi habit-routes to save habit routes 
-      const saveRes = await fetch(`${FASTAPI_BASE}/api/habit-routes`, {
+      const saveRes = await window.fastAuthFetch("/api/habit-routes", {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Content-Type": "application/json"
         },
         body: JSON.stringify({
           route_name: autoName, 
@@ -4277,6 +4311,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (saveRes.ok) {
+        savedOk = true;
         // Update button to show that route was saved successfully
         btn.innerHTML = "✓";
         btn.style.background = "#10b981";
@@ -4293,6 +4328,11 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error(err);
       alert("System error while saving.");
+    } finally {
+      btn.style.pointerEvents = "";
+      if (!savedOk) {
+        btn.innerHTML = originalText;
+      }
     }
   }
 
@@ -4303,18 +4343,18 @@ document.addEventListener("DOMContentLoaded", () => {
       // If routes aren't loaded yet, try to load them once
       await loadHabitRoutesFromServer(); 
     }
-    const token = await getSupabaseAccessToken();
-    if (!token) return;
+    const auth = window.getFastAuth ? window.getFastAuth() : null;
+    const badge = document.getElementById("nav-alert-badge");
+    const list = document.getElementById("nav-alerts-list");
+    if (!auth || !auth.token) {
+      if (badge) badge.classList.add("hidden");
+      if (list) list.innerHTML = `<li class="no-alerts" style="padding:15px; color:#94a3b8; font-size:12px;">Log in to monitor your habit routes.</li>`;
+      return;
+    }
 
     try {
-      // Call FastAPI endpoint to retrieve user alerts
-        const res = await fetch(`${FASTAPI_BASE}/api/my-alerts`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await window.fastAuthFetch("/api/my-alerts");
         const alerts = await res.json();
-        
-        const badge = document.getElementById("nav-alert-badge");
-        const list = document.getElementById("nav-alerts-list");
 
         if (alerts && alerts.length > 0) {
             badge.innerText = alerts.length;
@@ -4331,11 +4371,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     <li class="nav-alert-item-wrap">
                         <div class="nav-alert-card">
                             <div class="nav-alert-title">Traffic Alert!</div>
-                            <div class="nav-alert-text">Route <strong>${escapeHtml(routeDisplayName)}</strong> is facing delays.</div>
-                            <button type="button" class="btn-dismiss-alert" onclick="dismissAlert(${alert.id}, this)">Dismiss</button>
+                            <div class="nav-alert-text">Route <strong>${escapeHtml(routeDisplayName)}</strong> is facing delays near ${escapeHtml(alert.area || "the route")}.</div>
+                            <button type="button" class="btn-dismiss-alert" data-route-id="${escapeHtml(alert.route_id)}" data-alert-id="${escapeHtml(alert.id)}">Dismiss</button>
                         </div>
                     </li>
                 `;
+            });
+            list.querySelectorAll(".btn-dismiss-alert").forEach((btn) => {
+              btn.addEventListener("click", async () => {
+                const routeId = btn.getAttribute("data-route-id");
+                const alertId = btn.getAttribute("data-alert-id");
+                await dismissHabitAlert(routeId, alertId, btn);
+              });
             });
         } else {
             badge.classList.add("hidden");
@@ -4346,6 +4393,23 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function dismissHabitAlert(routeId, alertId, btn) {
+    try {
+      const res = await window.fastAuthFetch("/api/my-alerts/dismiss", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ routeId: Number(routeId), alertId: Number(alertId) })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Dismiss failed");
+      const item = btn && btn.closest(".nav-alert-item-wrap");
+      if (item) item.remove();
+      await checkTrafficAlerts();
+    } catch (err) {
+      alert(`Dismiss alert failed: ${err.message}`);
+    }
+  }
+
     
 
 
@@ -4353,5 +4417,3 @@ document.addEventListener("DOMContentLoaded", () => {
   // 模块真实启动点
   document.addEventListener("DOMContentLoaded", bootstrapDemo);
 })();
-
-

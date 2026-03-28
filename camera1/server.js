@@ -14,9 +14,12 @@ app.use(cors());
 app.use(express.json());
 app.use('/ui2', express.static(path.join(__dirname, '..', 'UI 2')));
 
-const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 const SIGNUP_CODE_TTL_MIN = 10;
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/fyp_demo';
+const DATABASE_SSL = String(process.env.DATABASE_SSL || '').toLowerCase();
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
 const SMTP_HOST = process.env.SMTP_HOST || '';
 const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_USER = process.env.SMTP_USER || '';
@@ -25,12 +28,26 @@ const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER || 'noreply@fast.local';
 const MAIL_DEV_MODE = String(process.env.MAIL_DEV_MODE || 'true').toLowerCase() === 'true';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const OPENWEATHER_API_KEY = process.env.OPENWEATHER_API_KEY || '';
+const FASTAPI_BASE_URL = process.env.FASTAPI_BASE_URL || 'http://127.0.0.1:8000';
 const RATE_LIMIT_WINDOW_MS = Math.max(1000, parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10) || 60000);
 const RATE_LIMIT_MAX = Math.max(10, parseInt(process.env.RATE_LIMIT_MAX || '180', 10) || 180);
 const AUTH_RATE_LIMIT_MAX = Math.max(3, parseInt(process.env.AUTH_RATE_LIMIT_MAX || '40', 10) || 40);
-const pool = new Pool({
-  connectionString: DATABASE_URL
-});
+function shouldEnableDatabaseSsl(connectionString) {
+  if (DATABASE_SSL === 'true' || DATABASE_SSL === 'require') return true;
+  if (DATABASE_SSL === 'false' || DATABASE_SSL === 'disable') return false;
+  return /supabase\.co/i.test(String(connectionString || ''));
+}
+
+function buildPoolConfig(connectionString) {
+  const config = { connectionString };
+  if (shouldEnableDatabaseSsl(connectionString)) {
+    // Supabase 的 PostgreSQL 通常要求 SSL，保留 rejectUnauthorized=false 以兼容托管证书链。
+    config.ssl = { rejectUnauthorized: false };
+  }
+  return config;
+}
+
+const pool = new Pool(buildPoolConfig(DATABASE_URL));
 
 /**
  * 默认模拟配置（管理员可在前端切换/更新）
@@ -157,26 +174,201 @@ function toPublicUser(row) {
   };
 }
 
+function trimText(value, maxLen = 255) {
+  return String(value || '').trim().slice(0, maxLen);
+}
+
+function normalizeUserProfilePayload(payload) {
+  const genderRaw = trimText(payload?.gender, 20);
+  const allowedGender = new Set(['male', 'female', 'other', 'prefer_not_to_say']);
+  const gender = allowedGender.has(genderRaw.toLowerCase()) ? genderRaw.toLowerCase() : '';
+  const birthday = trimText(payload?.birthday, 20);
+  return {
+    bio: trimText(payload?.bio, 1000),
+    gender,
+    birthday: /^\d{4}-\d{2}-\d{2}$/.test(birthday) ? birthday : '',
+    region: trimText(payload?.region, 120),
+    profession: trimText(payload?.profession, 120),
+    school: trimText(payload?.school, 160)
+  };
+}
+
+function requireSupabaseConfig() {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error('Supabase Auth is not fully configured');
+  }
+}
+
+async function supabaseAuthRequest(pathname, { method = 'GET', body, accessToken = '', serviceRole = false } = {}) {
+  requireSupabaseConfig();
+  const url = `${SUPABASE_URL}/auth/v1${pathname}`;
+  const apiKey = serviceRole ? SUPABASE_SERVICE_ROLE_KEY : SUPABASE_ANON_KEY;
+  const headers = {
+    apikey: apiKey
+  };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  else if (serviceRole) headers.Authorization = `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`;
+
+  const resp = await fetch(url, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  let data = {};
+  try {
+    data = await resp.json();
+  } catch (_) {}
+  if (!resp.ok) {
+    const message = data?.msg || data?.error_description || data?.error || `Supabase Auth error: ${resp.status}`;
+    throw new Error(message);
+  }
+  return data;
+}
+
+async function supabasePasswordSignIn(email, password) {
+  return supabaseAuthRequest('/token?grant_type=password', {
+    method: 'POST',
+    body: { email, password }
+  });
+}
+
+async function supabaseGetUser(accessToken) {
+  return supabaseAuthRequest('/user', { accessToken });
+}
+
+async function supabaseAdminCreateUser({ email, password, name, role = 'user' }) {
+  return supabaseAuthRequest('/admin/users', {
+    method: 'POST',
+    serviceRole: true,
+    body: {
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { name, role }
+    }
+  });
+}
+
+async function supabaseAdminDeleteUser(userId) {
+  return supabaseAuthRequest(`/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+    serviceRole: true
+  });
+}
+
+async function supabaseUserUpdate(accessToken, payload) {
+  return supabaseAuthRequest('/user', {
+    method: 'PUT',
+    accessToken,
+    body: payload
+  });
+}
+
+async function ensureUserProfile(userId, email, name, role = 'user') {
+  const safeRole = role === 'admin' ? 'admin' : 'user';
+  const safeName = String(name || email || 'FAST User').trim().slice(0, 80) || 'FAST User';
+  const result = await pool.query(
+    `
+    INSERT INTO app_user_profiles (user_id, email, name, role, created_at, updated_at)
+    VALUES ($1, $2, $3, $4, $5, $6)
+    ON CONFLICT (user_id) DO UPDATE SET
+      email = EXCLUDED.email,
+      name = COALESCE(NULLIF(app_user_profiles.name, ''), EXCLUDED.name),
+      updated_at = EXCLUDED.updated_at
+    RETURNING user_id AS id, email, name, role
+    `,
+    [userId, email, safeName, safeRole, nowIso(), nowIso()]
+  );
+  return result.rows[0];
+}
+
+async function getUserProfileById(userId) {
+  const result = await pool.query(
+    `
+    SELECT
+      user_id AS id,
+      email,
+      name,
+      role,
+      bio,
+      gender,
+      birthday,
+      region,
+      profession,
+      school
+    FROM app_user_profiles
+    WHERE user_id = $1
+    `,
+    [userId]
+  );
+  return result.rows[0] || null;
+}
+
+async function getSupabaseAuthUserByEmail(email) {
+  const result = await pool.query(
+    `
+    SELECT id, email, raw_user_meta_data, created_at
+    FROM auth.users
+    WHERE lower(email) = lower($1) AND deleted_at IS NULL
+    LIMIT 1
+    `,
+    [email]
+  );
+  return result.rows[0] || null;
+}
+
+function pickProfileName(authUser, fallbackEmail) {
+  return String(authUser?.raw_user_meta_data?.name || fallbackEmail || 'FAST User').trim().slice(0, 80) || 'FAST User';
+}
+
 async function initAuthDatabase() {
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS users (
-      id BIGSERIAL PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS app_user_profiles (
+      user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+      email TEXT NOT NULL,
       name TEXT NOT NULL,
-      email TEXT NOT NULL UNIQUE,
-      password_hash TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('user','admin')),
-      email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+      bio TEXT NOT NULL DEFAULT '',
+      gender TEXT NOT NULL DEFAULT '',
+      birthday DATE,
+      region TEXT NOT NULL DEFAULT '',
+      profession TEXT NOT NULL DEFAULT '',
+      school TEXT NOT NULL DEFAULT '',
+      created_at TIMESTAMPTZ NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_app_user_profiles_email
+      ON app_user_profiles (lower(email));
+
+    CREATE TABLE IF NOT EXISTS app_user_settings (
+      user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+      company_location TEXT NOT NULL DEFAULT '',
+      home_location TEXT NOT NULL DEFAULT '',
+      commute_to_work_time TEXT NOT NULL DEFAULT '',
+      commute_to_home_time TEXT NOT NULL DEFAULT '',
+      frequent_routes JSONB NOT NULL DEFAULT '[]'::jsonb,
+      updated_at TIMESTAMPTZ NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS app_user_feedback_reports (
+      id BIGSERIAL PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+      location TEXT NOT NULL,
+      condition_type TEXT NOT NULL,
+      severity TEXT NOT NULL,
+      comment TEXT NOT NULL,
+      latitude DOUBLE PRECISION,
+      longitude DOUBLE PRECISION,
       created_at TIMESTAMPTZ NOT NULL
     );
 
-    ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+    CREATE INDEX IF NOT EXISTS idx_app_user_feedback_reports_created_at
+      ON app_user_feedback_reports (created_at DESC);
 
-    CREATE TABLE IF NOT EXISTS sessions (
-      token TEXT PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      expires_at TIMESTAMPTZ NOT NULL,
-      created_at TIMESTAMPTZ NOT NULL
-    );
+    CREATE INDEX IF NOT EXISTS idx_app_user_feedback_reports_user_id
+      ON app_user_feedback_reports (user_id, created_at DESC);
 
     CREATE TABLE IF NOT EXISTS app_settings (
       key TEXT PRIMARY KEY,
@@ -195,48 +387,53 @@ async function initAuthDatabase() {
       created_at TIMESTAMPTZ NOT NULL
     );
 
-    CREATE TABLE IF NOT EXISTS user_settings (
-      user_id BIGINT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      company_location TEXT NOT NULL DEFAULT '',
-      home_location TEXT NOT NULL DEFAULT '',
-      commute_to_work_time TEXT NOT NULL DEFAULT '',
-      commute_to_home_time TEXT NOT NULL DEFAULT '',
-      frequent_routes JSONB NOT NULL DEFAULT '[]'::jsonb,
-      updated_at TIMESTAMPTZ NOT NULL
+    CREATE TABLE IF NOT EXISTS habit_routes (
+      id BIGSERIAL PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+      route_name TEXT NOT NULL,
+      from_label TEXT NOT NULL,
+      to_label TEXT NOT NULL,
+      coords_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL,
+      distance_m DOUBLE PRECISION NOT NULL DEFAULT 0,
+      link_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+      alert_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      alert_start_time TEXT NOT NULL DEFAULT '07:30',
+      alert_end_time TEXT NOT NULL DEFAULT '09:00'
     );
 
-    CREATE TABLE IF NOT EXISTS user_feedback_reports (
+    CREATE INDEX IF NOT EXISTS idx_habit_routes_user_id
+      ON habit_routes (user_id, created_at DESC);
+
+    CREATE TABLE IF NOT EXISTS saved_places (
       id BIGSERIAL PRIMARY KEY,
-      user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-      location TEXT NOT NULL,
-      condition_type TEXT NOT NULL,
-      severity TEXT NOT NULL,
-      comment TEXT NOT NULL,
-      latitude DOUBLE PRECISION,
-      longitude DOUBLE PRECISION,
+      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+      place_name TEXT NOT NULL,
+      label TEXT NOT NULL,
+      lat DOUBLE PRECISION,
+      lon DOUBLE PRECISION,
       created_at TIMESTAMPTZ NOT NULL
     );
 
-    CREATE INDEX IF NOT EXISTS idx_user_feedback_reports_created_at
-      ON user_feedback_reports (created_at DESC);
-
-    CREATE INDEX IF NOT EXISTS idx_user_feedback_reports_user_id
-      ON user_feedback_reports (user_id, created_at DESC);
+    CREATE TABLE IF NOT EXISTS traffic_alerts (
+      id SERIAL PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+      route_id BIGINT NOT NULL REFERENCES habit_routes(id) ON DELETE CASCADE,
+      affected_link_ids JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at TIMESTAMPTZ NOT NULL,
+      expires_at TIMESTAMPTZ NOT NULL,
+      is_dismissed BOOLEAN NOT NULL DEFAULT FALSE
+    );
   `);
 
-  async function ensureUser(name, email, password, role) {
-    await pool.query(
-      `
-      INSERT INTO users (name, email, password_hash, role, email_verified, created_at)
-      VALUES ($1, $2, $3, $4, TRUE, $5)
-      ON CONFLICT(email) DO UPDATE SET email_verified = TRUE
-      `,
-      [name, email, hashPassword(password), role, nowIso()]
-    );
-  }
-
-  await ensureUser('FAST User', 'user@fast.local', 'User12345!', 'user');
-  await ensureUser('FAST Admin', 'admin@fast.local', 'Admin12345!', 'admin');
+  await pool.query(`
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS bio TEXT NOT NULL DEFAULT '';
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS gender TEXT NOT NULL DEFAULT '';
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS birthday DATE;
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS region TEXT NOT NULL DEFAULT '';
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS profession TEXT NOT NULL DEFAULT '';
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS school TEXT NOT NULL DEFAULT '';
+  `);
 
   await pool.query(
     `
@@ -246,39 +443,35 @@ async function initAuthDatabase() {
     `,
     ['simulation_config', JSON.stringify(DEFAULT_SIMULATION_CONFIG), nowIso()]
   );
-}
 
-async function createSession(userId) {
-  const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
-  await pool.query(
-    `
-    INSERT INTO sessions (token, user_id, expires_at, created_at)
-    VALUES ($1, $2, $3, $4)
-    `,
-    [token, userId, expiresAt.toISOString(), nowIso()]
-  );
-  return token;
-}
-
-async function resolveSession(token) {
-  if (!token) return null;
-  const { rows } = await pool.query(
-    `
-    SELECT s.token, s.expires_at, u.id, u.name, u.email, u.role
-    FROM sessions s
-    JOIN users u ON u.id = s.user_id
-    WHERE s.token = $1
-    `,
-    [token]
-  );
-  const row = rows[0];
-  if (!row) return null;
-  if (new Date(row.expires_at).getTime() < Date.now()) {
-    await pool.query(`DELETE FROM sessions WHERE token = $1`, [token]);
-    return null;
+  try {
+    let adminAuthUser = await getSupabaseAuthUserByEmail('admin@fast.local');
+    if (!adminAuthUser) {
+      adminAuthUser = await supabaseAdminCreateUser({
+        email: 'admin@fast.local',
+        password: 'Admin12345!',
+        name: 'FAST Admin',
+        role: 'admin'
+      });
+    }
+    if (adminAuthUser) {
+      await ensureUserProfile(adminAuthUser.id, adminAuthUser.email, pickProfileName(adminAuthUser, adminAuthUser.email), 'admin');
+    }
+    let normalAuthUser = await getSupabaseAuthUserByEmail('user@fast.local');
+    if (!normalAuthUser) {
+      normalAuthUser = await supabaseAdminCreateUser({
+        email: 'user@fast.local',
+        password: 'User12345!',
+        name: 'FAST User',
+        role: 'user'
+      });
+    }
+    if (normalAuthUser) {
+      await ensureUserProfile(normalAuthUser.id, normalAuthUser.email, pickProfileName(normalAuthUser, normalAuthUser.email), 'user');
+    }
+  } catch (error) {
+    console.warn(`Supabase auth profile bootstrap skipped: ${error.message}`);
   }
-  return { token: row.token, user: toPublicUser(row) };
 }
 
 function getBearerToken(req) {
@@ -290,13 +483,19 @@ function getBearerToken(req) {
 async function requireAuth(req, res, next) {
   try {
     const token = getBearerToken(req);
-    const session = await resolveSession(token);
-    if (!session) return res.status(401).json({ error: 'Please log in first' });
-    req.session = session;
+    if (!token) return res.status(401).json({ error: 'Please log in first' });
+    const authUser = await supabaseGetUser(token);
+    if (!authUser?.id || !authUser?.email) return res.status(401).json({ error: 'Please log in first' });
+    let profile = await getUserProfileById(authUser.id);
+    if (!profile) {
+      const role = String(authUser?.user_metadata?.role || '').trim().toLowerCase() === 'admin' ? 'admin' : 'user';
+      profile = await ensureUserProfile(authUser.id, authUser.email, pickProfileName(authUser, authUser.email), role);
+    }
+    req.session = { token, user: toPublicUser(profile) };
     next();
   } catch (error) {
     console.error('Authentication failed:', error.message);
-    res.status(500).json({ error: 'Authentication failed' });
+    res.status(401).json({ error: 'Authentication failed' });
   }
 }
 
@@ -378,6 +577,190 @@ function toPublicFeedbackRow(row) {
   };
 }
 
+function normalizeHabitRouteCoords(input) {
+  if (!Array.isArray(input)) return [];
+  return input.map((point) => {
+    if (Array.isArray(point) && point.length >= 2) {
+      const lat = Number(point[0]);
+      const lon = Number(point[1]);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) return [lat, lon];
+      return null;
+    }
+    if (point && typeof point === 'object') {
+      const lat = Number(point.lat ?? point.latitude);
+      const lon = Number(point.lon ?? point.lng ?? point.longitude);
+      if (Number.isFinite(lat) && Number.isFinite(lon)) return [lat, lon];
+    }
+    return null;
+  }).filter(Boolean);
+}
+
+function normalizeHabitRoutePayload(payload) {
+  const coords = normalizeHabitRouteCoords(payload?.coords_json || payload?.coords);
+  const routeName = String(payload?.route_name || '').trim().slice(0, 120);
+  const fromLabel = String(payload?.from_label || payload?.from || '').trim().slice(0, 160);
+  const toLabel = String(payload?.to_label || payload?.to || '').trim().slice(0, 160);
+  const distanceM = Number(payload?.distance_m ?? payload?.distanceM ?? 0);
+  const linkIdsRaw = Array.isArray(payload?.link_ids) ? payload.link_ids : [];
+  const linkIds = linkIdsRaw.map((item) => String(item?.link_id || item || '').trim()).filter(Boolean).slice(0, 500);
+  const alertEnabled = Boolean(payload?.alert_enabled);
+  const alertStartTime = String(payload?.alert_start_time || '07:30').trim().slice(0, 5);
+  const alertEndTime = String(payload?.alert_end_time || '09:00').trim().slice(0, 5);
+  return {
+    routeName: routeName || `${fromLabel || 'Start'} → ${toLabel || 'Destination'}`,
+    fromLabel,
+    toLabel,
+    coords,
+    distanceM: Number.isFinite(distanceM) ? distanceM : 0,
+    linkIds,
+    alertEnabled,
+    alertStartTime,
+    alertEndTime
+  };
+}
+
+function validateHabitRoutePayload(payload) {
+  if (!payload.fromLabel) return 'Start location is required';
+  if (!payload.toLabel) return 'Destination is required';
+  if (!Array.isArray(payload.coords) || payload.coords.length < 2) return 'Route coordinates are required';
+  return null;
+}
+
+function validateHabitRouteTimes(startTime, endTime) {
+  if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) {
+    return 'Alert time window must use HH:MM format';
+  }
+  return null;
+}
+
+function toPublicHabitRouteRow(row) {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    route_name: row.route_name,
+    from_label: row.from_label,
+    to_label: row.to_label,
+    coords_json: Array.isArray(row.coords_json) ? row.coords_json : [],
+    distance_m: Number(row.distance_m || 0),
+    link_ids: Array.isArray(row.link_ids) ? row.link_ids : [],
+    alert_enabled: Boolean(row.alert_enabled),
+    alert_start_time: row.alert_start_time,
+    alert_end_time: row.alert_end_time,
+    created_at: row.created_at,
+    updated_at: row.updated_at || row.created_at
+  };
+}
+
+function parseTimeValue(timeText) {
+  const match = String(timeText || '').match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return null;
+  return hour * 60 + minute;
+}
+
+function isWithinAlertWindow(startTime, endTime, now = new Date()) {
+  const start = parseTimeValue(startTime);
+  const end = parseTimeValue(endTime);
+  if (start === null || end === null) return true;
+  const current = now.getHours() * 60 + now.getMinutes();
+  if (start === end) return true;
+  if (start < end) return current >= start && current <= end;
+  return current >= start || current <= end;
+}
+
+function latLonToMeters(lat, lon, refLat, refLon) {
+  const x = (lon - refLon) * 111320 * Math.cos(refLat * Math.PI / 180);
+  const y = (lat - refLat) * 110540;
+  return { x, y };
+}
+
+function pointToSegmentDistanceMeters(point, segA, segB) {
+  const refLat = point[0];
+  const refLon = point[1];
+  const p = { x: 0, y: 0 };
+  const a = latLonToMeters(segA[0], segA[1], refLat, refLon);
+  const b = latLonToMeters(segB[0], segB[1], refLat, refLon);
+  const abx = b.x - a.x;
+  const aby = b.y - a.y;
+  const ab2 = abx * abx + aby * aby;
+  if (ab2 <= 1e-9) return Math.hypot(a.x, a.y);
+  const apx = p.x - a.x;
+  const apy = p.y - a.y;
+  const t = Math.max(0, Math.min(1, (apx * abx + apy * aby) / ab2));
+  const projX = a.x + abx * t;
+  const projY = a.y + aby * t;
+  return Math.hypot(projX - p.x, projY - p.y);
+}
+
+function distancePointToPolylineMeters(point, coords) {
+  if (!Array.isArray(coords) || coords.length < 2) return Infinity;
+  let best = Infinity;
+  for (let i = 0; i < coords.length - 1; i += 1) {
+    const segA = coords[i];
+    const segB = coords[i + 1];
+    const d = pointToSegmentDistanceMeters(point, segA, segB);
+    if (d < best) best = d;
+  }
+  return best;
+}
+
+function classifyHabitSegment(incidentDistanceM) {
+  if (incidentDistanceM <= 180) return { predBand: 2, currentBand: '2', status: 'Heavy Congestion', color: '#ef4444' };
+  if (incidentDistanceM <= 450) return { predBand: 4, currentBand: '4', status: 'Moderate Traffic', color: '#eab308' };
+  return { predBand: 6, currentBand: '6', status: 'Free Flow', color: '#22c55e' };
+}
+
+function buildHabitRouteAnalysis(coords, incidents) {
+  const safeCoords = normalizeHabitRouteCoords(coords);
+  const safeIncidents = Array.isArray(incidents) ? incidents.filter((item) => Number.isFinite(Number(item?.lat)) && Number.isFinite(Number(item?.lon))) : [];
+  const segmentMatches = [];
+  const matchedLinks = [];
+
+  for (let i = 0; i < safeCoords.length - 1; i += 1) {
+    const segA = safeCoords[i];
+    const segB = safeCoords[i + 1];
+    let nearestIncident = null;
+    let nearestDistance = Infinity;
+    for (const incident of safeIncidents) {
+      const d = pointToSegmentDistanceMeters([Number(incident.lat), Number(incident.lon)], segA, segB);
+      if (d < nearestDistance) {
+        nearestDistance = d;
+        nearestIncident = incident;
+      }
+    }
+
+    const segmentId = `habit-seg-${i + 1}`;
+    const traffic = classifyHabitSegment(nearestDistance);
+    const roadName = nearestIncident && nearestDistance <= 600
+      ? `Near ${deriveIncidentArea(nearestIncident.message, nearestIncident.lat, nearestIncident.lon)}`
+      : `Route segment ${i + 1}`;
+
+    const segmentMatch = {
+      segment_index: i,
+      link_id: segmentId,
+      road_name: roadName,
+      distance_m: Number.isFinite(nearestDistance) ? Math.round(nearestDistance) : null,
+      incident_id: nearestIncident?.id || null,
+      current_band: traffic.currentBand,
+      pred_band: traffic.predBand,
+      traffic_status: traffic.status,
+      color: traffic.color
+    };
+    segmentMatches.push(segmentMatch);
+    matchedLinks.push({ link_id: segmentId, road_name: roadName });
+  }
+
+  return {
+    coords: safeCoords,
+    match_info: {
+      matched_links: matchedLinks,
+      segment_matches: segmentMatches
+    }
+  };
+}
+
 
 // data.gov.sg 交通摄像头接口（无需密钥，公开可用）
 const TRAFFIC_IMAGES_API = 'https://api.data.gov.sg/v1/transport/traffic-images';
@@ -388,6 +771,7 @@ const OPENWEATHER_FORECAST_API = 'https://api.openweathermap.org/data/2.5/foreca
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 const LTA_SIGNAL_GEOJSON_PATH = path.join(__dirname, 'data', 'LTATrafficSignalAspectGEOJSON.geojson');
 const INCIDENT_MOCK_PATH = path.join(__dirname, 'data', 'incident_api_mock.json');
+const LOCAL_ROAD_NETWORK_PATH = path.join(__dirname, 'data', 'sg-road-network-overpass.json');
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python';
 const PY_ENGINE_PATH = path.join(__dirname, 'py', 'compute_engine.py');
 const PY_ML_ENGINE_PATH = path.join(__dirname, 'py', 'ml_traffic_predictor.py');
@@ -403,6 +787,10 @@ const MAX_LTA_SIGNAL_POINTS = 2500;
 const MAX_OSM_POINTS = 1200;
 const MAX_SPF_POINTS = 600;
 const sourceCache = new Map();
+const ROAD_NETWORK_CACHE_TTL_MS = 30 * 60 * 1000;
+const ROAD_NETWORK_STALE_TTL_MS = 6 * 60 * 60 * 1000;
+const LOCAL_ROAD_NETWORK_TTL_MS = 12 * 60 * 60 * 1000;
+const OVERPASS_FETCH_TIMEOUT_MS = 12000;
 const rateLimitStore = new Map();
 const realtimeCameraFallback = { time: 0, value: [] };
 const incidentCameraMatchCache = new Map();
@@ -467,8 +855,8 @@ async function issueSignupCode({ name, email, password }) {
     return { status: 400, body: { error: 'Password must be at least 6 chars and include uppercase, lowercase and number' } };
   }
 
-  const exists = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
-  if (exists.rows[0]) return { status: 409, body: { error: 'Email is already registered' } };
+  const existingAuthUser = await getSupabaseAuthUserByEmail(email);
+  if (existingAuthUser) return { status: 409, body: { error: 'Email is already registered' } };
 
   const code = generateVerificationCode();
   const codeHash = hashVerificationCode(code);
@@ -520,8 +908,8 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
     return res.status(400).json({ error: 'Invalid verification code format, it must be 6 digits' });
   }
   try {
-    const existingUser = await pool.query(`SELECT id FROM users WHERE email = $1`, [email]);
-    if (existingUser.rows[0]) return res.status(409).json({ error: 'Email already registered, delete the account before reusing this email for testing' });
+    const existingUser = await getSupabaseAuthUserByEmail(email);
+    if (existingUser) return res.status(409).json({ error: 'Email already registered, delete the account before reusing this email for testing' });
 
     const verResult = await pool.query(
       `
@@ -544,29 +932,26 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
       return res.status(400).json({ error: 'Verification code is incorrect' });
     }
 
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-      const role = 'user';
-      const inserted = await client.query(
-        `
-        INSERT INTO users (name, email, password_hash, role, email_verified, created_at)
-        VALUES ($1, $2, $3, $4, TRUE, $5)
-        RETURNING id, name, email, role
-        `,
-        [ver.name, email, ver.password_hash, role, nowIso()]
-      );
-      await client.query(`DELETE FROM signup_verifications WHERE email = $1`, [email]);
-      await client.query('COMMIT');
-      const user = inserted.rows[0];
-      const token = await createSession(user.id);
-      res.json({ token, user: toPublicUser(user) });
-    } catch (txErr) {
-      await client.query('ROLLBACK');
-      throw txErr;
-    } finally {
-      client.release();
+    const password = req.body?.password ? String(req.body.password || '').trim() : null;
+    let plainPassword = password;
+    if (!plainPassword || !verifyPassword(plainPassword, ver.password_hash)) {
+      return res.status(400).json({ error: 'Original password is required to complete signup in the new auth system' });
     }
+
+    const created = await supabaseAdminCreateUser({ email, password: plainPassword, name: ver.name, role: 'user' });
+    await ensureUserProfile(created.id, email, ver.name, 'user');
+    await pool.query(`DELETE FROM signup_verifications WHERE email = $1`, [email]);
+
+    const signedIn = await supabasePasswordSignIn(email, plainPassword);
+    res.json({
+      token: signedIn.access_token,
+      user: toPublicUser({
+        id: created.id,
+        email,
+        name: ver.name,
+        role: 'user'
+      })
+    });
   } catch (error) {
     console.error('Verification signup failed:', error.message);
     res.status(500).json({ error: 'Verification signup failed' });
@@ -594,15 +979,10 @@ app.delete('/api/auth/account', requireAuth, async (req, res) => {
   const password = String(req.body?.password || '').trim();
   if (!password) return res.status(400).json({ error: 'Enter current password to confirm account deletion' });
   try {
-    const result = await pool.query(`SELECT id, password_hash FROM users WHERE id = $1`, [req.session.user.id]);
-    const row = result.rows[0];
-    if (!row) return res.status(404).json({ error: 'Account does not exist' });
-    if (!verifyPassword(password, row.password_hash)) return res.status(401).json({ error: 'Incorrect password, unable to delete account' });
-    await pool.query(
-      `DELETE FROM users WHERE id = $1`,
-      [req.session.user.id]
-    );
-    res.json({ ok: true, message: 'Account deleted, you can re-register using the same email for testing' });
+    await supabasePasswordSignIn(req.session.user.email, password);
+    await supabaseAdminDeleteUser(req.session.user.id);
+    await pool.query(`DELETE FROM app_user_profiles WHERE user_id = $1`, [req.session.user.id]);
+    res.json({ ok: true, message: 'Account deleted.' });
   } catch (error) {
     console.error('Failed to delete account:', error.message);
     res.status(500).json({ error: 'Failed to delete account' });
@@ -611,13 +991,12 @@ app.delete('/api/auth/account', requireAuth, async (req, res) => {
 
 app.get('/api/user/settings', requireAuth, async (req, res) => {
   try {
-    const userQ = await pool.query(`SELECT id, name, email, role FROM users WHERE id = $1`, [req.session.user.id]);
-    const user = userQ.rows[0];
+    const user = await getUserProfileById(req.session.user.id);
     if (!user) return res.status(404).json({ error: 'User does not exist' });
     const settingsQ = await pool.query(
       `
       SELECT company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes
-      FROM user_settings
+      FROM app_user_settings
       WHERE user_id = $1
       `,
       [user.id]
@@ -643,12 +1022,88 @@ app.get('/api/user/settings', requireAuth, async (req, res) => {
   }
 });
 
+app.get('/api/user/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await getUserProfileById(req.session.user.id);
+    if (!user) return res.status(404).json({ error: 'User does not exist' });
+    const profile = {
+      bio: user.bio || '',
+      gender: user.gender || '',
+      birthday: user.birthday ? new Date(user.birthday).toISOString().slice(0, 10) : '',
+      region: user.region || '',
+      profession: user.profession || '',
+      school: user.school || ''
+    };
+    res.json({ user: toPublicUser(user), profile });
+  } catch (error) {
+    console.error('Failed to load user profile:', error.message);
+    res.status(500).json({ error: 'Failed to load user profile' });
+  }
+});
+
+app.put('/api/user/profile', requireAuth, async (req, res) => {
+  try {
+    const profile = normalizeUserProfilePayload(req.body || {});
+    const updated = await pool.query(
+      `
+      UPDATE app_user_profiles
+      SET
+        bio = $2,
+        gender = $3,
+        birthday = NULLIF($4, '')::date,
+        region = $5,
+        profession = $6,
+        school = $7,
+        updated_at = $8
+      WHERE user_id = $1
+      RETURNING
+        user_id AS id,
+        email,
+        name,
+        role,
+        bio,
+        gender,
+        birthday,
+        region,
+        profession,
+        school
+      `,
+      [
+        req.session.user.id,
+        profile.bio,
+        profile.gender,
+        profile.birthday,
+        profile.region,
+        profile.profession,
+        profile.school,
+        nowIso()
+      ]
+    );
+    if (!updated.rows[0]) return res.status(404).json({ error: 'User does not exist' });
+    res.json({
+      ok: true,
+      user: toPublicUser(updated.rows[0]),
+      profile: {
+        bio: updated.rows[0].bio || '',
+        gender: updated.rows[0].gender || '',
+        birthday: updated.rows[0].birthday ? new Date(updated.rows[0].birthday).toISOString().slice(0, 10) : '',
+        region: updated.rows[0].region || '',
+        profession: updated.rows[0].profession || '',
+        school: updated.rows[0].school || ''
+      }
+    });
+  } catch (error) {
+    console.error('Failed to save user profile:', error.message);
+    res.status(500).json({ error: 'Failed to save user profile' });
+  }
+});
+
 app.put('/api/user/settings', requireAuth, async (req, res) => {
   try {
     const settings = normalizeUserSettings(req.body || {});
     await pool.query(
       `
-      INSERT INTO user_settings (
+      INSERT INTO app_user_settings (
         user_id, company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes, updated_at
       )
       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
@@ -670,6 +1125,22 @@ app.put('/api/user/settings', requireAuth, async (req, res) => {
         nowIso()
       ]
     );
+    const syncPlaces = async (label, placeName) => {
+      const value = String(placeName || '').trim();
+      await pool.query(`DELETE FROM saved_places WHERE user_id = $1 AND label = $2`, [req.session.user.id, label]);
+      if (!value) {
+        return;
+      }
+      await pool.query(
+        `
+        INSERT INTO saved_places (user_id, place_name, label, lat, lon, created_at)
+        VALUES ($1, $2, $3, NULL, NULL, $4)
+        `,
+        [req.session.user.id, value, label, nowIso()]
+      );
+    };
+    await syncPlaces('COMPANY', settings.companyLocation);
+    await syncPlaces('HOME', settings.homeLocation);
     res.json({ ok: true, settings });
   } catch (error) {
     console.error('Failed to save user settings:', error.message);
@@ -684,14 +1155,15 @@ app.put('/api/user/name', requireAuth, async (req, res) => {
   try {
     const updated = await pool.query(
       `
-      UPDATE users
-      SET name = $1
-      WHERE id = $2
-      RETURNING id, name, email, role
+      UPDATE app_user_profiles
+      SET name = $1, updated_at = $3
+      WHERE user_id = $2
+      RETURNING user_id AS id, name, email, role
       `,
-      [name, req.session.user.id]
+      [name, req.session.user.id, nowIso()]
     );
     if (!updated.rows[0]) return res.status(404).json({ error: 'User does not exist' });
+    await supabaseUserUpdate(req.session.token, { data: { name } });
     res.json({ ok: true, user: toPublicUser(updated.rows[0]) });
   } catch (error) {
     console.error('Failed to update name:', error.message);
@@ -709,13 +1181,8 @@ app.put('/api/user/password', requireAuth, async (req, res) => {
     return res.status(400).json({ error: 'New password must be at least 6 chars and include uppercase, lowercase and number' });
   }
   try {
-    const result = await pool.query(`SELECT id, password_hash FROM users WHERE id = $1`, [req.session.user.id]);
-    const row = result.rows[0];
-    if (!row) return res.status(404).json({ error: 'User does not exist' });
-    if (!verifyPassword(currentPassword, row.password_hash)) {
-      return res.status(401).json({ error: 'Current password is incorrect' });
-    }
-    await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hashPassword(newPassword), req.session.user.id]);
+    await supabasePasswordSignIn(req.session.user.email, currentPassword);
+    await supabaseUserUpdate(req.session.token, { password: newPassword });
     res.json({ ok: true });
   } catch (error) {
     console.error('Failed to change password:', error.message);
@@ -728,25 +1195,14 @@ app.post('/api/auth/login', async (req, res) => {
   const password = String(req.body?.password || '').trim();
   if (!email || !password) return res.status(400).json({ error: 'email/password are required' });
   try {
-    const result = await pool.query(
-      `
-      SELECT id, name, email, role, password_hash
-      FROM users
-      WHERE email = $1
-      `,
-      [email]
-    );
-    const row = result.rows[0];
-    if (!row || !verifyPassword(password, row.password_hash)) {
-      return res.status(401).json({ error: 'Incorrect email or password' });
+    const signedIn = await supabasePasswordSignIn(email, password);
+    const authUser = signedIn.user || await supabaseGetUser(signedIn.access_token);
+    let profile = await getUserProfileById(authUser.id);
+    if (!profile) {
+      const role = String(authUser?.user_metadata?.role || '').trim().toLowerCase() === 'admin' ? 'admin' : (email === 'admin@fast.local' ? 'admin' : 'user');
+      profile = await ensureUserProfile(authUser.id, authUser.email, pickProfileName(authUser, authUser.email), role);
     }
-    const verified = await pool.query(`SELECT email_verified FROM users WHERE id = $1`, [row.id]);
-    if (!verified.rows[0]?.email_verified) {
-      return res.status(403).json({ error: 'Email not verified, please complete verification signup flow' });
-    }
-
-    const token = await createSession(row.id);
-    res.json({ token, user: toPublicUser(row) });
+    res.json({ token: signedIn.access_token, user: toPublicUser(profile) });
   } catch (error) {
     console.error('Login failed:', error.message);
     res.status(500).json({ error: 'Login failed' });
@@ -758,13 +1214,7 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
 });
 
 app.post('/api/auth/logout', requireAuth, async (req, res) => {
-  try {
-    await pool.query(`DELETE FROM sessions WHERE token = $1`, [req.session.token]);
-    res.json({ ok: true });
-  } catch (error) {
-    console.error('Logout failed:', error.message);
-    res.status(500).json({ error: 'Logout failed' });
-  }
+  res.json({ ok: true });
 });
 
 app.get('/api/admin/simulation-config', requireAuth, requireAdmin, async (req, res) => {
@@ -798,12 +1248,12 @@ app.put('/api/admin/simulation-config', requireAuth, requireAdmin, async (req, r
 
 app.get('/api/admin/users/summary', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const totalQ = await pool.query(`SELECT COUNT(*)::int AS total FROM users`);
-    const verifiedQ = await pool.query(`SELECT COUNT(*)::int AS verified FROM users WHERE email_verified = TRUE`);
-    const adminQ = await pool.query(`SELECT COUNT(*)::int AS admins FROM users WHERE role = 'admin'`);
-    const userQ = await pool.query(`SELECT COUNT(*)::int AS normal_users FROM users WHERE role = 'user'`);
-    const activeSessionQ = await pool.query(`SELECT COUNT(*)::int AS active_sessions FROM sessions WHERE expires_at > NOW()`);
-    const new7dQ = await pool.query(`SELECT COUNT(*)::int AS new_7d FROM users WHERE created_at >= NOW() - INTERVAL '7 days'`);
+    const totalQ = await pool.query(`SELECT COUNT(*)::int AS total FROM app_user_profiles`);
+    const verifiedQ = await pool.query(`SELECT COUNT(*)::int AS verified FROM auth.users WHERE deleted_at IS NULL AND email_confirmed_at IS NOT NULL`);
+    const adminQ = await pool.query(`SELECT COUNT(*)::int AS admins FROM app_user_profiles WHERE role = 'admin'`);
+    const userQ = await pool.query(`SELECT COUNT(*)::int AS normal_users FROM app_user_profiles WHERE role = 'user'`);
+    const activeSessionQ = await pool.query(`SELECT COUNT(*)::int AS active_sessions FROM auth.sessions`);
+    const new7dQ = await pool.query(`SELECT COUNT(*)::int AS new_7d FROM app_user_profiles WHERE created_at >= NOW() - INTERVAL '7 days'`);
 
     res.json({
       totalUsers: totalQ.rows[0].total,
@@ -825,14 +1275,21 @@ app.get('/api/admin/users', requireAuth, requireAdmin, async (req, res) => {
   try {
     const rows = await pool.query(
       `
-      SELECT id, name, email, role, email_verified, created_at
-      FROM users
-      ORDER BY created_at DESC
+      SELECT
+        p.user_id AS id,
+        p.name,
+        p.email,
+        p.role,
+        (u.email_confirmed_at IS NOT NULL) AS email_verified,
+        p.created_at
+      FROM app_user_profiles p
+      LEFT JOIN auth.users u ON u.id = p.user_id
+      ORDER BY p.created_at DESC
       LIMIT $1 OFFSET $2
       `,
       [limit, offset]
     );
-    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM users`);
+    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM app_user_profiles`);
     res.json({ total: total.rows[0].total, limit, offset, value: rows.rows });
   } catch (error) {
     console.error('Failed to load user list:', error.message);
@@ -847,18 +1304,19 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
   try {
     const inserted = await pool.query(
       `
-      INSERT INTO user_feedback_reports (
-        user_id, location, condition_type, severity, comment, latitude, longitude, created_at
+      INSERT INTO app_user_feedback_reports (
+        user_id, location, condition_type, severity, status, comment, latitude, longitude, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING
         id,
         user_id,
-        $9::text AS user_name,
-        $10::text AS user_email,
+        $10::text AS user_name,
+        $11::text AS user_email,
         location,
         condition_type,
         severity,
+        status,
         comment,
         latitude,
         longitude,
@@ -869,6 +1327,7 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
         feedback.location,
         feedback.conditionType,
         feedback.severity,
+        'UNVIEWED',
         feedback.comment,
         feedback.latitude,
         feedback.longitude,
@@ -897,12 +1356,13 @@ app.get('/api/feedback/mine', requireAuth, async (req, res) => {
         f.location,
         f.condition_type,
         f.severity,
+        f.status,
         f.comment,
         f.latitude,
         f.longitude,
         f.created_at
-      FROM user_feedback_reports f
-      JOIN users u ON u.id = f.user_id
+      FROM app_user_feedback_reports f
+      JOIN app_user_profiles u ON u.user_id = f.user_id
       WHERE f.user_id = $1
       ORDER BY f.created_at DESC
       LIMIT $2
@@ -930,22 +1390,252 @@ app.get('/api/admin/feedback', requireAuth, requireAdmin, async (req, res) => {
         f.location,
         f.condition_type,
         f.severity,
+        f.status,
         f.comment,
         f.latitude,
         f.longitude,
         f.created_at
-      FROM user_feedback_reports f
-      JOIN users u ON u.id = f.user_id
+      FROM app_user_feedback_reports f
+      JOIN app_user_profiles u ON u.user_id = f.user_id
       ORDER BY f.created_at DESC
       LIMIT $1 OFFSET $2
       `,
       [limit, offset]
     );
-    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM user_feedback_reports`);
+    const total = await pool.query(`SELECT COUNT(*)::int AS total FROM app_user_feedback_reports`);
     res.json({ total: total.rows[0].total, limit, offset, value: rows.rows.map(toPublicFeedbackRow) });
   } catch (error) {
     console.error('Failed to load admin feedback list:', error.message);
     res.status(500).json({ error: 'Failed to load admin feedback list' });
+  }
+});
+
+app.get('/api/habit-routes', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT *
+      FROM habit_routes
+      WHERE user_id = $1
+      ORDER BY created_at DESC
+      `,
+      [req.session.user.id]
+    );
+    res.json({ routes: result.rows.map(toPublicHabitRouteRow) });
+  } catch (error) {
+    console.error('Failed to load habit routes:', error.message);
+    res.status(500).json({ error: 'Failed to load habit routes' });
+  }
+});
+
+app.post('/api/habit-routes', requireAuth, async (req, res) => {
+  const payload = normalizeHabitRoutePayload(req.body || {});
+  const error = validateHabitRoutePayload(payload) || validateHabitRouteTimes(payload.alertStartTime, payload.alertEndTime);
+  if (error) return res.status(400).json({ error });
+  try {
+    const inserted = await pool.query(
+      `
+      INSERT INTO habit_routes (
+        user_id, route_name, from_label, to_label, coords_json, distance_m, link_ids,
+        alert_enabled, alert_start_time, alert_end_time, created_at
+      )
+      VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7::jsonb, $8, $9, $10, $11)
+      RETURNING *
+      `,
+      [
+        req.session.user.id,
+        payload.routeName,
+        payload.fromLabel,
+        payload.toLabel,
+        JSON.stringify(payload.coords),
+        payload.distanceM,
+        JSON.stringify(payload.linkIds),
+        payload.alertEnabled,
+        payload.alertStartTime,
+        payload.alertEndTime,
+        nowIso()
+      ]
+    );
+    res.json({ ok: true, route: toPublicHabitRouteRow(inserted.rows[0]) });
+  } catch (error) {
+    console.error('Failed to save habit route:', error.message);
+    res.status(500).json({ error: 'Failed to save habit route' });
+  }
+});
+
+app.patch('/api/habit-routes/:id', requireAuth, async (req, res) => {
+  const routeId = Number(req.params.id);
+  if (!Number.isFinite(routeId)) return res.status(400).json({ error: 'Invalid route id' });
+  const routeName = req.body?.route_name === undefined ? null : String(req.body.route_name || '').trim().slice(0, 120);
+  const alertEnabled = req.body?.alert_enabled;
+  const alertStartTime = req.body?.alert_start_time === undefined ? null : String(req.body.alert_start_time || '').trim().slice(0, 5);
+  const alertEndTime = req.body?.alert_end_time === undefined ? null : String(req.body.alert_end_time || '').trim().slice(0, 5);
+  if (routeName !== null && !routeName) return res.status(400).json({ error: 'Route name is required' });
+  const timeError = (alertStartTime !== null || alertEndTime !== null)
+    ? validateHabitRouteTimes(alertStartTime || '07:30', alertEndTime || '09:00')
+    : null;
+  if (timeError) return res.status(400).json({ error: timeError });
+
+  try {
+    const updated = await pool.query(
+      `
+      UPDATE habit_routes
+      SET
+        route_name = COALESCE($3, route_name),
+        alert_enabled = COALESCE($4, alert_enabled),
+        alert_start_time = COALESCE($5, alert_start_time),
+        alert_end_time = COALESCE($6, alert_end_time)
+      WHERE id = $1 AND user_id = $2
+      RETURNING *
+      `,
+      [
+        routeId,
+        req.session.user.id,
+        routeName,
+        typeof alertEnabled === 'boolean' ? alertEnabled : null,
+        alertStartTime,
+        alertEndTime
+      ]
+    );
+    if (!updated.rows[0]) return res.status(404).json({ error: 'Habit route not found' });
+    res.json({ ok: true, route: toPublicHabitRouteRow(updated.rows[0]) });
+  } catch (error) {
+    console.error('Failed to update habit route:', error.message);
+    res.status(500).json({ error: 'Failed to update habit route' });
+  }
+});
+
+app.delete('/api/habit-routes/:id', requireAuth, async (req, res) => {
+  const routeId = Number(req.params.id);
+  if (!Number.isFinite(routeId)) return res.status(400).json({ error: 'Invalid route id' });
+  try {
+    const result = await pool.query(
+      `DELETE FROM habit_routes WHERE id = $1 AND user_id = $2 RETURNING id`,
+      [routeId, req.session.user.id]
+    );
+    if (!result.rows[0]) return res.status(404).json({ error: 'Habit route not found' });
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to delete habit route:', error.message);
+    res.status(500).json({ error: 'Failed to delete habit route' });
+  }
+});
+
+app.post('/api/habit-routes/analyze', requireAuth, async (req, res) => {
+  const coords = normalizeHabitRouteCoords(req.body?.coords_json || req.body?.coords);
+  if (coords.length < 2) return res.status(400).json({ error: 'Route coordinates are required' });
+  try {
+    const incidents = await fetchTrafficIncidentsRaw();
+    res.json(buildHabitRouteAnalysis(coords, incidents));
+  } catch (error) {
+    console.error('Failed to analyze habit route:', error.message);
+    res.status(500).json({ error: 'Failed to analyze habit route' });
+  }
+});
+
+app.get('/api/my-alerts', requireAuth, async (req, res) => {
+  try {
+    const [routesResult, incidents] = await Promise.all([
+      pool.query(
+        `
+        SELECT *
+        FROM habit_routes
+        WHERE user_id = $1 AND alert_enabled = TRUE
+        ORDER BY created_at DESC
+        `,
+        [req.session.user.id]
+      ),
+      fetchTrafficIncidentsRaw()
+    ]);
+    await pool.query(
+      `
+      UPDATE traffic_alerts
+      SET is_dismissed = TRUE
+      WHERE user_id = $1 AND expires_at <= NOW()
+      `,
+      [req.session.user.id]
+    );
+
+    const alerts = [];
+    const now = new Date();
+    for (const row of routesResult.rows) {
+      const route = toPublicHabitRouteRow(row);
+      if (!isWithinAlertWindow(route.alert_start_time, route.alert_end_time, now)) continue;
+      for (const incident of incidents) {
+        const distanceM = distancePointToPolylineMeters([Number(incident.lat), Number(incident.lon)], route.coords_json);
+        if (!Number.isFinite(distanceM) || distanceM > 450) continue;
+        const affectedLinkIds = Array.isArray(route.link_ids) ? route.link_ids.slice(0, 50) : [];
+        const existing = await pool.query(
+          `
+          SELECT id, is_dismissed, created_at, expires_at
+          FROM traffic_alerts
+          WHERE user_id = $1
+            AND route_id = $2
+            AND affected_link_ids = $3::jsonb
+            AND expires_at > NOW()
+          ORDER BY created_at DESC
+          LIMIT 1
+          `,
+          [req.session.user.id, route.id, JSON.stringify(affectedLinkIds)]
+        );
+        let alertId = existing.rows[0]?.id || null;
+        let dismissed = Boolean(existing.rows[0]?.is_dismissed);
+        if (!alertId) {
+          const inserted = await pool.query(
+            `
+            INSERT INTO traffic_alerts (user_id, route_id, affected_link_ids, created_at, expires_at, is_dismissed)
+            VALUES ($1, $2, $3::jsonb, $4, $5, FALSE)
+            RETURNING id
+            `,
+            [req.session.user.id, route.id, JSON.stringify(affectedLinkIds), nowIso(), new Date(Date.now() + 15 * 60 * 1000).toISOString()]
+          );
+          alertId = inserted.rows[0]?.id || null;
+        }
+        if (dismissed) continue;
+        alerts.push({
+          id: alertId,
+          route_id: route.id,
+          route_name: route.route_name,
+          incident_id: incident.id,
+          message: incident.message,
+          area: deriveIncidentArea(incident.message, incident.lat, incident.lon),
+          distance_m: Math.round(distanceM),
+          created_at: incident.createdAt
+        });
+      }
+    }
+
+    alerts.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    res.json(alerts);
+  } catch (error) {
+    console.error('Failed to load route alerts:', error.message);
+    res.status(500).json({ error: 'Failed to load route alerts' });
+  }
+});
+
+app.post('/api/my-alerts/dismiss', requireAuth, async (req, res) => {
+  const routeId = Number(req.body?.routeId);
+  const alertId = Number(req.body?.alertId);
+  if (!Number.isFinite(routeId) || !Number.isFinite(alertId)) return res.status(400).json({ error: 'routeId and alertId are required' });
+  try {
+    const routeCheck = await pool.query(
+      `SELECT id FROM habit_routes WHERE id = $1 AND user_id = $2`,
+      [routeId, req.session.user.id]
+    );
+    if (!routeCheck.rows[0]) return res.status(404).json({ error: 'Habit route not found' });
+
+    await pool.query(
+      `
+      UPDATE traffic_alerts
+      SET is_dismissed = TRUE, expires_at = GREATEST(expires_at, $4)
+      WHERE id = $1 AND user_id = $2 AND route_id = $3
+      `,
+      [alertId, req.session.user.id, routeId, nowIso()]
+    );
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Failed to dismiss route alert:', error.message);
+    res.status(500).json({ error: 'Failed to dismiss route alert' });
   }
 });
 
@@ -956,6 +1646,87 @@ async function withCache(key, ttlMs, loader) {
   const value = await loader();
   sourceCache.set(key, { time: now, value });
   return value;
+}
+
+function roundRoadCacheCoord(value) {
+  return Number(toNumber(value).toFixed(3));
+}
+
+function makeRoadNetworkCacheKey(s, w, n, e) {
+  return [
+    'road-network',
+    roundRoadCacheCoord(s),
+    roundRoadCacheCoord(w),
+    roundRoadCacheCoord(n),
+    roundRoadCacheCoord(e)
+  ].join(':');
+}
+
+async function fetchJsonWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function buildRoutePlanFriendlyError(error) {
+  const raw = String(error?.message || '');
+  const lower = raw.toLowerCase();
+  if (
+    lower.includes('overpass')
+    || lower.includes('road network')
+    || lower.includes('timed out')
+    || lower.includes('aborterror')
+    || /\b504\b/.test(raw)
+    || /\b502\b/.test(raw)
+    || /\b503\b/.test(raw)
+  ) {
+    return {
+      status: 503,
+      error: 'Route planning temporarily unavailable',
+      details: 'Road network service timed out while preparing the route. Please retry in 30-60 seconds or choose a shorter route.',
+      retryable: true
+    };
+  }
+  return {
+    status: 500,
+    error: 'Python route planning failed',
+    details: raw || 'Unknown route planning error',
+    retryable: false
+  };
+}
+
+function pointWithinBbox(lat, lon, s, w, n, e) {
+  return lat >= s && lat <= n && lon >= w && lon <= e;
+}
+
+function subsetRoadNetworkByBbox(roads, s, w, n, e, marginDeg = 0.004) {
+  const elements = Array.isArray(roads?.elements) ? roads.elements : [];
+  const s2 = s - marginDeg;
+  const w2 = w - marginDeg;
+  const n2 = n + marginDeg;
+  const e2 = e + marginDeg;
+  const filtered = elements.filter((el) => {
+    const geom = Array.isArray(el?.geometry) ? el.geometry : [];
+    if (!geom.length) return false;
+    return geom.some((p) => pointWithinBbox(Number(p?.lat), Number(p?.lon), s2, w2, n2, e2));
+  });
+  if (!filtered.length) return null;
+  return { version: roads?.version, generator: roads?.generator, osm3s: roads?.osm3s, elements: filtered };
+}
+
+async function loadLocalRoadNetworkSnapshot() {
+  return withCache('local-road-network-sg', LOCAL_ROAD_NETWORK_TTL_MS, async () => {
+    const raw = await fs.readFile(LOCAL_ROAD_NETWORK_PATH, 'utf8');
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed?.elements) || !parsed.elements.length) {
+      throw new Error('Local road network snapshot is empty');
+    }
+    return parsed;
+  });
 }
 
 function downsample(items, maxCount) {
@@ -1158,16 +1929,27 @@ async function normalizeIncidentListLocal(list, prefix, defaultCreatedAt = nowIs
 
 async function normalizeIncidentList(list, prefix) {
   try {
-    const result = await runPythonCompute('normalize_incidents', {
+    const payload = {
       list: Array.isArray(list) ? list : [],
       prefix,
       defaultCreatedAt: nowIso()
-    }, 10000);
+    };
+    const result = await callFastApiJson('/compute/normalize-incidents', payload, 10000);
     if (Array.isArray(result?.value)) return result.value;
-    throw new Error('Python normalize_incidents returned invalid format');
+    throw new Error('FastAPI normalize_incidents returned invalid format');
   } catch (err) {
-    console.warn(`Python incident normalization fell back to Node.js: ${err.message}`);
-    return normalizeIncidentListLocal(list, prefix);
+    try {
+      const result = await runPythonCompute('normalize_incidents', {
+        list: Array.isArray(list) ? list : [],
+        prefix,
+        defaultCreatedAt: nowIso()
+      }, 10000);
+      if (Array.isArray(result?.value)) return result.value;
+      throw new Error('Python normalize_incidents returned invalid format');
+    } catch (fallbackErr) {
+      console.warn(`FastAPI incident normalization fell back to Node.js: ${err.message}; python fallback: ${fallbackErr.message}`);
+      return normalizeIncidentListLocal(list, prefix);
+    }
   }
 }
 
@@ -1382,6 +2164,34 @@ async function runPythonJsonScript(scriptPath, payload, timeoutMs = 12000) {
   });
 }
 
+async function callFastApiJson(pathname, payload, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(`${FASTAPI_BASE_URL}${pathname}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ payload: payload || {} }),
+      signal: controller.signal
+    });
+    let data = {};
+    try {
+      data = await resp.json();
+    } catch (_) {}
+    if (!resp.ok) {
+      throw new Error(data?.detail || data?.error || `FastAPI error: ${resp.status}`);
+    }
+    return data;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`FastAPI timeout: ${pathname}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function toPythonRealtimeCameras(cameras) {
   return (cameras || []).map((cam) => ({
     CameraID: cam.CameraID,
@@ -1485,12 +2295,22 @@ async function attachNearestRealtimeCamera(incidents, cameras) {
       incidents: Array.isArray(incidents) ? incidents : [],
       cameras: toPythonRealtimeCameras(cameras)
     };
-    const result = await runPythonCompute('enrich_incidents_with_cameras', payload, 10000);
+    const result = await callFastApiJson('/compute/enrich-incidents-with-cameras', payload, 10000);
     if (Array.isArray(result?.value)) return result.value;
-    throw new Error('Python returned invalid data format');
+    throw new Error('FastAPI returned invalid data format');
   } catch (err) {
-    console.warn(`Python incident matching fell back to Node.js: ${err.message}`);
-    return attachNearestRealtimeCameraLocal(incidents, cameras);
+    try {
+      const payload = {
+        incidents: Array.isArray(incidents) ? incidents : [],
+        cameras: toPythonRealtimeCameras(cameras)
+      };
+      const result = await runPythonCompute('enrich_incidents_with_cameras', payload, 10000);
+      if (Array.isArray(result?.value)) return result.value;
+      throw new Error('Python returned invalid data format');
+    } catch (fallbackErr) {
+      console.warn(`FastAPI incident matching fell back to Node.js: ${err.message}; python fallback: ${fallbackErr.message}`);
+      return attachNearestRealtimeCameraLocal(incidents, cameras);
+    }
   }
 }
 
@@ -2066,7 +2886,7 @@ app.post('/api/ml/traffic-impact', async (req, res) => {
     const maxRainPop = Math.max(...forecast.map((item) => Number(item?.pop) || 0), 0);
     const totalRain = forecast.reduce((sum, item) => sum + (Number(item?.rain) || 0), 0);
     const now = new Date();
-    const result = await runPythonJsonScript(PY_ML_ENGINE_PATH, {
+    const payload = {
       temp: Number(weather.temp) || 0,
       feels: Number(weather.feels) || 0,
       humidity: Number(weather.humidity) || 0,
@@ -2078,7 +2898,14 @@ app.post('/api/ml/traffic-impact', async (req, res) => {
       desc: String(weather.desc || ''),
       hour: now.getHours(),
       day_of_week: now.getDay() === 0 ? 6 : now.getDay() - 1
-    }, 15000);
+    };
+    let result;
+    try {
+      result = await callFastApiJson('/compute/ml-traffic-impact', payload, 15000);
+    } catch (fastApiErr) {
+      console.warn(`FastAPI ML traffic impact fell back to python script: ${fastApiErr.message}`);
+      result = await runPythonJsonScript(PY_ML_ENGINE_PATH, payload, 15000);
+    }
     res.json(result);
   } catch (error) {
     console.error('ML traffic impact prediction failed:', error.message);
@@ -2091,10 +2918,28 @@ async function fetchRoadNetworkByBbox(s, w, n, e) {
    * 拉取指定 bbox 的道路网络（供 /api/route-plan 使用）
    *
    * 容错策略：
-   * - 按 endpoint 列表依次重试（官方 + 镜像）
+   * - 优先使用本地新加坡路网快照，并按 bbox 截取子集
+   * - 相近 bbox 共享缓存，减少重复请求
+   * - endpoint 列表依次重试（官方 + 镜像）
    * - 任一端返回可用 elements 即立即返回
-   * - 全部失败时抛最后一次错误，便于上层展示详情
+   * - 全部失败时优先回退到旧缓存，仍无缓存才抛错误
    */
+  const cacheKey = makeRoadNetworkCacheKey(s, w, n, e);
+  const now = Date.now();
+  const cached = sourceCache.get(cacheKey);
+  if (cached && now - cached.time < ROAD_NETWORK_CACHE_TTL_MS) {
+    return cached.value;
+  }
+  try {
+    const localRoads = await loadLocalRoadNetworkSnapshot();
+    const localSubset = subsetRoadNetworkByBbox(localRoads, s, w, n, e);
+    if (Array.isArray(localSubset?.elements) && localSubset.elements.length) {
+      sourceCache.set(cacheKey, { time: now, value: localSubset });
+      return localSubset;
+    }
+  } catch (localErr) {
+    console.warn(`Local road network snapshot unavailable, falling back to Overpass: ${localErr.message}`);
+  }
   const overpassQuery = `
 [out:json][timeout:25];
 (
@@ -2110,21 +2955,30 @@ out body geom;
   let lastErr = null;
   for (const endpoint of endpoints) {
     try {
-      const resp = await fetch(endpoint, {
+      const resp = await fetchJsonWithTimeout(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'data=' + encodeURIComponent(overpassQuery)
-      });
+      }, OVERPASS_FETCH_TIMEOUT_MS);
       if (!resp.ok) throw new Error(`Overpass API error: ${resp.status} (${endpoint})`);
       const data = await resp.json();
       if (!Array.isArray(data?.elements) || !data.elements.length) {
         throw new Error(`Overpass returned empty road network (${endpoint})`);
       }
+      sourceCache.set(cacheKey, { time: now, value: data });
       return data;
     } catch (err) {
-      lastErr = err;
+      if (err?.name === 'AbortError') {
+        lastErr = new Error(`Road network service timed out (${endpoint})`);
+      } else {
+        lastErr = err;
+      }
       continue;
     }
+  }
+  if (cached && now - cached.time < ROAD_NETWORK_STALE_TTL_MS) {
+    console.warn(`Using stale cached road network for ${cacheKey} after Overpass failure: ${lastErr?.message || 'unknown error'}`);
+    return cached.value;
   }
   throw lastErr || new Error('Failed to fetch Overpass road network');
 }
@@ -2168,12 +3022,21 @@ app.post('/api/route-plan', async (req, res) => {
       .map((x) => ({ lat: toNumber(x.Latitude), lon: toNumber(x.Longitude) }))
       .filter((x) => Number.isFinite(x.lat) && Number.isFinite(x.lon));
 
-    const pyResult = await runPythonCompute('plan_routes', {
+    const payload = {
       roads,
       start: { lat: startLat, lon: startLon },
       end: { lat: endLat, lon: endLon },
       signalPoints
-    }, 15000);
+    };
+    let pyResult;
+    let engine = 'fastapi';
+    try {
+      pyResult = await callFastApiJson('/compute/plan-routes', payload, 15000);
+    } catch (fastApiErr) {
+      console.warn(`FastAPI route planning fell back to python script: ${fastApiErr.message}`);
+      pyResult = await runPythonCompute('plan_routes', payload, 15000);
+      engine = 'python-fallback';
+    }
 
     if (!Array.isArray(pyResult?.routes) || !pyResult.routes.length) {
       return res.status(404).json({ error: 'No available route found' });
@@ -2181,14 +3044,19 @@ app.post('/api/route-plan', async (req, res) => {
     res.json({
       routes: pyResult.routes,
       meta: {
-        engine: 'python',
+        engine,
         signalCount: signalPoints.length,
         generatedAt: nowIso()
       }
     });
   } catch (e) {
     console.error('Python route planning failure details:', e.message);
-    res.status(500).json({ error: 'Python route planning failed', details: e.message });
+    const friendly = buildRoutePlanFriendlyError(e);
+    res.status(friendly.status).json({
+      error: friendly.error,
+      details: friendly.details,
+      retryable: friendly.retryable
+    });
   }
 });
 
@@ -2204,11 +3072,18 @@ app.post('/api/route-events/analyze', async (req, res) => {
     const routeCoords = Array.isArray(req.body?.routeCoords) ? req.body.routeCoords : [];
     const events = Array.isArray(req.body?.events) ? req.body.events : [];
     const userLoc = req.body?.userLoc || null;
-    const pyResult = await runPythonCompute('analyze_events_for_route', {
+    const payload = {
       routeCoords,
       events,
       userLoc
-    }, 10000);
+    };
+    let pyResult;
+    try {
+      pyResult = await callFastApiJson('/compute/analyze-events-for-route', payload, 10000);
+    } catch (fastApiErr) {
+      console.warn(`FastAPI route-event analyze fell back to python script: ${fastApiErr.message}`);
+      pyResult = await runPythonCompute('analyze_events_for_route', payload, 10000);
+    }
     res.json({
       value: Array.isArray(pyResult?.value) ? pyResult.value : []
     });
@@ -2231,10 +3106,17 @@ app.post('/api/route-events/evaluate', async (req, res) => {
      */
     const routes = Array.isArray(req.body?.routes) ? req.body.routes : [];
     const events = Array.isArray(req.body?.events) ? req.body.events : [];
-    const pyResult = await runPythonCompute('evaluate_route_events', {
+    const payload = {
       routes,
       events
-    }, 10000);
+    };
+    let pyResult;
+    try {
+      pyResult = await callFastApiJson('/compute/evaluate-route-events', payload, 10000);
+    } catch (fastApiErr) {
+      console.warn(`FastAPI route-event evaluate fell back to python script: ${fastApiErr.message}`);
+      pyResult = await runPythonCompute('evaluate_route_events', payload, 10000);
+    }
     res.json({
       recommendedRouteId: pyResult?.recommendedRouteId || null,
       currentFastestId: pyResult?.currentFastestId || null,

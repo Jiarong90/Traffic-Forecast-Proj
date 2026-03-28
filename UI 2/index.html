@@ -127,6 +127,43 @@
         <div class="profile-avatar-lg"></div>
         <h1 class="section-head" id="profile-name">--</h1>
         <p class="profile-email" id="profile-email">--</p>
+        <div class="profile-edit-grid">
+          <div class="profile-edit-item profile-edit-item-full">
+            <label for="profile-bio">Personal Introduction</label>
+            <textarea id="profile-bio" placeholder="Write something about yourself..."></textarea>
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-gender">Gender</label>
+            <select id="profile-gender">
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not_to_say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-birthday">Birthday</label>
+            <input type="date" id="profile-birthday" />
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-region">Region</label>
+            <input type="text" id="profile-region" placeholder="Your region" />
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-profession">Profession</label>
+            <input type="text" id="profile-profession" placeholder="Your profession" />
+          </div>
+          <div class="profile-edit-item profile-edit-item-full">
+            <label for="profile-school">School</label>
+            <input type="text" id="profile-school" placeholder="Your school" />
+          </div>
+        </div>
+
+        <div class="profile-save-wrap">
+          <button type="button" class="btn-dark" id="profile-save-btn">SAVE</button>
+        </div>
+        <p class="settings-feedback" id="profile-feedback"></p>
       </section>
     </main>
 
@@ -310,7 +347,6 @@
           <button type="button" class="btn-dark"><span class="dot red"></span> LIVE MONITORING</button>
           <button type="button" class="btn-dark" id="map-toggle-incidents-btn"><span class="icon-warning red"></span> SHOW LTA INCIDENTS</button>
           <button type="button" class="btn-dark hidden" id="map-toggle-feedback-btn"><span class="icon-pin"></span> SHOW USER FEEDBACK</button>
-          <button type="button" class="btn-dark" id="map-toggle-favorites-btn"><span class="icon-pin"></span> SHOW COMMON PLACES/ROUTES</button>
           <button type="button" class="btn-dark" id="fabFeedback"><span class="icon-plane"></span> SUBMIT FEEDBACK <span class="fb-count-badge" id="fbCountBadge" style="display:none"></span></button>
         </div>
         <div id="liveMap"></div>
@@ -325,9 +361,15 @@
         <div class="route-inputs">
           <div class="input-row">
             <span class="icon-pin"></span>
-            <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)" />
+            <div class="route-start-wrap">
+              <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)" autocomplete="off" />
+              <div class="route-start-suggestions hidden" id="route-start-suggestions">
+                <button type="button" class="route-start-suggestion" id="route-start-current-option">Current Location</button>
+              </div>
+            </div>
             <span class="icon-plane swap"></span>
             <input type="text" id="route-end-postal" placeholder="Enter destination (postal/place/MRT station)" />
+            <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
           </div>
           <div class="route-actions">
             <button type="button" class="pref-btn"><span class="icon-info"></span> PREFERENCE: FASTEST ROUTE</button>
@@ -344,6 +386,7 @@
             <p>Toggle a standalone simulated route set (independent from user input).</p>
             <div class="admin-sim-actions">
               <button type="button" class="btn-dark" id="admin-toggle-sim-btn">GENERATE SIMULATION</button>
+              <span class="admin-sim-status hidden" id="admin-sim-status">Running...</span>
             </div>
             <div class="admin-sim-results" id="admin-sim-results"></div>
           </div>
@@ -545,82 +588,6 @@
           </div>
         </section>
 
-        <section class="ml-traffic-impact" id="mlTrafficImpact">
-          <h2 class="subsection-title">ML TRAFFIC IMPACT PREDICTION</h2>
-          <div class="impact-main-row">
-            <div class="impact-ring-container">
-              <div class="impact-ring impact-low" id="impactRing">
-                <div class="impact-ring-inner">
-                  <span class="impact-score-num" id="impactScore">--</span>
-                  <span class="impact-score-denom">/10</span>
-                </div>
-              </div>
-              <div class="impact-ring-label">Impact Score</div>
-            </div>
-            <div class="impact-info">
-              <div class="impact-level-badge impact-low" id="impactLevelBadge">-- Enter a location --</div>
-              <p class="impact-summary" id="impactSummary">
-                Enter a location above to generate an ML-powered traffic impact prediction based on live weather conditions.
-              </p>
-              <div class="impact-meta-row">
-                <div class="impact-meta-item">
-                  <span class="impact-meta-icon">⏱</span>
-                  <div>
-                    <div class="impact-meta-label">ESTIMATED CLEARING TIME</div>
-                    <div class="impact-meta-val" id="impactClearingTime">--</div>
-                  </div>
-                </div>
-                <div class="impact-meta-item">
-                  <span class="impact-meta-icon">🎯</span>
-                  <div>
-                    <div class="impact-meta-label">MODEL CONFIDENCE</div>
-                    <div class="impact-meta-val" id="impactConfidence">--%</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="impact-factors-panel">
-            <div class="impact-factors-heading">CONTRIBUTING WEATHER FACTORS</div>
-
-            <div class="factor-row">
-              <span class="factor-label">Rain Probability</span>
-              <div class="factor-bar-track">
-                <div class="factor-bar factor-bar-rain" id="bar-rain" style="width:0%"></div>
-              </div>
-              <span class="factor-val" id="val-rain">--%</span>
-            </div>
-
-            <div class="factor-row">
-              <span class="factor-label">Wind Speed</span>
-              <div class="factor-bar-track">
-                <div class="factor-bar factor-bar-wind" id="bar-wind" style="width:0%"></div>
-              </div>
-              <span class="factor-val" id="val-wind">-- m/s</span>
-            </div>
-
-            <div class="factor-row">
-              <span class="factor-label">Visibility Impact</span>
-              <div class="factor-bar-track">
-                <div class="factor-bar factor-bar-vis" id="bar-vis" style="width:0%"></div>
-              </div>
-              <span class="factor-val" id="val-vis">-- km</span>
-            </div>
-
-            <div class="factor-row">
-              <span class="factor-label">Heat Stress</span>
-              <div class="factor-bar-track">
-                <div class="factor-bar factor-bar-heat" id="bar-heat" style="width:0%"></div>
-              </div>
-              <span class="factor-val" id="val-heat">--°C</span>
-            </div>
-          </div>
-
-          <div class="ml-model-badge" id="mlModelBadge">
-            ML Engine · Random Forest · Weather-based traffic impact model
-          </div>
-        </section>
       </div>
     </main>
 
@@ -748,11 +715,11 @@
                   <th>Submitted At</th>
                   <th>User</th>
                   <th>Email</th>
-                  <th>Location</th>
-                  <th>Type</th>
-                  <th>Severity</th>
-                  <th>Feedback</th>
-                </tr>
+                <th>Location</th>
+                <th>Type</th>
+                <th>Severity</th>
+                <th>Feedback</th>
+              </tr>
               </thead>
               <tbody id="admin-feedback-tbody"></tbody>
             </table>
@@ -822,8 +789,6 @@
   </div>
   <div class="feedback-toast" id="feedbackToast">Feedback submitted. Thank you for helping the community.</div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- Added Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="ml-traffic-model.js"></script>
   <script src="script.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">

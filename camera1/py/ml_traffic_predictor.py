@@ -18,6 +18,7 @@ import math
 import os
 import sys
 from datetime import datetime
+from pathlib import Path
 
 try:
     import joblib
@@ -25,8 +26,15 @@ except Exception as exc:  # pragma: no cover
     print(json.dumps({"error": f"joblib import failed: {exc}"}))
     sys.exit(1)
 
-from ml_config import MLConfig
-from train_model import train
+if __package__:
+    from .ml_config import MLConfig
+    from .train_model import train
+else:
+    CURRENT_DIR = Path(__file__).resolve().parent
+    if str(CURRENT_DIR) not in sys.path:
+        sys.path.insert(0, str(CURRENT_DIR))
+    from ml_config import MLConfig
+    from train_model import train
 
 
 cfg = MLConfig()

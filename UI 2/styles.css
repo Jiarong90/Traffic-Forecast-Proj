@@ -111,9 +111,9 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   padding: 20px;
 }
 .profile-page-card {
-  max-width: 420px;
+  max-width: 980px;
   margin: 0 auto;
-  text-align: center;
+  text-align: left;
 }
 .profile-avatar-lg {
   width: 92px;
@@ -124,6 +124,57 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.7'%3E%3Ccircle cx='12' cy='8' r='4.2'/%3E%3Cpath d='M4 20a8 8 0 0 1 16 0'/%3E%3C/svg%3E") center/66% no-repeat;
 }
 .profile-email { color: #64748b; margin-top: 6px; }
+.profile-page-card > .section-head,
+.profile-page-card > .profile-email { text-align: center; }
+.profile-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 18px;
+}
+.profile-edit-item { text-align: left; }
+.profile-edit-item-full { grid-column: 1 / -1; }
+.profile-edit-item label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: #334155;
+}
+.profile-edit-item input,
+.profile-edit-item select,
+.profile-edit-item textarea {
+  width: 100%;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+.profile-edit-item textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+.profile-collection-card {
+  margin-top: 18px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f8fafc;
+}
+.btn-file-picker,
+.btn-muted-inline {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+.btn-muted-inline {
+  background: #f8fafc;
+}
 .settings-desc { color: #64748b; margin: 4px 0 14px; font-size: 13px; }
 .settings-form { display: flex; flex-direction: column; gap: 12px; }
 .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -152,6 +203,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
   font-size: 14px;
 }
 .settings-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.profile-save-wrap {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-start;
+}
 .settings-password-card, .settings-danger-card {
   margin-top: 16px;
   border: 1px solid #e5e7eb;
@@ -172,6 +228,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .settings-danger-card p { color: #64748b; font-size: 13px; margin-bottom: 8px; }
 #settings-delete-account-btn { max-width: 220px; }
 .settings-feedback { min-height: 18px; margin-top: 12px; font-size: 13px; color: #334155; }
+@media (max-width: 720px) {
+  .profile-edit-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ========== 仪表盘 ========== */
 .traffic-summary { margin-bottom: 20px; position: relative; }
@@ -613,6 +674,35 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .input-row { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
 .input-row input { padding: 12px 16px; border: 1px solid #ccc; border-radius: 6px; width: 140px; font-size: 14px; }
 .input-row input::placeholder { color: #94a3b8; }
+.route-start-wrap { position: relative; width: 140px; }
+.route-start-wrap input { width: 100%; }
+.route-start-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  z-index: 20;
+  padding: 6px;
+}
+.route-start-suggestion {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #0f172a;
+  cursor: pointer;
+}
+.route-start-suggestion:hover {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
 .route-actions { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .pref-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid #ccc; border-radius: 6px; background: #fff; font-size: 13px; cursor: pointer; }
 .btn-calculate { background: #1a1a1a; color: #fff; border: none; padding: 12px 24px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; }
@@ -651,6 +741,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-
 .admin-sim-panel p { font-size: 12px; color: #666; margin-bottom: 8px; }
 .admin-sim-panel textarea { width: 100%; min-height: 100px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px; padding: 8px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
 .admin-sim-actions { display: flex; gap: 8px; margin-top: 10px; }
+.admin-sim-status {
+  display: inline-flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+}
 .admin-sim-results { margin-top: 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .admin-sim-card { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; background: #fff; cursor: pointer; }
 .admin-sim-card.selected { border-color: #2563eb; background: #eff6ff; box-shadow: 0 0 0 1px #2563eb inset; }
