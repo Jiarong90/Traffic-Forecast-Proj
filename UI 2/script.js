@@ -9,10 +9,22 @@
   var STORAGE_KEY = "fast_auth";
   var navTabs = document.querySelectorAll(".nav-tab");
   var pages = document.querySelectorAll(".page");
+  var mainNav = document.getElementById("main-nav");
+  var headerEl = document.querySelector(".header");
+  var homeDeck = document.getElementById("home-scroll-deck");
+  var homeDots = Array.prototype.slice.call(document.querySelectorAll(".home-slide-dot"));
   var loginBtn = document.getElementById("header-login-btn");
+  var signupBtn = document.getElementById("header-signup-btn");
+  var guestAuthActions = document.getElementById("guest-auth-actions");
   var userMenuWrap = document.getElementById("user-menu-wrap");
   var userDropdown = document.getElementById("user-dropdown");
   var userDisplayName = document.getElementById("user-display-name");
+  var aboutMemberOverlay = document.getElementById("aboutMemberOverlay");
+  var aboutMemberClose = document.getElementById("aboutMemberClose");
+  var aboutMemberPhoto = document.getElementById("aboutMemberPhoto");
+  var aboutMemberName = document.getElementById("aboutMemberName");
+  var aboutMemberRole = document.getElementById("aboutMemberRole");
+  var aboutMemberBio = document.getElementById("aboutMemberBio");
   var menuProfileLink = document.getElementById("menu-profile-link");
   var menuSettingsLink = document.getElementById("menu-settings-link");
   var adminUsersTab = document.getElementById("admin-users-tab");
@@ -50,6 +62,9 @@
   var profileFeedback = document.getElementById("profile-feedback");
   var profileAutoSaveTimer = null;
   var profileMutationSeq = 0;
+  var homeWheelLocked = false;
+  var homeCurrentSlide = 0;
+  var publicPageIds = ["home", "business-service-center", "about", "dashboard", "map-view", "route-planner", "weather", "habit-routes", "alerts", "alert-detail", "login", "signup"];
   var userSettingsCache = {
     companyLocation: "",
     homeLocation: "",
@@ -336,24 +351,150 @@
   function updateHeaderAuth() {
     var auth = getStoredAuth();
     var user = auth && auth.user;
+    if (guestAuthActions) guestAuthActions.classList.toggle('hidden', !!user);
     if (loginBtn) loginBtn.classList.toggle('hidden', !!user);
+    if (signupBtn) signupBtn.classList.toggle('hidden', !!user);
     if (userMenuWrap) userMenuWrap.classList.toggle('hidden', !user);
     if (userDisplayName && user && user.name) {
       userDisplayName.textContent = user.name + (user.role === 'admin' ? ' (Admin)' : '');
     }
     if (adminUsersTab) adminUsersTab.classList.toggle('hidden', !(user && user.role === 'admin'));
+    if (mainNav) mainNav.classList.remove('hidden');
     document.body.classList.toggle('is-admin', !!(user && user.role === 'admin'));
+    updateTopChromeHeight();
+  }
+
+  function updateTopChromeHeight() {
+    var total = 0;
+    if (headerEl) total += headerEl.offsetHeight || 0;
+    if (mainNav && !mainNav.classList.contains("hidden")) total += mainNav.offsetHeight || 0;
+    document.documentElement.style.setProperty("--top-chrome-height", (total || 132) + "px");
+  }
+
+  function syncHomeDots(activeIndex) {
+    homeDots.forEach(function (dot) {
+      dot.classList.toggle("active", Number(dot.getAttribute("data-home-dot")) === activeIndex);
+    });
+  }
+
+  function scrollHomeToSlide(targetIndex) {
+    if (!homeDeck) return;
+    var slides = homeDeck.querySelectorAll("[data-home-slide]");
+    var maxIndex = Math.max(0, slides.length - 1);
+    var index = Math.max(0, Math.min(targetIndex, maxIndex));
+    var target = slides[index];
+    if (!target) return;
+    homeCurrentSlide = index;
+    syncHomeDots(index);
+    homeDeck.scrollTo({ top: target.offsetTop, behavior: "smooth" });
+  }
+
+  function bindHomeLandingExperience() {
+    if (!homeDeck) return;
+    homeDeck.addEventListener("wheel", function (event) {
+      var homePage = document.getElementById("home");
+      if (!homePage || !homePage.classList.contains("active")) return;
+      var slides = homeDeck.querySelectorAll("[data-home-slide]");
+      var maxIndex = Math.max(0, slides.length - 1);
+      if (homeWheelLocked) {
+        event.preventDefault();
+        return;
+      }
+      var delta = Number(event.deltaY || 0);
+      if (Math.abs(delta) < 8) return;
+      if ((delta < 0 && homeCurrentSlide <= 0) || (delta > 0 && homeCurrentSlide >= maxIndex)) {
+        return;
+      }
+      event.preventDefault();
+      homeWheelLocked = true;
+      scrollHomeToSlide(homeCurrentSlide + (delta > 0 ? 1 : -1));
+      window.setTimeout(function () {
+        homeWheelLocked = false;
+      }, 700);
+    }, { passive: false });
+
+    homeDeck.addEventListener("scroll", function () {
+      var viewportHeight = homeDeck.clientHeight || 1;
+      var index = Math.round(homeDeck.scrollTop / viewportHeight);
+      if (index !== homeCurrentSlide) {
+        homeCurrentSlide = index;
+        syncHomeDots(index);
+      }
+    });
+
+    homeDots.forEach(function (dot) {
+      dot.addEventListener("click", function () {
+        scrollHomeToSlide(Number(dot.getAttribute("data-home-dot")) || 0);
+      });
+    });
+  }
+
+  function openAboutMemberModal(card) {
+    if (!card || !aboutMemberOverlay) return;
+    var memberImage = card.getAttribute("data-member-image") || "";
+    if (aboutMemberPhoto) {
+      aboutMemberPhoto.style.backgroundImage = memberImage ? 'url("' + memberImage + '")' : "";
+      aboutMemberPhoto.classList.toggle("about-member-modal-photo-real", !!memberImage);
+    }
+    if (aboutMemberName) aboutMemberName.textContent = card.getAttribute("data-member-name") || "Member";
+    if (aboutMemberRole) aboutMemberRole.textContent = card.getAttribute("data-member-role") || "Role / Position";
+    if (aboutMemberBio) aboutMemberBio.textContent = card.getAttribute("data-member-bio") || "Detailed member introduction.";
+    aboutMemberOverlay.classList.add("open");
+  }
+
+  function closeAboutMemberModal() {
+    if (aboutMemberOverlay) aboutMemberOverlay.classList.remove("open");
+  }
+
+  function bindAboutMemberCards() {
+    var cards = document.querySelectorAll(".about-team-card");
+    cards.forEach(function (card) {
+      card.addEventListener("click", function () {
+        openAboutMemberModal(card);
+      });
+    });
+    if (aboutMemberClose) {
+      aboutMemberClose.addEventListener("click", closeAboutMemberModal);
+    }
+    if (aboutMemberOverlay) {
+      aboutMemberOverlay.addEventListener("click", function (event) {
+        if (event.target === aboutMemberOverlay) closeAboutMemberModal();
+      });
+    }
+  }
+
+  var headerBusinessLink = document.getElementById("header-business-link");
+  var headerHomeLink = document.getElementById("header-home-link");
+  if (headerHomeLink) {
+    headerHomeLink.addEventListener("click", function (event) {
+      event.preventDefault();
+      showPage("home");
+      window.setTimeout(function () {
+        scrollHomeToSlide(0);
+      }, 40);
+    });
+  }
+  if (headerBusinessLink) {
+    headerBusinessLink.addEventListener("click", function (event) {
+      event.preventDefault();
+      showPage("home");
+      window.setTimeout(function () {
+        scrollHomeToSlide(3);
+      }, 40);
+    });
   }
 
   // 页面切换总入口：处理未登录拦截、tab 高亮、hash 同步、Profile/Settings 自动回填
   function showPage(pageId) {
     var auth = getStoredAuth();
-    var publicPages = ["login", "signup"];
-    if (!auth && publicPages.indexOf(pageId) === -1) {
-      pageId = "login";
+    if (!auth && publicPageIds.indexOf(pageId) === -1) {
+      pageId = "home";
     }
     if (pageId === "admin-users" && (!auth || !auth.user || auth.user.role !== "admin")) {
-      pageId = auth ? "dashboard" : "login";
+      pageId = auth ? "dashboard" : "home";
+    }
+    if ((pageId === "profile" || pageId === "settings") && !auth) {
+      pageId = "home";
     }
     pages.forEach(function (p) {
       p.classList.toggle('active', p.id === pageId);
@@ -375,12 +516,16 @@
     if (pageId === "settings") {
       fillSettingsForm((auth && auth.user) || null, userSettingsCache);
     }
+    if (pageId === "home") {
+      updateTopChromeHeight();
+      scrollHomeToSlide(homeCurrentSlide || 0);
+    }
   }
 
   function getPageFromHash() {
-    var hash = (window.location.hash || '#dashboard').slice(1);
-    var valid = ['dashboard', 'map-view', 'route-planner', 'weather', 'habit-routes', 'alerts', 'alert-detail', 'profile', 'settings', 'admin-users', 'login', 'signup'];
-    return valid.indexOf(hash) !== -1 ? hash : 'dashboard';
+    var hash = (window.location.hash || '#home').slice(1);
+    var valid = ['home', 'business-service-center', 'about', 'dashboard', 'map-view', 'route-planner', 'weather', 'habit-routes', 'alerts', 'alert-detail', 'profile', 'settings', 'admin-users', 'login', 'signup'];
+    return valid.indexOf(hash) !== -1 ? hash : 'home';
   }
 
   navTabs.forEach(function (tab) {
@@ -393,6 +538,10 @@
   window.addEventListener('hashchange', function () {
     showPage(getPageFromHash());
   });
+
+  bindAboutMemberCards();
+
+  window.addEventListener("resize", updateTopChromeHeight);
 
   if (menuProfileLink) {
     menuProfileLink.addEventListener("click", function (e) {
@@ -615,7 +764,7 @@
       setStoredAuth(null);
       updateHeaderAuth();
       if (userMenuWrap) userMenuWrap.classList.remove('open');
-      showPage('login');
+      showPage('home');
     });
   }
 
@@ -637,7 +786,7 @@
         updateHeaderAuth();
         if (userMenuWrap) userMenuWrap.classList.remove('open');
         alert('Account deleted.');
-        showPage('signup');
+        showPage('home');
       } catch (err) {
         alert('Delete account failed: ' + err.message);
       }
@@ -739,9 +888,10 @@
   }
 
   updateHeaderAuth();
+  bindHomeLandingExperience();
   const auth = getStoredAuth();
-  if (!auth && !['login', 'signup'].includes(getPageFromHash())) {
-    showPage('login');
+  if (!auth && publicPageIds.indexOf(getPageFromHash()) === -1) {
+    showPage('home');
   } else {
     showPage(getPageFromHash());
     if (auth) {
@@ -782,6 +932,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const button = document.getElementById("searchBtn");
   const saveBtn = document.getElementById("saveLocBtn");
   const refreshBtn = document.getElementById("refreshDataBtn");
+  const weatherSuggestions = document.getElementById("weather-location-suggestions");
+  const weatherCurrentLocationOption = document.getElementById("weather-current-location-option");
 
   if (!input || !button) return;
 
@@ -861,6 +1013,121 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
   renderSavedLocations();
+
+  async function fetchFreshMobileLocationForWeather() {
+    try {
+      const r = await fetch("/api/mobile-location/latest");
+      const data = await r.json();
+      if (!r.ok) return null;
+      if (data && data.fresh && Number.isFinite(Number(data.lat)) && Number.isFinite(Number(data.lon))) {
+        return {
+          lat: Number(data.lat),
+          lon: Number(data.lon),
+          display: "Current Location"
+        };
+      }
+    } catch (_) {
+      // ignore and fall back to browser location below
+    }
+    return null;
+  }
+
+  function getBrowserLocationForWeather() {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Browser geolocation is not supported on this device."));
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        (pos) => resolve({
+          lat: Number(pos.coords.latitude),
+          lon: Number(pos.coords.longitude),
+          display: "Current Location"
+        }),
+        () => reject(new Error("Unable to get your current location. Please enable browser location access.")),
+        {
+          enableHighAccuracy: true,
+          timeout: 12000,
+          maximumAge: 30000
+        }
+      );
+    });
+  }
+
+  async function getWeatherCurrentLocation() {
+    const mobile = await fetchFreshMobileLocationForWeather();
+    if (mobile) return mobile;
+    return getBrowserLocationForWeather();
+  }
+
+  async function reverseGeocodeWeatherLocation(lat, lon) {
+    const res = await fetch(`/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Reverse geocode failed");
+    return {
+      address: data.address || data.display || "Current Location",
+      postalCode: data.postal || "-",
+      latitude: Number(data.lat),
+      longitude: Number(data.lon),
+      buildingName: data.display || data.address || "Current Location"
+    };
+  }
+
+  function toggleWeatherLocationSuggestions(visible) {
+    if (!weatherSuggestions) return;
+    weatherSuggestions.classList.toggle("hidden", !visible);
+  }
+
+  function maybeShowWeatherLocationSuggestions() {
+    const value = input.value.trim().toLowerCase();
+    toggleWeatherLocationSuggestions(!value || "current location".includes(value));
+  }
+
+  input.addEventListener("focus", maybeShowWeatherLocationSuggestions);
+  input.addEventListener("click", maybeShowWeatherLocationSuggestions);
+  input.addEventListener("input", maybeShowWeatherLocationSuggestions);
+  input.addEventListener("blur", () => {
+    setTimeout(() => toggleWeatherLocationSuggestions(false), 120);
+  });
+
+  if (weatherCurrentLocationOption) {
+    weatherCurrentLocationOption.addEventListener("mousedown", (event) => {
+      event.preventDefault();
+    });
+    weatherCurrentLocationOption.addEventListener("click", async () => {
+      try {
+        button.textContent = "⏳ Loading...";
+        button.disabled = true;
+        const loc = await getWeatherCurrentLocation();
+        const location = await reverseGeocodeWeatherLocation(Number(loc.lat), Number(loc.lon));
+        input.value = "Current Location";
+        lastQuery = "Current Location";
+        const weather = await getCurrentWeather(location.latitude, location.longitude);
+        const forecast = await getForecast(location.latitude, location.longitude);
+        const advice = await getGeminiAdvice(location, weather, forecast.hourly);
+
+        updateLocationUI(location);
+        updateWeatherUI(weather);
+        updateForecastUI(forecast.hourly);
+        updateAdviceUI(advice);
+        updateSunUI(weather.sunrise, weather.sunset);
+        updateTwoDayUI(forecast.days);
+        updateTimestamp();
+      } catch (err) {
+        console.error(err);
+        alert(err.message || "Weather fetch failed");
+      } finally {
+        button.textContent = "🔍 SEARCH";
+        button.disabled = false;
+        toggleWeatherLocationSuggestions(false);
+      }
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const inWeatherPicker = weatherSuggestions?.contains(e.target) || input.contains(e.target);
+    if (!inWeatherPicker) toggleWeatherLocationSuggestions(false);
+  });
 
   // 天气查询主流程：
   // 1) 地理编码 -> 2) 当前天气 -> 3) 预报 -> 4) AI 建议 -> 5) 批量更新 UI
@@ -1175,6 +1442,30 @@ document.addEventListener("DOMContentLoaded", () => {
     fewerLights: "FEWER LIGHTS",
     balanced: "BALANCED"
   };
+  const ROUTE_PREFERENCE_ORDER = ["fastest", "fewerLights", "balanced"];
+  const ROUTE_PREFERENCE_TEXT = {
+    fastest: "FASTEST ROUTE",
+    fewerLights: "FEWER LIGHTS",
+    balanced: "BALANCED"
+  };
+  const MAP_POI_ICON_URLS = {
+    camera: "/ui2/assets/images/CAMERA.jpg",
+    incident: "/ui2/assets/images/INCIDENTS.jpg",
+    erp: "/ui2/assets/images/ERP.jpg",
+    pgs: "/ui2/assets/images/PGS.jpg"
+  };
+
+  function getMapPoiIcon(type) {
+    const iconUrl = MAP_POI_ICON_URLS[type] || MAP_POI_ICON_URLS.camera;
+    const iconSize = type === "erp" || type === "pgs" ? [24, 12] : [15, 15];
+    return L.icon({
+      iconUrl,
+      iconSize,
+      iconAnchor: [Math.round(iconSize[0] / 2), Math.round(iconSize[1] / 2)],
+      popupAnchor: [0, -10],
+      className: `map-poi-icon map-poi-icon-${type}`
+    });
+  }
 
   // 全局运行时状态：集中管理地图图层、路线、事故、告警等跨模块数据
   const state = {
@@ -1189,14 +1480,37 @@ document.addEventListener("DOMContentLoaded", () => {
     // End Habit routes
     liveLayer: null,
     liveIncidentLayer: null,
+    liveErpLayer: null,
+    livePgsLayer: null,
+    mapCamerasVisible: true,
+    mapErpVisible: false,
+    mapPgsVisible: false,
+    mapErpItems: [],
+    mapPgsItems: [],
     plannerLayer: null,
     routeLayer: null,
     adminSimulationLayer: null,
+    routeConfirmMarkerLayer: null,
+    routeConfirmPoiLayer: null,
+    routeConfirmProgressLayer: null,
+    routeNearestCameraLayer: null,
     routePolylines: new Map(),
     routePlans: [],
     selectedRouteId: null,
+    routePreference: "fastest",
+    confirmedRouteId: null,
+    confirmedRoutePlan: null,
+    confirmedRouteOriginalStartGeo: null,
+    confirmedRouteEndGeo: null,
+    confirmedRouteLastReplanAt: 0,
+    confirmedTravelledCoords: [],
+    confirmedLastLiveCoord: null,
+    routeNearestCameraVisible: false,
+    mobileLocationPollId: null,
     routeContext: null,
     routeStartCurrentGeo: null,
+    routeLiveMarker: null,
+    routeLiveWatchId: null,
     adminSimulationConfig: null,
     adminSimulationVisible: false,
     adminSimulationBusy: false,
@@ -1267,6 +1581,37 @@ document.addEventListener("DOMContentLoaded", () => {
       if (d < best) best = d;
     }
     return best;
+  }
+
+  function getNearestRoutePointIndex(routeCoords, lat, lon) {
+    let best = Infinity;
+    let bestIndex = 0;
+    (routeCoords || []).forEach((c, idx) => {
+      const d = haversine(lat, lon, c[0], c[1]);
+      if (d < best) {
+        best = d;
+        bestIndex = idx;
+      }
+    });
+    return { index: bestIndex, distance: best };
+  }
+
+  function splitRouteProgress(routeCoords, lat, lon) {
+    if (!Array.isArray(routeCoords) || routeCoords.length < 2) {
+      return { travelled: [], remaining: [] };
+    }
+    const nearest = getNearestRoutePointIndex(routeCoords, lat, lon);
+    const clampedIndex = Math.max(0, Math.min(routeCoords.length - 1, nearest.index));
+    const travelled = routeCoords.slice(0, clampedIndex + 1);
+    const remaining = routeCoords.slice(clampedIndex);
+    const currentPoint = [lat, lon];
+    const travelledLine = travelled.length ? travelled.concat([currentPoint]) : [currentPoint];
+    const remainingLine = remaining.length ? [currentPoint].concat(remaining) : [currentPoint];
+    return {
+      travelled: travelledLine.length >= 2 ? travelledLine : [],
+      remaining: remainingLine.length >= 2 ? remainingLine : [],
+      distanceToRoute: nearest.distance
+    };
   }
 
   // 生成用于路线评估/演示的事件（管理员配置优先；否则使用默认模板）
@@ -1430,16 +1775,54 @@ document.addEventListener("DOMContentLoaded", () => {
     return fastestId;
   }
 
-  // 获取浏览器定位（失败时返回 null，不中断主流程）
-  function getUserLocation() {
-    return new Promise(resolve => {
-      if (!navigator.geolocation) return resolve(null);
+  function getLocationErrorMessage(err) {
+    if (!err) return "Unable to get your current location.";
+    if (err.code === 1) return "Location access was denied. Please allow browser location access.";
+    if (err.code === 2) return "Your location is currently unavailable. Please check device location services.";
+    if (err.code === 3) return "Location request timed out. Please try again in an open area.";
+    return "Unable to get your current location.";
+  }
+
+  function requestBrowserLocation(options) {
+    return new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocation is not supported by this browser."));
+        return;
+      }
       navigator.geolocation.getCurrentPosition(
-        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
-        () => resolve(null),
-        { enableHighAccuracy: true, timeout: 6000, maximumAge: 15000 }
+        (pos) => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        (err) => reject(err),
+        options
       );
     });
+  }
+
+  async function fetchLatestMobileLocation() {
+    const r = await fetch("/api/mobile-location/latest");
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Failed to load mobile location");
+    if (!d || !d.fresh || !Number.isFinite(Number(d.lat)) || !Number.isFinite(Number(d.lon))) return null;
+    return {
+      lat: Number(d.lat),
+      lon: Number(d.lon),
+      accuracy: Number.isFinite(Number(d.accuracy)) ? Number(d.accuracy) : null,
+      source: "mobile",
+      deviceName: d.deviceName || "Mobile device"
+    };
+  }
+
+  // 获取浏览器定位：先尝试高精度，再回退普通精度
+  function getUserLocation() {
+    return fetchLatestMobileLocation()
+      .catch(() => null)
+      .then((mobileLoc) => {
+        if (mobileLoc) return mobileLoc;
+        return requestBrowserLocation({ enableHighAccuracy: true, timeout: 12000, maximumAge: 30000 })
+      .catch((err) => {
+        if (err && err.code === 1) throw err;
+        return requestBrowserLocation({ enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
+      });
+      });
   }
 
   async function useCurrentLocationAsRouteStart() {
@@ -1448,14 +1831,14 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const currentLoc = await getUserLocation();
       if (!currentLoc) {
-        throw new Error("Unable to get your current location. Please enable browser location access.");
+        throw new Error("Unable to get your current location.");
       }
       state.routeStartCurrentGeo = currentLoc;
       if (startInput) startInput.value = "Current Location";
       if (hintEl) hintEl.textContent = "Current location has been set as the route start.";
     } catch (err) {
       state.routeStartCurrentGeo = null;
-      alert(err.message || "Failed to get current location.");
+      alert(getLocationErrorMessage(err));
     }
   }
 
@@ -1467,30 +1850,50 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // 懒加载初始化两张地图：实时地图 + 规划地图
   function ensureMaps() {
+    const MAP_DEFAULT_ZOOM = 12;
+    const MAP_MIN_ZOOM = 12;
     if (!state.liveMap && document.getElementById("liveMap")) {
-      state.liveMap = L.map("liveMap", { center: SG_CENTER, zoom: 11, zoomControl: false, preferCanvas: true });
+      state.liveMap = L.map("liveMap", {
+        center: SG_CENTER,
+        zoom: MAP_DEFAULT_ZOOM,
+        minZoom: MAP_MIN_ZOOM,
+        zoomControl: false,
+        preferCanvas: true
+      });
       L.control.zoom({ position: "bottomright" }).addTo(state.liveMap);
       L.tileLayer("https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png", {
         attribution: "&copy; OneMap Singapore",
         maxZoom: 18,
-        minZoom: 10
+        minZoom: MAP_MIN_ZOOM
       }).addTo(state.liveMap);
       state.liveLayer = L.layerGroup().addTo(state.liveMap);
       state.liveIncidentLayer = L.layerGroup().addTo(state.liveMap);
+      state.liveErpLayer = L.layerGroup().addTo(state.liveMap);
+      state.livePgsLayer = L.layerGroup().addTo(state.liveMap);
       state.adminFeedbackMapLayer = L.layerGroup().addTo(state.liveMap);
     }
 
     if (!state.plannerMap && document.getElementById("plannerMap")) {
-      state.plannerMap = L.map("plannerMap", { center: SG_CENTER, zoom: 11, zoomControl: false, preferCanvas: true });
+      state.plannerMap = L.map("plannerMap", {
+        center: SG_CENTER,
+        zoom: MAP_DEFAULT_ZOOM,
+        minZoom: MAP_MIN_ZOOM,
+        zoomControl: false,
+        preferCanvas: true
+      });
       L.control.zoom({ position: "bottomright" }).addTo(state.plannerMap);
       L.tileLayer("https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png", {
         attribution: "&copy; OneMap Singapore",
         maxZoom: 18,
-        minZoom: 10
+        minZoom: MAP_MIN_ZOOM
       }).addTo(state.plannerMap);
       state.plannerLayer = L.layerGroup().addTo(state.plannerMap);
       state.routeLayer = L.layerGroup().addTo(state.plannerMap);
       state.adminSimulationLayer = L.layerGroup().addTo(state.plannerMap);
+      state.routeConfirmProgressLayer = L.layerGroup().addTo(state.plannerMap);
+      state.routeConfirmMarkerLayer = L.layerGroup().addTo(state.plannerMap);
+      state.routeConfirmPoiLayer = L.layerGroup().addTo(state.plannerMap);
+      state.routeNearestCameraLayer = L.layerGroup().addTo(state.plannerMap);
     }
 
     // For Habit Routes add-on
@@ -1533,22 +1936,27 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderLiveMapAndList() {
     if (!state.liveMap || !state.liveLayer) return;
     state.liveLayer.clearLayers();
+    const sidebar = document.querySelector("#map-view .sidebar.active-reports");
+    const reportList = document.getElementById("camera-report-list");
+    const liveCount = document.getElementById("map-live-count");
+    if (!state.mapCamerasVisible) {
+      if (sidebar) sidebar.classList.add("hidden");
+      if (reportList) reportList.innerHTML = "";
+      if (liveCount) liveCount.textContent = "0";
+      return;
+    }
+    if (sidebar) sidebar.classList.remove("hidden");
     const realtime = state.cameras.filter(c => c.hasRealtimeImage);
     const mapPoints = realtime.slice(0, 90);
     const list = realtime.slice(0, 90);
 
     mapPoints.forEach((c) => {
-      const marker = L.circleMarker([c.lat, c.lon], {
-        radius: 6,
-        color: "#fff",
-        weight: 1.5,
-        fillColor: "#2563eb",
-        fillOpacity: 0.9
+      const marker = L.marker([c.lat, c.lon], {
+        icon: getMapPoiIcon("camera")
       }).addTo(state.liveLayer);
       marker.on("click", () => openLiveCamera(c));
     });
 
-    const reportList = document.getElementById("camera-report-list");
     if (reportList) {
       reportList.innerHTML = list.map((c, i) => `
         <div class="report-card ${i % 3 === 0 ? "accident" : i % 3 === 1 ? "roadwork" : "breakdown"}" data-camera-id="${c.id}">
@@ -1569,8 +1977,21 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    const liveCount = document.getElementById("map-live-count");
     if (liveCount) liveCount.textContent = String(mapPoints.length);
+  }
+
+  function renderMapCameraToggleButton() {
+    const btn = document.getElementById("map-toggle-cameras-btn");
+    if (!btn) return;
+    btn.innerHTML = state.mapCamerasVisible
+      ? `<span class="dot red"></span> HIDE LIVE MONITORING`
+      : `<span class="dot red"></span> SHOW LIVE MONITORING`;
+  }
+
+  function toggleMapCamerasVisibility() {
+    state.mapCamerasVisible = !state.mapCamerasVisible;
+    renderMapCameraToggleButton();
+    renderLiveMapAndList();
   }
 
   // 实时事故显示开关按钮文案同步
@@ -1589,6 +2010,22 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.innerHTML = state.adminFeedbackVisible
       ? `<span class="icon-pin"></span> HIDE USER FEEDBACK`
       : `<span class="icon-pin"></span> SHOW USER FEEDBACK`;
+  }
+
+  function renderMapErpToggleButton() {
+    const btn = document.getElementById("map-toggle-erp-btn");
+    if (!btn) return;
+    btn.innerHTML = state.mapErpVisible
+      ? `<span class="icon-info"></span> HIDE ERP`
+      : `<span class="icon-info"></span> SHOW ERP`;
+  }
+
+  function renderMapPgsToggleButton() {
+    const btn = document.getElementById("map-toggle-pgs-btn");
+    if (!btn) return;
+    btn.innerHTML = state.mapPgsVisible
+      ? `<span class="icon-pin"></span> HIDE PGS`
+      : `<span class="icon-pin"></span> SHOW PGS`;
   }
 
   // 读取 auth 模块维护的用户设置缓存（容错为 {}，避免页面崩溃）
@@ -1631,6 +2068,7 @@ document.addEventListener("DOMContentLoaded", () => {
       ? "HIDE COMMON PLACES/ROUTES"
       : "SHOW COMMON PLACES/ROUTES";
   }
+
 
   // 渲染 Route Planner 常用数据面板：
   // - 常用地点可一键填入起点/终点
@@ -1710,6 +2148,50 @@ document.addEventListener("DOMContentLoaded", () => {
     renderRouteFavoritesPanel();
   }
 
+  function renderRoutePreferenceButton() {
+    const btn = document.getElementById("route-preference-btn");
+    if (!btn) return;
+    const pref = ROUTE_PREFERENCE_TEXT[state.routePreference] || "FASTEST ROUTE";
+    btn.innerHTML = `<span class="icon-info"></span> PREFERENCE: ${pref}`;
+  }
+
+  function getPreferredRouteId() {
+    if (!state.routePlans.length) return null;
+    if (state.routePreference === "fastest") {
+      return state.routeContext?.currentFastestId || state.routeContext?.evaluation?.recommendedRouteId || state.routePlans[0]?.id || null;
+    }
+    return state.routePlans.find((route) => route.id === state.routePreference)?.id || state.routePlans[0]?.id || null;
+  }
+
+  function applyRoutePreferenceSelection() {
+    const preferredId = getPreferredRouteId();
+    if (!preferredId) return;
+    state.selectedRouteId = preferredId;
+    renderRouteCards();
+    const selected = state.routePlans.find((route) => route.id === preferredId);
+    if (selected) showRouteDetails(selected);
+    if (state.routeLayer) {
+      state.routeLayer.eachLayer((layer) => {
+        const id = layer.routeId;
+        layer.setStyle({
+          weight: id === preferredId ? 6 : 4,
+          opacity: id === preferredId ? 0.95 : 0.55
+        });
+      });
+    }
+    renderAlertsPanels();
+  }
+
+  function cycleRoutePreference() {
+    const currentIndex = ROUTE_PREFERENCE_ORDER.indexOf(state.routePreference);
+    const nextIndex = currentIndex >= 0 ? (currentIndex + 1) % ROUTE_PREFERENCE_ORDER.length : 0;
+    state.routePreference = ROUTE_PREFERENCE_ORDER[nextIndex];
+    renderRoutePreferenceButton();
+    if (state.routePlans.length) {
+      applyRoutePreferenceSelection();
+    }
+  }
+
   // 在 Map View 绘制 LTA 实时事故点
   function drawLiveIncidentMarkers(incidents) {
     if (!state.liveIncidentLayer) return;
@@ -1718,12 +2200,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const lat = Number(it?.lat);
       const lon = Number(it?.lon);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
-      const marker = L.circleMarker([lat, lon], {
-        radius: 7,
-        color: "#fff",
-        weight: 2,
-        fillColor: getIncidentSeverityColor(it) === "red" ? "#dc2626" : getIncidentSeverityColor(it) === "orange" ? "#ea580c" : "#16a34a",
-        fillOpacity: 0.95
+      const marker = L.marker([lat, lon], {
+        icon: getMapPoiIcon("incident")
       }).addTo(state.liveIncidentLayer);
       marker.bindPopup(`
         <div style="font-size:12px;max-width:280px;">
@@ -2441,7 +2919,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!updatesEl) return;
     const sorted = sortIncidents(state.dashboardIncidents, state.incidentSortMode);
     updatesEl.innerHTML = sorted.map((it, idx) => `
-      <li>
+      <li class="dashboard-update-item" data-incident-id="${String(it.id || `incident-${idx + 1}`)}">
         <span class="dot ${getIncidentSeverityColor(it)}"></span>
         <div>
           <strong>${it.message || it.type || "Traffic incident"}</strong>
@@ -2450,6 +2928,25 @@ document.addEventListener("DOMContentLoaded", () => {
       </li>
     `).join("");
     renderAlertsPanels();
+  }
+
+  function highlightDashboardEvidenceCard(incidentId) {
+    const evidenceEl = document.getElementById("dashboard-evidence-list");
+    if (!evidenceEl || !incidentId) return;
+    const selector = `.evidence-card[data-incident-id="${String(incidentId).replace(/"/g, '\\"')}"]`;
+    const card = evidenceEl.querySelector(selector);
+    if (!card) return;
+    try {
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    } catch (_) {
+      card.scrollIntoView();
+    }
+    card.classList.remove("evidence-card-highlight");
+    void card.offsetWidth;
+    card.classList.add("evidence-card-highlight");
+    window.setTimeout(() => {
+      card.classList.remove("evidence-card-highlight");
+    }, 2000);
   }
 
   // 获取 Dashboard 事故数据；管理员可选择 live/mock
@@ -2518,8 +3015,8 @@ document.addEventListener("DOMContentLoaded", () => {
     renderIncidentSortButton();
     renderIncidentUpdatesList();
 
-    evidenceEl.innerHTML = incidents.slice(0, 6).map((it) => `
-      <div class="evidence-card">
+    evidenceEl.innerHTML = incidents.map((it, idx) => `
+      <div class="evidence-card" data-incident-id="${String(it.id || `incident-${idx + 1}`)}">
         ${it.imageLink
           ? `<img src="${it.imageLink}" alt="${it.message || "incident"}" loading="lazy" />`
           : `<div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;color:#64748b;font-size:12px;">No nearby camera image</div>`}
@@ -2720,6 +3217,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const dotColor = trafficLevel === "Heavy" ? "red" : trafficLevel === "Moderate" ? "orange" : "green";
       trafficEl.innerHTML = `<span class="dot ${dotColor}"></span> ${trafficLevel}`;
     }
+    const confirmBtn = document.getElementById("route-confirm-btn");
+    if (confirmBtn) {
+      const inUse = state.confirmedRouteId === route.id;
+      confirmBtn.textContent = inUse ? "ROUTE IN USE" : "USE THIS ROUTE";
+      confirmBtn.disabled = inUse;
+      confirmBtn.setAttribute("data-route-id", route.id);
+    }
   }
 
   // 右侧路线详情面板（管理员模拟）
@@ -2771,6 +3275,342 @@ document.addEventListener("DOMContentLoaded", () => {
     setText("route-detail-cameras", "Cameras available: --");
     const trafficEl = document.getElementById("route-detail-traffic");
     if (trafficEl) trafficEl.innerHTML = `<span class="dot green"></span> --`;
+    const confirmBtn = document.getElementById("route-confirm-btn");
+    if (confirmBtn) {
+      confirmBtn.textContent = "USE THIS ROUTE";
+      confirmBtn.disabled = true;
+      confirmBtn.removeAttribute("data-route-id");
+    }
+  }
+
+  function clearConfirmedRouteTracking() {
+    state.confirmedRouteId = null;
+    state.confirmedRoutePlan = null;
+    state.confirmedRouteOriginalStartGeo = null;
+    state.confirmedRouteEndGeo = null;
+    state.confirmedRouteLastReplanAt = 0;
+    state.confirmedTravelledCoords = [];
+    state.confirmedLastLiveCoord = null;
+    state.routeNearestCameraVisible = false;
+    if (state.routeLiveWatchId != null && navigator.geolocation && navigator.geolocation.clearWatch) {
+      navigator.geolocation.clearWatch(state.routeLiveWatchId);
+    }
+    if (state.mobileLocationPollId != null) {
+      clearInterval(state.mobileLocationPollId);
+    }
+    state.mobileLocationPollId = null;
+    state.routeLiveWatchId = null;
+    state.routeLiveMarker = null;
+    if (state.routeConfirmProgressLayer) state.routeConfirmProgressLayer.clearLayers();
+    if (state.routeConfirmMarkerLayer) state.routeConfirmMarkerLayer.clearLayers();
+    if (state.routeConfirmPoiLayer) state.routeConfirmPoiLayer.clearLayers();
+    if (state.routeNearestCameraLayer) state.routeNearestCameraLayer.clearLayers();
+    renderRouteCameraToggleButton();
+  }
+
+  function renderRouteCameraToggleButton() {
+    const btn = document.getElementById("route-view-cameras-btn");
+    if (!btn) return;
+    btn.textContent = state.routeNearestCameraVisible ? "HIDE LIVE CAMERA" : "VIEW LIVE CAMERAS";
+  }
+
+  function getNearestRealtimeCameraForLiveLocation() {
+    const liveLoc = state.confirmedLastLiveCoord || (state.userLocation && Number.isFinite(state.userLocation.lat) && Number.isFinite(state.userLocation.lon)
+      ? { lat: state.userLocation.lat, lon: state.userLocation.lon }
+      : null);
+    if (!liveLoc) return null;
+    let best = null;
+    let bestDistance = Infinity;
+    (state.cameras || []).forEach((cam) => {
+      if (!cam.hasRealtimeImage) return;
+      const d = haversine(liveLoc.lat, liveLoc.lon, cam.lat, cam.lon);
+      if (d < bestDistance) {
+        bestDistance = d;
+        best = cam;
+      }
+    });
+    if (!best) return null;
+    return { camera: best, distanceMeters: bestDistance, liveLoc };
+  }
+
+  function toggleRouteNearestLiveCamera() {
+    if (!state.routeNearestCameraLayer) return;
+    if (state.routeNearestCameraVisible) {
+      state.routeNearestCameraLayer.clearLayers();
+      state.routeNearestCameraVisible = false;
+      renderRouteCameraToggleButton();
+      return;
+    }
+    const nearest = getNearestRealtimeCameraForLiveLocation();
+    if (!nearest) {
+      alert("No nearby live camera found for your current location.");
+      return;
+    }
+    const cam = nearest.camera;
+    state.routeNearestCameraLayer.clearLayers();
+    const marker = L.marker([cam.lat, cam.lon], {
+      icon: getMapPoiIcon("camera")
+    }).addTo(state.routeNearestCameraLayer);
+    marker.bindPopup(`
+      <div style="font-size:12px;max-width:260px;">
+        <strong>${escapeHtml(cam.name)}</strong><br/>
+        <span>${escapeHtml(cam.source || "Unknown source")}</span><br/>
+        <span>Distance from live location: ${Math.round(nearest.distanceMeters)} m</span><br/>
+        ${cam.imageLink ? `<img src="${escapeHtml(cam.imageLink)}" alt="${escapeHtml(cam.name)}" style="margin-top:6px;width:100%;border-radius:6px;" />` : "No realtime image"}
+      </div>
+    `).openPopup();
+    if (state.plannerMap) {
+      state.plannerMap.flyTo([cam.lat, cam.lon], Math.max(state.plannerMap.getZoom(), 14), { duration: 0.8 });
+    }
+    state.routeNearestCameraVisible = true;
+    renderRouteCameraToggleButton();
+  }
+
+  function redrawConfirmedRouteProgress(lat, lon) {
+    if (!state.routeConfirmProgressLayer || !state.confirmedRoutePlan) return { offRoute: false };
+    state.routeConfirmProgressLayer.clearLayers();
+    const route = state.confirmedRoutePlan;
+    const progress = splitRouteProgress(route.coords, lat, lon);
+    const travelledHistory = Array.isArray(state.confirmedTravelledCoords) ? state.confirmedTravelledCoords.slice() : [];
+    if (!travelledHistory.length && state.confirmedRouteOriginalStartGeo) {
+      travelledHistory.push([state.confirmedRouteOriginalStartGeo.lat, state.confirmedRouteOriginalStartGeo.lon]);
+    }
+    if (!travelledHistory.length || haversine(travelledHistory[travelledHistory.length - 1][0], travelledHistory[travelledHistory.length - 1][1], lat, lon) > 2) {
+      travelledHistory.push([lat, lon]);
+    }
+    if (travelledHistory.length >= 2) {
+      L.polyline(travelledHistory, {
+        color: "#94a3b8",
+        weight: 6,
+        opacity: 0.95
+      }).addTo(state.routeConfirmProgressLayer);
+    }
+    if (progress.remaining.length >= 2) {
+      L.polyline(progress.remaining, {
+        color: route.color || ROUTE_COLORS[route.id] || "#2563eb",
+        weight: 6,
+        opacity: 0.95
+      }).addTo(state.routeConfirmProgressLayer);
+    }
+    return { offRoute: Number(progress.distanceToRoute) > 90 };
+  }
+
+  async function recalculateConfirmedRouteFromLiveLocation(lat, lon) {
+    if (!state.confirmedRouteEndGeo) return;
+    const now = Date.now();
+    if (now - state.confirmedRouteLastReplanAt < 6000) return;
+    state.confirmedRouteLastReplanAt = now;
+    const hintEl = document.getElementById("route-planning-hint");
+
+    const liveStartGeo = { lat, lon, display: "Current Location" };
+    const endGeo = state.confirmedRouteEndGeo;
+    const userLoc = { lat, lon };
+    const plans = await fetchRoutePlansFromPython(liveStartGeo, endGeo, 0.03);
+    if (!plans.length) throw new Error("No valid route plan generated during rerouting.");
+
+    const realtimeCameras = state.cameras.filter((c) => c.hasRealtimeImage);
+    const liveRouteEvents = mapLiveIncidentsToRouteEvents(state.dashboardIncidents);
+    const defaultRoute = plans.find((r) => r.id === "fastest") || plans[0];
+    const baseCoords = getRouteCoords(defaultRoute, liveStartGeo, endGeo);
+    const relevantEvents = await analyzeEventsViaBackend(liveRouteEvents, userLoc, baseCoords);
+    const eventsWithCameras = attachEventCameras(relevantEvents, realtimeCameras);
+    const evaluation = await evaluateRoutesByEventsViaBackend(plans, eventsWithCameras);
+    const currentFastestId = evaluation.currentFastestId || deriveCurrentFastestId(plans, evaluation) || plans[0].id;
+
+    state.routePlans = plans;
+    state.routeContext = {
+      userLoc,
+      events: eventsWithCameras,
+      evaluation,
+      startGeo: liveStartGeo,
+      endGeo,
+      currentFastestId,
+      generatedAt: new Date().toISOString()
+    };
+    state.selectedRouteId = evaluation.recommendedRouteId || getPreferredRouteId() || plans[0].id;
+    drawRoutes(liveStartGeo, endGeo, { preserveView: true });
+    applyRoutePreferenceSelection();
+    renderRouteCards();
+    const newSelected = state.routePlans.find((r) => r.id === state.selectedRouteId) || state.routePlans[0];
+    state.confirmedRouteId = newSelected.id;
+    state.confirmedRoutePlan = newSelected;
+    renderConfirmedRouteContextPoints(newSelected);
+    redrawConfirmedRouteProgress(lat, lon);
+    showRouteDetails(newSelected);
+    if (hintEl) hintEl.textContent = "You left the planned route. Navigation has been recalculated from your live location.";
+  }
+
+  function updateConfirmedLiveMarker(lat, lon) {
+    if (!state.routeConfirmMarkerLayer || !Number.isFinite(lat) || !Number.isFinite(lon)) return;
+    state.userLocation = { lat: lat, lon: lon };
+    const last = state.confirmedLastLiveCoord;
+    if (!last || haversine(last.lat, last.lon, lat, lon) > 8) {
+      state.confirmedTravelledCoords.push([lat, lon]);
+      state.confirmedLastLiveCoord = { lat, lon };
+    }
+    if (!state.routeLiveMarker) {
+      state.routeLiveMarker = L.circleMarker([lat, lon], {
+        radius: 7,
+        color: "#ffffff",
+        weight: 2,
+        fillColor: "#ef4444",
+        fillOpacity: 1
+      }).bindPopup("Current Location").addTo(state.routeConfirmMarkerLayer);
+      return;
+    }
+    state.routeLiveMarker.setLatLng([lat, lon]);
+    const progressState = redrawConfirmedRouteProgress(lat, lon);
+    if (progressState.offRoute && state.confirmedRouteEndGeo) {
+      recalculateConfirmedRouteFromLiveLocation(lat, lon).catch((err) => {
+        console.error("Route replanning failed:", err);
+      });
+    }
+  }
+
+  function startConfirmedRouteTracking() {
+    let mobileMissCount = 0;
+    if (state.mobileLocationPollId != null) {
+      clearInterval(state.mobileLocationPollId);
+      state.mobileLocationPollId = null;
+    }
+    if (state.routeLiveWatchId != null && navigator.geolocation && navigator.geolocation.clearWatch) {
+      navigator.geolocation.clearWatch(state.routeLiveWatchId);
+      state.routeLiveWatchId = null;
+    }
+
+    function ensureBrowserFallbackWatch() {
+      if (!navigator.geolocation || !navigator.geolocation.watchPosition) return;
+      if (state.routeLiveWatchId != null) return;
+      state.routeLiveWatchId = navigator.geolocation.watchPosition(
+        function (pos) {
+          updateConfirmedLiveMarker(Number(pos.coords.latitude), Number(pos.coords.longitude));
+        },
+        function (err) {
+          console.error("Live route tracking failed:", err);
+        },
+        { enableHighAccuracy: false, maximumAge: 30000, timeout: 20000 }
+      );
+    }
+
+    function stopBrowserFallbackWatch() {
+      if (state.routeLiveWatchId != null && navigator.geolocation && navigator.geolocation.clearWatch) {
+        navigator.geolocation.clearWatch(state.routeLiveWatchId);
+      }
+      state.routeLiveWatchId = null;
+    }
+
+    state.mobileLocationPollId = setInterval(async () => {
+      try {
+        const mobileLoc = await fetchLatestMobileLocation();
+        if (mobileLoc) {
+          mobileMissCount = 0;
+          stopBrowserFallbackWatch();
+          updateConfirmedLiveMarker(Number(mobileLoc.lat), Number(mobileLoc.lon));
+        } else {
+          mobileMissCount += 1;
+          if (mobileMissCount >= 15) ensureBrowserFallbackWatch();
+        }
+      } catch (err) {
+        console.error("Mobile location polling failed:", err);
+        mobileMissCount += 1;
+        if (mobileMissCount >= 15) ensureBrowserFallbackWatch();
+      }
+    }, 1000);
+  }
+
+  function renderConfirmedRouteContextPoints(route) {
+    if (!route || !state.routeConfirmPoiLayer) return;
+    state.routeConfirmPoiLayer.clearLayers();
+
+    const relatedCameras = (state.cameras || [])
+      .filter((cam) => cam.hasRealtimeImage && distanceToRouteMeters(route.coords, cam.lat, cam.lon) <= 250)
+      .slice(0, 18);
+
+    relatedCameras.forEach((cam) => {
+      L.marker([cam.lat, cam.lon], {
+        icon: getMapPoiIcon("camera")
+      })
+        .bindPopup(`
+          <div style="font-size:12px;max-width:260px;">
+            <strong>${escapeHtml(cam.name)}</strong><br/>
+            <span>${escapeHtml(cam.source || "Unknown source")}</span><br/>
+            ${cam.imageLink ? `<img src="${escapeHtml(cam.imageLink)}" alt="${escapeHtml(cam.name)}" style="margin-top:6px;width:100%;border-radius:6px;" />` : "No realtime image"}
+          </div>
+        `)
+        .addTo(state.routeConfirmPoiLayer);
+    });
+
+    const relatedEvents = (state.routeContext?.events || [])
+      .filter((evt) => distanceToRouteMeters(route.coords, evt.lat, evt.lon) <= 350);
+
+    relatedEvents.forEach((evt) => {
+      const createdAt = evt.createdAt || new Date().toISOString();
+      L.marker([evt.lat, evt.lon], {
+        icon: getMapPoiIcon("incident")
+      })
+        .bindPopup(`
+          <div style="font-size:12px;max-width:280px;">
+            <div><strong>Incident Type: </strong>${escapeHtml(evt.label || evt.type || "Traffic incident")}</div>
+            <div><strong>Location: </strong>${escapeHtml(evt.area || evt.message || "Along active route")}</div>
+            <div><strong>Elapsed Time: </strong>${escapeHtml(getIncidentElapsedText({ message: evt.message, area: evt.area, createdAt: createdAt }))}</div>
+            <div><strong>Estimated Clear Time: </strong>${escapeHtml(getIncidentEstimatedClearText({ message: evt.message, area: evt.area, createdAt: createdAt, estimatedDurationMin: Math.max(10, Math.round((evt.delayMin || 8) * 2)), estimatedDurationMax: Math.max(20, Math.round((evt.delayMin || 8) * 4)) }))}</div>
+            <div><strong>Estimated Impact Time: </strong>${escapeHtml(getIncidentDurationText({ estimatedDurationMin: Math.max(10, Math.round((evt.delayMin || 8) * 2)), estimatedDurationMax: Math.max(20, Math.round((evt.delayMin || 8) * 4)) }))}</div>
+          </div>
+        `)
+        .addTo(state.routeConfirmPoiLayer);
+    });
+  }
+
+  async function confirmSelectedRouteUsage() {
+    const route = state.routePlans.find((r) => r.id === state.selectedRouteId) || state.routePlans[0];
+    const startGeo = state.routeContext?.startGeo;
+    const endGeo = state.routeContext?.endGeo;
+    const hintEl = document.getElementById("route-planning-hint");
+    if (!route || !startGeo || !endGeo || !state.routeConfirmMarkerLayer) return;
+
+    clearConfirmedRouteTracking();
+    state.confirmedRouteId = route.id;
+    state.confirmedRoutePlan = route;
+    state.confirmedRouteOriginalStartGeo = startGeo;
+    state.confirmedRouteEndGeo = endGeo;
+    state.confirmedTravelledCoords = [[startGeo.lat, startGeo.lon]];
+    state.confirmedLastLiveCoord = { lat: startGeo.lat, lon: startGeo.lon };
+
+    const pinIcon = (label, bg) => L.divIcon({
+      className: "route-pin-icon-wrap",
+      html: `<div class="route-pin-icon" style="background:${bg}"><span>${label}</span></div>`,
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -24]
+    });
+
+    const [startPopupHtml, endPopupHtml] = await Promise.all([
+      buildRouteEndpointPopupHtml("Start", startGeo),
+      buildRouteEndpointPopupHtml("Destination", endGeo)
+    ]);
+
+    L.marker([startGeo.lat, startGeo.lon], { icon: pinIcon("S", "#2563eb") })
+      .bindPopup(startPopupHtml)
+      .addTo(state.routeConfirmMarkerLayer);
+    L.marker([endGeo.lat, endGeo.lon], { icon: pinIcon("D", "#10b981") })
+      .bindPopup(endPopupHtml)
+      .addTo(state.routeConfirmMarkerLayer);
+
+    renderConfirmedRouteContextPoints(route);
+    if (Array.isArray(route.coords) && route.coords.length >= 2) {
+      redrawConfirmedRouteProgress(route.coords[0][0], route.coords[0][1]);
+    }
+
+    try {
+      const loc = await getUserLocation();
+      if (loc) updateConfirmedLiveMarker(Number(loc.lat), Number(loc.lon));
+    } catch (err) {
+      console.error(err);
+    }
+    startConfirmedRouteTracking();
+    renderRouteCameraToggleButton();
+    if (hintEl) hintEl.textContent = "Navigation started. Start and destination are pinned. The red dot follows your live location.";
+    showRouteDetails(route);
   }
 
   function clearCurrentRoutePlan() {
@@ -2791,6 +3631,7 @@ document.addEventListener("DOMContentLoaded", () => {
     state.routeContext = null;
     state.routeStartCurrentGeo = null;
     state.selectedAlertIncidentId = null;
+    clearConfirmedRouteTracking();
 
     if (state.routeLayer) state.routeLayer.clearLayers();
     if (state.plannerLayer) state.plannerLayer.clearLayers();
@@ -2813,7 +3654,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const totalMinutes = r.estMinutes + eva.eventDelayMin * 0.7;
       const trafficLevel = eva.eventDelayMin > 18 ? "Heavy" : eva.eventDelayMin > 8 ? "Moderate" : "Light";
       const routeLabel = r.id === currentFastestId ? "FASTEST NOW" : (ROUTE_LABELS[r.id] || r.id.toUpperCase());
-      return { r, eva, totalMinutes, trafficLevel, routeLabel };
+      const routeIncidents = (eva.hits || []).length;
+      const routeCameras = (state.cameras || []).filter((cam) => cam.hasRealtimeImage && distanceToRouteMeters(r.coords, cam.lat, cam.lon) <= 250).length;
+      return { r, eva, totalMinutes, trafficLevel, routeLabel, routeIncidents, routeCameras };
     });
 
     const minTotal = Math.min(...enriched.map(x => x.totalMinutes));
@@ -2842,7 +3685,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const statusTag = getStatusTag(item);
       // Edited by JR here - added new "Save Habit Route" button
       return `
-      <div class="route-card ${r.id === state.selectedRouteId ? "selected" : ""}" data-route-id="${r.id}">
+      <div class="route-card route-card-${r.id} ${r.id === state.selectedRouteId ? "selected" : ""}" data-route-id="${r.id}">
         <button type="button" class="save-habit-btn" data-save-id="${r.id}" title="Save as Habit Route">SAVE</button>
         <div class="route-card-main">${Math.round(totalMinutes)} mins</div>
         <div class="route-card-erp">+${Math.round(eva.eventDelayMin)} mins delay</div>
@@ -2853,6 +3696,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <span class="dot ${trafficLevel === "Heavy" ? "red" : trafficLevel === "Moderate" ? "orange" : "green"}"></span>
         </div>
         <div class="route-card-metrics">Distance ${(r.totalDist / 1000).toFixed(1)} km · Lights ${r.trafficLights}</div>
+        <div class="route-card-metrics">Incidents ${item.routeIncidents} · Cameras ${item.routeCameras}</div>
       </div>
     `;
     }).join("");
@@ -2880,14 +3724,12 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // 在规划地图绘制路线折线，并突出选中路线
-  function drawRoutes(startGeo, endGeo) {
+  function drawRoutes(startGeo, endGeo, options) {
     if (!state.plannerMap || !state.routeLayer || !state.plannerLayer) return;
+    const preserveView = Boolean(options && options.preserveView);
     state.routeLayer.clearLayers();
     state.routePolylines.clear();
     state.plannerLayer.clearLayers();
-
-    L.marker([startGeo.lat, startGeo.lon]).bindPopup("Origin").addTo(state.plannerLayer);
-    L.marker([endGeo.lat, endGeo.lon]).bindPopup("Destination").addTo(state.plannerLayer);
 
     state.routePlans.forEach((r) => {
       const line = L.polyline(r.coords, {
@@ -2901,8 +3743,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const selected = state.routePlans.find(r => r.id === state.selectedRouteId) || state.routePlans[0];
     if (selected) {
-      const bounds = L.latLngBounds(selected.coords.map(c => [c[0], c[1]]));
-      state.plannerMap.fitBounds(bounds.pad(0.15));
+      if (!preserveView) {
+        const bounds = L.latLngBounds(selected.coords.map(c => [c[0], c[1]]));
+        state.plannerMap.fitBounds(bounds.pad(0.05));
+      }
       showRouteDetails(selected);
     }
   }
@@ -2942,12 +3786,193 @@ document.addEventListener("DOMContentLoaded", () => {
     })).filter(c => Number.isFinite(c.lat) && Number.isFinite(c.lon));
   }
 
+  async function fetchOneMotoringErpMarkers() {
+    const res = await fetch("/api/onemotoring/erp");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load ERP markers");
+    return Array.isArray(data.value) ? data.value : [];
+  }
+
+  async function fetchOneMotoringPgsMarkers() {
+    const res = await fetch("/api/onemotoring/pgs");
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to load PGS markers");
+    return Array.isArray(data.value) ? data.value : [];
+  }
+
+  function formatRateLine(label, value) {
+    const safe = String(value || "").trim();
+    if (!safe) return "";
+    return `<div><strong>${label}: </strong>${escapeHtml(safe)}</div>`;
+  }
+
+  function renderLocalErpRatesTable(localRates) {
+    const rows = Array.isArray(localRates) ? localRates : [];
+    if (!rows.length) return "";
+    return `
+      <div style="margin-top:8px;">
+        <div style="font-weight:700;margin-bottom:6px;">ERP price bands</div>
+        <div style="max-height:180px;overflow:auto;border:1px solid #dbeafe;border-radius:8px;">
+          <table style="width:100%;border-collapse:collapse;font-size:11px;background:#fff;">
+            <thead>
+              <tr>
+                <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #dbeafe;position:sticky;top:0;background:#eff6ff;">Time</th>
+                <th style="text-align:left;padding:6px 8px;border-bottom:1px solid #dbeafe;position:sticky;top:0;background:#eff6ff;">Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td style="padding:6px 8px;border-bottom:1px solid #eff6ff;">${escapeHtml(row.time || "")}</td>
+                  <td style="padding:6px 8px;border-bottom:1px solid #eff6ff;">${escapeHtml(row.price || "")}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }
+
+  function drawErpMarkers() {
+    if (!state.liveMap || !state.liveErpLayer) return;
+    state.liveErpLayer.clearLayers();
+    if (!state.mapErpVisible) return;
+    (state.mapErpItems || []).forEach((item) => {
+      const localRatesHtml = renderLocalErpRatesTable(item.localRates);
+      const popupHtml = `
+        <div style="font-size:12px;max-width:320px;">
+          <div style="font-weight:700;margin-bottom:6px;">${escapeHtml(item.name || "ERP Gantry")}</div>
+          ${item.gantryNo ? `<div style="margin-bottom:6px;"><strong>Gantry No: </strong>${escapeHtml(item.gantryNo)}</div>` : ``}
+          ${localRatesHtml || ``}
+          ${!localRatesHtml ? `<div>Pricing unavailable.</div>` : ``}
+        </div>
+      `;
+      L.marker([item.lat, item.lon], {
+        icon: getMapPoiIcon("erp")
+      }).bindPopup(popupHtml).addTo(state.liveErpLayer);
+    });
+  }
+
+  function drawPgsMarkers() {
+    if (!state.liveMap || !state.livePgsLayer) return;
+    state.livePgsLayer.clearLayers();
+    if (!state.mapPgsVisible) return;
+    (state.mapPgsItems || []).forEach((item) => {
+      const rates = item.rates || null;
+      const popupHtml = `
+        <div style="font-size:12px;max-width:320px;">
+          <div style="font-weight:700;margin-bottom:6px;">${escapeHtml(item.name || "PGS Car Park")}</div>
+          ${item.imageUrl ? `<img src="${escapeHtml(item.imageUrl)}" alt="${escapeHtml(item.name || "PGS Car Park")}" style="width:100%;max-width:300px;border-radius:8px;margin-bottom:8px;" />` : ``}
+          <div><strong>Available lots: </strong>${escapeHtml(item.availability || "N/A")}</div>
+          <div><strong>Updated at: </strong>${escapeHtml(item.availabilityUpdatedAt || "N/A")}</div>
+          ${rates ? `
+            <hr style="border:none;border-top:1px solid #dbeafe;margin:8px 0;" />
+            <div style="font-weight:700;margin-bottom:4px;">Official parking rates</div>
+            ${formatRateLine("Weekdays before 5/6pm", rates.weekdayBefore)}
+            ${formatRateLine("Weekdays after 5/6pm", rates.weekdayAfter)}
+            ${formatRateLine("Saturdays", rates.saturday)}
+            ${formatRateLine("Sundays / Public Holidays", rates.sunday)}
+          ` : `<div style="margin-top:8px;">Official parking rate data not matched for this location.</div>`}
+        </div>
+      `;
+      L.marker([item.lat, item.lon], {
+        icon: getMapPoiIcon("pgs")
+      }).bindPopup(popupHtml).addTo(state.livePgsLayer);
+    });
+  }
+
+  async function toggleMapErpLayer() {
+    if (!state.mapErpItems.length) {
+      state.mapErpItems = await fetchOneMotoringErpMarkers();
+    }
+    state.mapErpVisible = !state.mapErpVisible;
+    renderMapErpToggleButton();
+    drawErpMarkers();
+  }
+
+  async function toggleMapPgsLayer() {
+    if (!state.mapPgsItems.length) {
+      state.mapPgsItems = await fetchOneMotoringPgsMarkers();
+    }
+    state.mapPgsVisible = !state.mapPgsVisible;
+    renderMapPgsToggleButton();
+    drawPgsMarkers();
+  }
+
   // 地理编码：支持邮编/地名/MRT（后端做多源解析）
   async function geocodeLocation(inputText) {
     const r = await fetch(`/api/geocode?q=${encodeURIComponent(inputText)}`);
     const d = await r.json();
     if (!r.ok) throw new Error(d.error || "Geocode failed");
-    return { lat: parseFloat(d.lat), lon: parseFloat(d.lon), display: d.display || inputText };
+    return {
+      lat: parseFloat(d.lat),
+      lon: parseFloat(d.lon),
+      display: d.display || inputText,
+      postal: d.postal || "",
+      address: d.address || d.display || inputText
+    };
+  }
+
+  async function reverseGeocodeLocation(lat, lon) {
+    const r = await fetch(`/api/reverse-geocode?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Reverse geocode failed");
+    return {
+      lat: parseFloat(d.lat),
+      lon: parseFloat(d.lon),
+      display: d.display || "Current Location",
+      postal: d.postal || "",
+      address: d.address || d.display || "Current Location"
+    };
+  }
+
+  async function getRouteEndpointWeather(lat, lon) {
+    const r = await fetch(`/api/weather/current?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}`);
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "Weather fetch failed");
+    return d;
+  }
+
+  function formatWeatherLabel(desc) {
+    return String(desc || "--").split(" ").map((part) => part ? part.charAt(0).toUpperCase() + part.slice(1) : "").join(" ");
+  }
+
+  async function buildRouteEndpointPopupHtml(label, fallbackGeo) {
+    const lat = Number(fallbackGeo?.lat);
+    const lon = Number(fallbackGeo?.lon);
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+      return `<div style="font-size:12px;max-width:260px;"><strong>${escapeHtml(label)}</strong></div>`;
+    }
+    const [place, weather] = await Promise.all([
+      reverseGeocodeLocation(lat, lon).catch(() => ({
+        display: fallbackGeo?.display || label,
+        postal: fallbackGeo?.postal || "",
+        address: fallbackGeo?.address || fallbackGeo?.display || label
+      })),
+      getRouteEndpointWeather(lat, lon).catch(() => null)
+    ]);
+    const rawTitle = String(place.display || fallbackGeo?.display || label).trim();
+    const rawAddress = String(place.address || fallbackGeo?.address || "").trim();
+    let title = rawTitle;
+    if (label === "Start" && String(fallbackGeo?.display || "").trim() === "Current Location") {
+      let locationName = rawTitle;
+      if (!locationName || locationName.toLowerCase() === "current location") {
+        const firstAddressPart = rawAddress ? rawAddress.split(",")[0].trim() : "";
+        locationName = firstAddressPart || `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      }
+      title = `Current Location: ${locationName}`;
+    }
+    const postal = place.postal || fallbackGeo?.postal || "";
+    const weatherText = weather ? `${weather.temp}°C · ${formatWeatherLabel(weather.desc)}` : "Weather unavailable";
+    return `
+      <div style="font-size:12px;max-width:280px;line-height:1.5;">
+        <div><strong>${escapeHtml(label)}</strong></div>
+        <div><strong>Name: </strong>${escapeHtml(title)}</div>
+        ${postal ? `<div><strong>Postal Code: </strong>${escapeHtml(postal)}</div>` : ""}
+        <div><strong>Weather: </strong>${escapeHtml(weatherText)}</div>
+      </div>
+    `;
   }
 
   // 新版路径规划入口：调用后端 /api/route-plan（Python A*）
@@ -3199,7 +4224,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     const allCoords = sim.routes.flatMap(r => r.coords || []);
-    state.plannerMap.fitBounds(L.latLngBounds(allCoords.map(c => [c[0], c[1]])).pad(0.15));
+    state.plannerMap.fitBounds(L.latLngBounds(allCoords.map(c => [c[0], c[1]])).pad(0.05));
   }
 
   // 管理员“生成/隐藏模拟路段”总开关
@@ -3291,8 +4316,10 @@ document.addEventListener("DOMContentLoaded", () => {
         generatedAt: new Date().toISOString()
       };
       state.selectedRouteId = evaluation.recommendedRouteId || plans[0].id;
+      clearConfirmedRouteTracking();
 
       drawRoutes(startGeo, endGeo);
+      applyRoutePreferenceSelection();
       renderRouteCards();
       showRouteDetails(state.routePlans.find(r => r.id === state.selectedRouteId));
       if (state.adminSimulationVisible && state.adminSimulationData) {
@@ -3316,8 +4343,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const calcBtn = document.getElementById("route-calculate-btn");
     if (calcBtn) calcBtn.addEventListener("click", calculateRoutes);
 
+    const preferenceBtn = document.getElementById("route-preference-btn");
+    if (preferenceBtn) {
+      preferenceBtn.addEventListener("click", cycleRoutePreference);
+    }
+
     const cancelBtn = document.getElementById("route-cancel-btn");
     if (cancelBtn) cancelBtn.addEventListener("click", clearCurrentRoutePlan);
+
+    const confirmBtn = document.getElementById("route-confirm-btn");
+    if (confirmBtn) {
+      confirmBtn.addEventListener("click", () => {
+        confirmSelectedRouteUsage().catch((err) => {
+          alert(`Failed to start navigation: ${err.message}`);
+        });
+      });
+    }
 
     const startInput = document.getElementById("route-start-postal");
     const startSuggestions = document.getElementById("route-start-suggestions");
@@ -3340,6 +4381,9 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
     if (currentLocationOption) {
+      currentLocationOption.addEventListener("mousedown", (event) => {
+        event.preventDefault();
+      });
       currentLocationOption.addEventListener("click", async () => {
         await useCurrentLocationAsRouteStart();
         toggleRouteStartSuggestions(false);
@@ -3354,9 +4398,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const viewCameraBtn = document.getElementById("route-view-cameras-btn");
     if (viewCameraBtn) {
+      renderRouteCameraToggleButton();
       viewCameraBtn.addEventListener("click", () => {
-        const tab = document.querySelector('.nav-tab[data-page="map-view"]');
-        if (tab) tab.click();
+        toggleRouteNearestLiveCamera();
       });
     }
 
@@ -3391,6 +4435,15 @@ document.addEventListener("DOMContentLoaded", () => {
         renderIncidentUpdatesList();
       });
     }
+    const dashboardUpdatesList = document.getElementById("dashboard-updates-list");
+    if (dashboardUpdatesList) {
+      dashboardUpdatesList.addEventListener("click", (event) => {
+        const row = event.target.closest(".dashboard-update-item");
+        if (!row) return;
+        const incidentId = row.getAttribute("data-incident-id");
+        highlightDashboardEvidenceCard(incidentId);
+      });
+    }
     const mapIncidentToggleBtn = document.getElementById("map-toggle-incidents-btn");
     if (mapIncidentToggleBtn) {
       mapIncidentToggleBtn.addEventListener("click", async () => {
@@ -3402,6 +4455,38 @@ document.addEventListener("DOMContentLoaded", () => {
         } finally {
           mapIncidentToggleBtn.disabled = false;
         }
+      });
+    }
+    const mapErpToggleBtn = document.getElementById("map-toggle-erp-btn");
+    if (mapErpToggleBtn) {
+      mapErpToggleBtn.addEventListener("click", async () => {
+        mapErpToggleBtn.disabled = true;
+        try {
+          await toggleMapErpLayer();
+        } catch (err) {
+          alert(`Load ERP markers failed: ${err.message}`);
+        } finally {
+          mapErpToggleBtn.disabled = false;
+        }
+      });
+    }
+    const mapPgsToggleBtn = document.getElementById("map-toggle-pgs-btn");
+    if (mapPgsToggleBtn) {
+      mapPgsToggleBtn.addEventListener("click", async () => {
+        mapPgsToggleBtn.disabled = true;
+        try {
+          await toggleMapPgsLayer();
+        } catch (err) {
+          alert(`Load PGS markers failed: ${err.message}`);
+        } finally {
+          mapPgsToggleBtn.disabled = false;
+        }
+      });
+    }
+    const mapCameraToggleBtn = document.getElementById("map-toggle-cameras-btn");
+    if (mapCameraToggleBtn) {
+      mapCameraToggleBtn.addEventListener("click", () => {
+        toggleMapCamerasVisibility();
       });
     }
     const mapFeedbackToggleBtn = document.getElementById("map-toggle-feedback-btn");
@@ -3480,7 +4565,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     window.addEventListener("hashchange", () => {
-      const page = (window.location.hash || "#dashboard").slice(1);
+      const page = (window.location.hash || "#home").slice(1);
       if (page === "alerts") {
         renderAlertsPanels();
         refreshAlertsInfoFeed();
@@ -3534,8 +4619,12 @@ document.addEventListener("DOMContentLoaded", () => {
       if (panel) panel.classList.toggle("hidden", !isAdmin());
       if (isAdmin()) await loadAdminSimulationConfig();
       renderIncidentSourceButton();
+      renderMapCameraToggleButton();
       renderMapIncidentToggleButton();
+      renderMapErpToggleButton();
+      renderMapPgsToggleButton();
       renderMapFeedbackToggleButton();
+      renderRoutePreferenceButton();
       renderRouteFavoritesToggleButton();
       renderRouteFavoritesPanel();
       state.cameras = await fetchCameras();
@@ -3552,9 +4641,13 @@ document.addEventListener("DOMContentLoaded", () => {
       await renderAdminFeedbackPanel();
       renderLiveMapAndList();
       if (state.mapIncidentsVisible) drawLiveIncidentMarkers(state.mapLiveIncidents);
+      if (state.mapErpVisible) drawErpMarkers();
+      if (state.mapPgsVisible) drawPgsMarkers();
       if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
+      await loadHabitRoutesFromServer();
+      checkTrafficAlerts();
       if (isAdmin()) renderStandaloneSimulationInfo(null);
-      const currentPage = (window.location.hash || "#dashboard").slice(1);
+      const currentPage = (window.location.hash || "#home").slice(1);
       if (currentPage === "alerts") renderAlertsPanels();
       if (currentPage === "alerts") refreshAlertsInfoFeed();
       if (currentPage === "admin-users" && isAdmin()) {
@@ -3568,8 +4661,6 @@ document.addEventListener("DOMContentLoaded", () => {
         renderAlertDetailPage();
       }
       // FOR TRAFFIC ALERTS. Call FastAPI to check traffic alerts every 60s
-      await loadHabitRoutesFromServer();
-      checkTrafficAlerts(); 
       setInterval(checkTrafficAlerts, 60000); 
 
       // Handle the alerts dropdown toggle to view alerts
@@ -3603,6 +4694,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!window.getFastAuth || !window.getFastAuth()) {
       state.favoritePlannerPanelVisible = false;
     }
+    updateGuestFeatureVisibility();
     renderRouteFavoritesToggleButton();
     renderRouteFavoritesPanel();
     if (isAdmin()) {

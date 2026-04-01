@@ -1,30 +1,59 @@
-# 新加坡交通监控摄像头 Singapore Traffic Cameras
+# camera1 Backend
 
-实时查看新加坡各路段交通监控摄像头的 Web 应用。
+This directory contains the current backend and compute services for the FAST demo.
 
-## 功能
+## Contents
 
--  新加坡全岛地图（OneMap 底图）
--  显示所有可用的 LTA 交通摄像头位置
--  点击标记查看实时摄像头画面
--  搜索和筛选摄像头位置
--  一键刷新最新数据
+- `server.js`: main Node.js backend
+- `config.js`: basic config module
+- `package.json`: Node scripts
+- `requirements-fastapi.txt`: Python/FastAPI dependencies
+- `py/`: Python compute modules
+- `data/`: local data files, including road network snapshot
+- `docs/`: technical documentation
 
-## 快速开始 Start
-终端进入（根据位置自己改）Terminal Entry
-cd /Users/apple/Desktop/camera
+## Main Responsibilities
+
+`server.js` handles:
+- static hosting for `UI 2`
+- Supabase Auth integration
+- Supabase PostgreSQL access
+- live incident and camera APIs
+- weather, AI summary, and traffic news APIs
+- route planning entry
+- feedback and admin APIs
+
+`py/api_server.py` handles:
+- route planning
+- route event analysis
+- route event evaluation
+- incident normalization
+- incident-camera matching
+- ML traffic impact prediction
+
+## Start
+
+### Node.js
+
 ```bash
-# 安装依赖
+cd /Users/apple/Desktop/fyp_demo/camera1
 npm install
-
-# 启动服务 Start 
 npm start
 ```
 
-访问 http://localhost:3000
+### FastAPI
 
-## 技术栈
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements-fastapi.txt
+npm run start:fastapi
+```
 
-- 后端: Node.js + Express
-- 前端: Leaflet.js + OneMap 新加坡底图
-- 数据: [data.gov.sg Traffic Images API](https://api.data.gov.sg/v1/transport/traffic-images)（公开接口，无需 API Key）
+## Current Scripts
+
+```bash
+npm start
+npm run start:fastapi
+```

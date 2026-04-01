@@ -385,16 +385,26 @@ def distance_to_route(route_coords, lat, lon):
     return best
 
 
-def count_lights_by_signals(route_coords, signal_points, match_radius_m=35, dedupe_radius_m=65):
+def count_lights_by_signals(route_coords, signal_points, match_radius_m=30, dedupe_radius_m=110):
     """
-    用真实信号点位统计红绿灯数量。
+    用真实信号点位统计红绿灯数量，并按“路口中心”去重。
 
-    步骤：
-    1) 先找“离路线足够近”的信号点
-    2) 再做半径聚类去重，避免一个路口被多次计数
+    核心思路：
+    1) 先筛出离路线足够近的信号点
+    2) 为每个信号点找到其在路线上的最近位置
+    3) 同时基于“空间距离”和“沿路线距离”聚成一个路口中心
+    4) 每个路口中心只计 1 次
+
+    这样可以减少一个大型路口被多个信号灯杆重复计数的问题。
     """
     if len(route_coords) < 2 or not signal_points:
         return 0
+
+    cumulative = [0.0]
+    for i in range(1, len(route_coords)):
+        prev = route_coords[i - 1]
+        cur = route_coords[i]
+        cumulative.append(cumulative[-1] + haversine(prev[0], prev[1], cur[0], cur[1]))
 
     hits = []
     for sig in signal_points:
@@ -402,24 +412,43 @@ def count_lights_by_signals(route_coords, signal_points, match_radius_m=35, dedu
         s_lon = to_float(sig.get("lon"))
         if s_lat is None or s_lon is None:
             continue
-        if distance_to_route(route_coords, s_lat, s_lon) <= match_radius_m:
-            hits.append({"lat": s_lat, "lon": s_lon, "count": 1})
+        if distance_to_route(route_coords, s_lat, s_lon) > match_radius_m:
+            continue
+        idx = nearest_coord_index(route_coords, s_lat, s_lon)
+        hits.append({
+            "lat": s_lat,
+            "lon": s_lon,
+            "route_index": idx,
+            "route_distance": cumulative[idx]
+        })
 
     if not hits:
         return 0
 
+    hits.sort(key=lambda x: x["route_distance"])
     clusters = []
+    along_route_merge_m = 140
+
     for sig in hits:
         merged = False
         for c in clusters:
-            if haversine(sig["lat"], sig["lon"], c["lat"], c["lon"]) <= dedupe_radius_m:
-                c["count"] += 1
-                c["lat"] = (c["lat"] * (c["count"] - 1) + sig["lat"]) / c["count"]
-                c["lon"] = (c["lon"] * (c["count"] - 1) + sig["lon"]) / c["count"]
+            spatial_close = haversine(sig["lat"], sig["lon"], c["lat"], c["lon"]) <= dedupe_radius_m
+            route_close = abs(sig["route_distance"] - c["route_distance"]) <= along_route_merge_m
+            if spatial_close or route_close:
+                count = c["count"] + 1
+                c["lat"] = (c["lat"] * c["count"] + sig["lat"]) / count
+                c["lon"] = (c["lon"] * c["count"] + sig["lon"]) / count
+                c["route_distance"] = (c["route_distance"] * c["count"] + sig["route_distance"]) / count
+                c["count"] = count
                 merged = True
                 break
         if not merged:
-            clusters.append(sig)
+            clusters.append({
+                "lat": sig["lat"],
+                "lon": sig["lon"],
+                "route_distance": sig["route_distance"],
+                "count": 1
+            })
 
     return len(clusters)
 
@@ -671,8 +700,9 @@ def plan_routes(payload):
         est_minutes = (total_dist / 1000.0 / 40.0) * 60.0
         coords = get_route_coords(path_keys, nodes, start, end)
 
-        # 优先用真实信号点统计红绿灯；无命中再用路口度数估算
-        signal_lights = count_lights_by_signals(coords, signal_points, 35, 65)
+        # 优先用真实信号点统计红绿灯；这里采用更保守的“窄命中 + 大去重”
+        # 以减少一个大型路口被拆成多个信号组导致的高估问题。
+        signal_lights = count_lights_by_signals(coords, signal_points, 30, 110)
         traffic_lights = signal_lights if signal_lights > 0 else count_lights_by_degree(path_keys, nodes)
 
         plans.append({

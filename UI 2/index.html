@@ -12,12 +12,13 @@
     <!-- 顶栏 -->
     <header class="header">
       <div class="logo">
-        <img src="assets/logo1.jpg" alt="FAST Logo" class="brand-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" />
+        <img src="assets/images/logo2.jpg" alt="FAST Logo" class="brand-logo-img" onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" />
         <span class="brand-logo-text">FAST</span>
       </div>
-      <div class="search-wrap">
-        <span class="icon-search"></span>
-        <input type="text" class="search-input" placeholder="Search location, route, or incident..." />
+      <div class="header-center-links">
+        <a href="#home" class="header-center-link" id="header-home-link">HOME</a>
+        <a href="#about" class="header-center-link" id="header-about-link">ABOUT</a>
+        <a href="#home" class="header-center-link" id="header-business-link">BUSINESS MODEL</a>
       </div>
       <div class="header-right">
         <div class="alerts-dropdown-wrap" id="alerts-toggle">
@@ -32,8 +33,10 @@
         </div>
         </div>
      
-        <!-- 未登录：显示 LOGIN 按钮 -->
-        <a href="#login" class="btn-header-login" id="header-login-btn">LOGIN</a>
+        <div class="guest-auth-actions" id="guest-auth-actions">
+          <a href="#signup" class="btn-header-secondary" id="header-signup-btn">SIGN UP</a>
+          <a href="#login" class="btn-header-login" id="header-login-btn">LOGIN</a>
+        </div>
         <!-- 已登录：显示头像与下拉 -->
         <div class="user-menu-wrap hidden" id="user-menu-wrap">
           <span class="icon-user" id="user-avatar-btn" title="Account"></span>
@@ -50,7 +53,7 @@
     </header>
 
     <!-- 主导航 -->
-    <nav class="main-nav">
+    <nav class="main-nav" id="main-nav">
       <a href="#dashboard" class="nav-tab active" data-page="dashboard">Dashboard</a>
       <a href="#map-view" class="nav-tab" data-page="map-view">Map View</a>
       <a href="#route-planner" class="nav-tab" data-page="route-planner">Route Planner</a>
@@ -61,6 +64,177 @@
       <a href="#alerts" class="nav-tab" data-page="alerts">Alerts</a>
       <a href="#admin-users" class="nav-tab hidden" data-page="admin-users" id="admin-users-tab">Admin Users</a>
     </nav>
+
+    <main id="home" class="page active public-home-page">
+      <div class="home-scroll-deck" id="home-scroll-deck">
+        <section class="home-slide home-slide-1" data-home-slide="0">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">Singapore Traffic Monitoring System</p>
+            <h1 class="home-title">A clearer traffic command surface for daily travel.</h1>
+            <p class="home-desc">Accident view / Camera retrieval / Automotive-grade navigation / Automotive-grade positioning / Habit route</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-2" data-home-slide="1">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">All-scenario service</p>
+            <h2 class="home-subtitle">Travel service solution</h2>
+            <p class="home-desc">Refueling service / charging service / parking service / big data operation</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-3" data-home-slide="2">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">NAVIGATION AND MONITORING</p>
+            <h2 class="home-subtitle">Human-vehicle co-guidance solution</h2>
+            <p class="home-desc">Massive data / High-precision data / lane-level navigation / Refined rendering</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-4" data-home-slide="3">
+          <div class="home-slide-overlay home-slide-overlay-footer">
+            <div class="home-business-lead">
+              <p class="home-kicker">Business Model</p>
+              <p class="home-desc"><strong>Membership plans for public users and premium service access</strong></p>
+            </div>
+            <div class="home-pricing-grid">
+              <article class="home-pricing-card">
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">FREE USER</span>
+                  <strong class="home-pricing-price">S$0 / month</strong>
+                </div>
+                <ul class="home-pricing-list">
+                  <li>Traffic incident dashboard</li>
+                  <li>Traffic camera viewing</li>
+                  <li>Route planning</li>
+                  <li>Weather search</li>
+                  <li>Personalized definition</li>
+                  <li>Alert viewing</li>
+                  <li>Personal profile information</li>
+                  <li>Habit route saving</li>
+                </ul>
+              </article>
+              <article class="home-pricing-card home-pricing-card-featured">
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">ADVANCED USER</span>
+                  <strong class="home-pricing-price">S$30 / month</strong>
+                </div>
+                <ul class="home-pricing-list">
+                  <li>All free-user functions</li>
+                  <li>Additional premium permissions</li>
+                  <li>More advanced premium permissions</li>
+                  <li>More service access to be added later</li>
+                  <li>Additional business-side access to be added later</li>
+                </ul>
+              </article>
+            </div>
+            <div class="home-footer-grid">
+              <div class="home-footer-block">
+                <p class="home-footer-title">CONTACT US</p>
+                <div class="home-footer-placeholder">
+                  <a class="home-footer-template-box home-footer-link-box" href="mailto:trafficforecastfyp@gmail.com">trafficforecastfyp@gmail.com</a>
+                  <a class="home-footer-template-box home-footer-link-box" href="mailto:yangyuhao76@gmail.com">yangyuhao76@gmail.com</a>
+                </div>
+              </div>
+              <div class="home-footer-block">
+                <p class="home-footer-title">FRIENDLY LINKS</p>
+                <div class="home-footer-placeholder">
+                  <a class="home-footer-template-box home-footer-link-box" href="https://onemotoring.lta.gov.sg/content/onemotoring/home.html" target="_blank" rel="noopener noreferrer">https://onemotoring.lta.gov.sg/content/onemotoring/home.html</a>
+                  <a class="home-footer-template-box home-footer-link-box" href="https://www.lta.gov.sg/content/ltagov/en.html" target="_blank" rel="noopener noreferrer">https://www.lta.gov.sg/content/ltagov/en.html</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="home-slide-dots" id="home-slide-dots" aria-label="Home slides">
+        <button type="button" class="home-slide-dot active" data-home-dot="0" aria-label="Slide 1"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="1" aria-label="Slide 2"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="2" aria-label="Slide 3"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="3" aria-label="Slide 4"></button>
+      </div>
+    </main>
+
+    <main id="business-service-center" class="page public-home-page">
+      <section class="business-page-card">
+        <p class="home-kicker">Business Service Center</p>
+        <h1 class="section-head">Service Access for transport operators and project stakeholders</h1>
+        <p class="business-desc">This section is the public gateway for business-side access. Use the login or sign up entry in the top-right corner to enter the full FAST system, then manage route monitoring, traffic simulation, user feedback review, and admin-side operations from your account.</p>
+        <div class="business-feature-grid">
+          <article class="business-feature-card">
+            <h3>Operational Monitoring</h3>
+            <p>Review live incidents, traffic camera evidence, alerts, and weather-related transport conditions in one place.</p>
+          </article>
+          <article class="business-feature-card">
+            <h3>Route and Scenario Planning</h3>
+            <p>Compare planned routes, evaluate disruptions, and run simulated admin scenarios for traffic operations.</p>
+          </article>
+          <article class="business-feature-card">
+            <h3>User and Feedback Management</h3>
+            <p>Track user accounts, review submitted feedback, and manage service-side traffic response workflows.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <main id="about" class="page public-home-page">
+      <section class="business-page-card">
+        <section class="about-section" id="about-company-profile">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Project introduction</h2>
+          </div>
+          <div class="about-copy-block">
+            <p>Forecasting Analytics for Singapore Traffic--FAST is a Singapore traffic forecasting and monitoring demo platform designed to integrate accident visibility, live camera evidence, route planning, weather information, alerts, and user feedback into one system.</p>
+            <p>The project aims to present traffic information in a clearer and more practical way for both public users and operational-side users, so that they can understand road conditions faster, compare route options more effectively, and respond to disruptions with better situational awareness.</p>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-vision-mission">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Vision and mission</h2>
+          </div>
+          <div class="about-mission-panel">
+            <div class="about-mission-card about-mission-card-full">
+              <span class="about-mission-label">Vision &amp; Mission</span>
+              <p>-Help people better understand traffic conditions and make better travel decisions.</p>
+              <p>-Instead of only showing current traffic information, the system focuses on predicting future traffic impacts.</p>
+              <p>-Allows users to plan their trips earlier and avoid possible congestion.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-management-team">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Team members</h2>
+          </div>
+          <div class="about-team-grid">
+            <article class="about-team-card" data-member-name="KOO JIA RONG" data-member-role="Role / Position" data-member-bio="Add the detailed introduction for KOO JIA RONG here later.">
+              <div class="about-team-photo"></div>
+              <h3>KOO JIA RONG</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="YANG YUHAO" data-member-role="Software Engineer" data-member-image="./assets/images/Yang.jpg" data-member-bio="Software Engineer for FAST, leading system architecture design and overall technical direction, and responsible for core system implementation.
+Currently studying at University of Wollongong.">
+              <div class="about-team-photo about-team-photo-real" style="background-image:url('./assets/images/Yang.jpg');"></div>
+              <h3>YANG YUHAO</h3>
+              <p class="about-team-role about-team-role-no-caps">Software Engineer</p>
+            </article>
+            <article class="about-team-card" data-member-name="TAN YEE SHIEN" data-member-role="Role / Position" data-member-bio="Add the detailed introduction for TAN YEE SHIEN here later.">
+              <div class="about-team-photo"></div>
+              <h3>TAN YEE SHIEN</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="Muhsin Bin Sadiq Basha" data-member-role="Role / Position" data-member-bio="Add the detailed introduction for Muhsin Bin Sadiq Basha here later.">
+              <div class="about-team-photo"></div>
+              <h3>Muhsin Bin Sadiq Basha</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="Chan Wei Peng Christopher" data-member-role="Role / Position" data-member-bio="Add the detailed introduction for Chan Wei Peng Christopher here later.">
+              <div class="about-team-photo"></div>
+              <h3>Chan Wei Peng Christopher</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
 
     <!-- Login -->
     <main id="login" class="page auth-page">
@@ -337,19 +511,16 @@
 
     <!-- Map View -->
     <main id="map-view" class="page">
-      <aside class="sidebar active-reports">
-        <h2 class="sidebar-title">▲ ACTIVE REPORTS</h2>
-        <p class="sidebar-sub"><span id="map-live-count">0</span> CAMERAS • LIVE</p>
-        <div id="camera-report-list"></div>
-      </aside>
       <div class="map-area">
         <div class="map-toolbar">
-          <button type="button" class="btn-dark"><span class="dot red"></span> LIVE MONITORING</button>
+          <button type="button" class="btn-dark" id="map-toggle-cameras-btn"><span class="dot red"></span> HIDE LIVE MONITORING</button>
           <button type="button" class="btn-dark" id="map-toggle-incidents-btn"><span class="icon-warning red"></span> SHOW LTA INCIDENTS</button>
+          <button type="button" class="btn-dark" id="map-toggle-erp-btn"><span class="icon-info"></span> SHOW ERP</button>
+          <button type="button" class="btn-dark" id="map-toggle-pgs-btn"><span class="icon-pin"></span> SHOW PGS</button>
           <button type="button" class="btn-dark hidden" id="map-toggle-feedback-btn"><span class="icon-pin"></span> SHOW USER FEEDBACK</button>
-          <button type="button" class="btn-dark" id="fabFeedback"><span class="icon-plane"></span> SUBMIT FEEDBACK <span class="fb-count-badge" id="fbCountBadge" style="display:none"></span></button>
         </div>
         <div id="liveMap"></div>
+        <button type="button" class="btn-dark map-feedback-fab" id="fabFeedback"><span class="icon-plane"></span> SUBMIT FEEDBACK <span class="fb-count-badge" id="fbCountBadge" style="display:none"></span></button>
         <span class="help-icon">?</span>
       </div>
     </main>
@@ -361,18 +532,16 @@
         <div class="route-inputs">
           <div class="input-row">
             <span class="icon-pin"></span>
-            <div class="route-start-wrap">
-              <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)" autocomplete="off" />
-              <div class="route-start-suggestions hidden" id="route-start-suggestions">
-                <button type="button" class="route-start-suggestion" id="route-start-current-option">Current Location</button>
-              </div>
-            </div>
+            <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
             <span class="icon-plane swap"></span>
-            <input type="text" id="route-end-postal" placeholder="Enter destination (postal/place/MRT station)" />
+            <input type="text" id="route-end-postal" placeholder="Enter destination (postal/place/MRT station)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
             <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
+            <div class="route-start-suggestions hidden" id="route-start-suggestions">
+              <button type="button" class="route-start-suggestion" id="route-start-current-option">Current Location</button>
+            </div>
           </div>
           <div class="route-actions">
-            <button type="button" class="pref-btn"><span class="icon-info"></span> PREFERENCE: FASTEST ROUTE</button>
+            <button type="button" class="pref-btn" id="route-preference-btn"><span class="icon-info"></span> PREFERENCE: FASTEST ROUTE</button>
             <button type="button" class="btn-calculate" id="route-calculate-btn">CALCULATE</button>
             <button type="button" class="btn-dark" id="route-toggle-favorites-btn">SHOW COMMON PLACES/ROUTES</button>
           </div>
@@ -430,6 +599,7 @@
             <p id="route-detail-speed">Average speed: --</p>
             <p id="route-detail-cameras">Cameras available: --</p>
           </div>
+          <button type="button" class="btn-dark full" id="route-confirm-btn">USE THIS ROUTE</button>
           <button type="button" class="btn-dark full" id="route-view-cameras-btn">VIEW LIVE CAMERAS</button>
         </aside>
       </div>
@@ -446,7 +616,12 @@
         <p class="weather-desc">Enter postal code, MRT Station, or Location for live weather data.</p>
 
         <div class="weather-search">
-          <input type="text" id="postalCode" placeholder="Enter location..." />
+          <div class="weather-location-wrap">
+            <input type="text" id="postalCode" placeholder="Enter location..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <div class="weather-location-suggestions hidden" id="weather-location-suggestions">
+              <button type="button" class="weather-location-suggestion" id="weather-current-location-option">Current Location</button>
+            </div>
+          </div>
           <button type="button" class="btn-search" id="searchBtn">🔍 SEARCH</button>
           <button type="button" class="btn-save-loc" id="saveLocBtn" title="Save this location">🔖 Save</button>
         </div>
@@ -632,14 +807,13 @@
           </section>
           <section class="all-reports">
             <h2 class="subsection-title">ALL TRAFFIC REPORTS</h2>
-            <div id="alerts-all-list"></div>
+            <div id="alerts-all-list" class="alerts-all-scroll"></div>
           </section>
         </div>
         <div class="alerts-detail-placeholder" id="alerts-news-panel">
-          <span class="live-dot">INFO FEED</span>
           <div class="placeholder-box" style="text-align:left;">
-            <h3 style="margin-bottom:8px;">Singapore Traffic Info</h3>
-            <div id="alerts-weekly-news-list"></div>
+            <h3 style="margin-bottom:8px;">Singapore Traffic News</h3>
+            <div id="alerts-weekly-news-list" class="alerts-news-scroll"></div>
             <hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb;" />
             <div id="alerts-latest-rule"></div>
           </div>
@@ -727,6 +901,24 @@
         </section>
       </section>
     </main>
+  </div>
+  <div class="modal-overlay" id="aboutMemberOverlay">
+    <div class="modal-box about-member-modal" id="aboutMemberModal">
+      <button type="button" class="modal-close about-member-close" id="aboutMemberClose" aria-label="Close member detail">✕</button>
+      <div class="modal-body about-member-modal-body">
+        <div class="about-member-modal-layout">
+          <div class="about-member-modal-media">
+            <div class="about-member-modal-photo" id="aboutMemberPhoto"></div>
+          </div>
+          <div class="about-member-modal-content">
+            <div class="about-member-modal-name" id="aboutMemberName">Member</div>
+            <div class="about-member-modal-role" id="aboutMemberRole">Role / Position</div>
+            <div class="about-member-modal-divider"></div>
+            <div class="about-member-modal-bio" id="aboutMemberBio">Detailed member introduction.</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div class="modal-overlay" id="feedbackOverlay">
     <div class="modal-box" id="feedbackModal">

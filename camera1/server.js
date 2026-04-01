@@ -48,6 +48,14 @@ function buildPoolConfig(connectionString) {
 }
 
 const pool = new Pool(buildPoolConfig(DATABASE_URL));
+const latestMobileLocation = {
+  lat: null,
+  lon: null,
+  accuracy: null,
+  timestamp: null,
+  source: 'none',
+  deviceName: ''
+};
 
 /**
  * 默认模拟配置（管理员可在前端切换/更新）
@@ -176,6 +184,18 @@ function toPublicUser(row) {
 
 function trimText(value, maxLen = 255) {
   return String(value || '').trim().slice(0, maxLen);
+}
+
+function getMobileLocationPayload() {
+  return {
+    lat: latestMobileLocation.lat,
+    lon: latestMobileLocation.lon,
+    accuracy: latestMobileLocation.accuracy,
+    timestamp: latestMobileLocation.timestamp,
+    source: latestMobileLocation.source,
+    deviceName: latestMobileLocation.deviceName,
+    fresh: Number.isFinite(latestMobileLocation.timestamp) ? (Date.now() - latestMobileLocation.timestamp) <= 15000 : false
+  };
 }
 
 function normalizeUserProfilePayload(payload) {
@@ -772,6 +792,7 @@ const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/
 const LTA_SIGNAL_GEOJSON_PATH = path.join(__dirname, 'data', 'LTATrafficSignalAspectGEOJSON.geojson');
 const INCIDENT_MOCK_PATH = path.join(__dirname, 'data', 'incident_api_mock.json');
 const LOCAL_ROAD_NETWORK_PATH = path.join(__dirname, 'data', 'sg-road-network-overpass.json');
+const ERP_RATES_JSON_PATH = path.join(__dirname, 'data', 'erp_rates_2026-03-23.json');
 const PYTHON_BIN = process.env.PYTHON_BIN || 'python';
 const PY_ENGINE_PATH = path.join(__dirname, 'py', 'compute_engine.py');
 const PY_ML_ENGINE_PATH = path.join(__dirname, 'py', 'ml_traffic_predictor.py');
@@ -780,8 +801,20 @@ const OVERPASS_API = 'https://overpass-api.de/api/interpreter';
 const SG_BBOX = '1.16,103.60,1.48,104.10';
 const NEWS_ACCIDENT_RSS = 'https://news.google.com/rss/search?q=Singapore+traffic+accident+when:7d&hl=en-SG&gl=SG&ceid=SG:en';
 const NEWS_RULE_RSS = 'https://news.google.com/rss/search?q=Singapore+LTA+traffic+rule+update&hl=en-SG&gl=SG&ceid=SG:en';
+const ONEMOTORING_ERP_KML_URL = 'https://onemotoring.lta.gov.sg/mapapp/kml/erp-kml/erp-kml-0.kml';
+const ONEMOTORING_PGS_KML_URL = 'https://onemotoring.lta.gov.sg/mapapp/kml/pgs-kml/pgs-kml-0.kml';
+const ONEMOTORING_PARKING_RATE_PAGE_URLS = [
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.1.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.2.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.3.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.4.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.5.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.6.html',
+  'https://onemotoring.lta.gov.sg/content/onemotoring/home/owning/ongoing-car-costs/parking/parking_rates.8.html'
+];
 const STATIC_SOURCE_TTL_MS = 60 * 60 * 1000;
 const INCIDENT_SOURCE_TTL_MS = 2 * 60 * 1000;
+const ONEMOTORING_SOURCE_TTL_MS = 10 * 60 * 1000;
 const LTA_ACCOUNT_KEY = process.env.LTA_ACCOUNT_KEY || '';
 const MAX_LTA_SIGNAL_POINTS = 2500;
 const MAX_OSM_POINTS = 1200;
@@ -1148,6 +1181,7 @@ app.put('/api/user/settings', requireAuth, async (req, res) => {
   }
 });
 
+
 app.put('/api/user/name', requireAuth, async (req, res) => {
   const name = String(req.body?.name || '').trim();
   if (!name) return res.status(400).json({ error: 'Please enter a name' });
@@ -1305,18 +1339,17 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
     const inserted = await pool.query(
       `
       INSERT INTO app_user_feedback_reports (
-        user_id, location, condition_type, severity, status, comment, latitude, longitude, created_at
+        user_id, location, condition_type, severity, comment, latitude, longitude, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING
         id,
         user_id,
-        $10::text AS user_name,
-        $11::text AS user_email,
+        $9::text AS user_name,
+        $10::text AS user_email,
         location,
         condition_type,
         severity,
-        status,
         comment,
         latitude,
         longitude,
@@ -1327,7 +1360,6 @@ app.post('/api/feedback', requireAuth, async (req, res) => {
         feedback.location,
         feedback.conditionType,
         feedback.severity,
-        'UNVIEWED',
         feedback.comment,
         feedback.latitude,
         feedback.longitude,
@@ -1356,7 +1388,6 @@ app.get('/api/feedback/mine', requireAuth, async (req, res) => {
         f.location,
         f.condition_type,
         f.severity,
-        f.status,
         f.comment,
         f.latitude,
         f.longitude,
@@ -1390,7 +1421,6 @@ app.get('/api/admin/feedback', requireAuth, requireAdmin, async (req, res) => {
         f.location,
         f.condition_type,
         f.severity,
-        f.status,
         f.comment,
         f.latitude,
         f.longitude,
@@ -1646,6 +1676,156 @@ async function withCache(key, ttlMs, loader) {
   const value = await loader();
   sourceCache.set(key, { time: now, value });
   return value;
+}
+
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function stripHtml(value) {
+  return decodeHtmlEntities(String(value || '').replace(/<br\s*\/?>/gi, '\n').replace(/<[^>]+>/g, ' '));
+}
+
+function normalizeLookupName(value) {
+  return String(value || '')
+    .toLowerCase()
+    .replace(/\(.*?\)/g, ' ')
+    .replace(/\bcar\s*park\b/g, ' ')
+    .replace(/\bshopping\s*centre\b/g, ' ')
+    .replace(/\bshopping\s*center\b/g, ' ')
+    .replace(/\bcentre\b/g, ' ')
+    .replace(/\bcenter\b/g, ' ')
+    .replace(/\bthe\b/g, ' ')
+    .replace(/\bp\d+\b/g, ' ')
+    .replace(/\brws\b/g, ' resorts world sentosa ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+async function fetchTextCached(url, ttlMs = ONEMOTORING_SOURCE_TTL_MS) {
+  return withCache(`text:${url}`, ttlMs, async () => {
+    const resp = await fetch(url, {
+      headers: { 'User-Agent': 'FAST/1.0 (OneMotoring integration)' }
+    });
+    if (!resp.ok) throw new Error(`Failed to fetch source: ${resp.status}`);
+    return resp.text();
+  });
+}
+
+function parsePlacemarkBlocks(kmlText) {
+  return Array.from(String(kmlText || '').matchAll(/<Placemark>([\s\S]*?)<\/Placemark>/gi)).map((m) => m[1]);
+}
+
+function parseErpKml(kmlText) {
+  return parsePlacemarkBlocks(kmlText).map((block, index) => {
+    const nameMatch = block.match(/<td>([^<]+)<\/td>/i);
+    const coordMatch = block.match(/<coordinates>\s*([0-9.\-]+),([0-9.\-]+),0\s*<\/coordinates>/i);
+    const ddlMatch = block.match(/iframe\s+src="([^"]+_ddl\.html)"/i);
+    if (!nameMatch || !coordMatch) return null;
+    const ddlUrl = ddlMatch
+      ? `https:${ddlMatch[1].startsWith('//') ? ddlMatch[1] : `//${ddlMatch[1].replace(/^https?:\/\//i, '')}`}`
+      : '';
+    return {
+      id: `erp-${index + 1}`,
+      name: decodeHtmlEntities(nameMatch[1]),
+      lat: parseFloat(coordMatch[2]),
+      lon: parseFloat(coordMatch[1]),
+      ddlUrl
+    };
+  }).filter((item) => item && Number.isFinite(item.lat) && Number.isFinite(item.lon));
+}
+
+function parsePgsKml(kmlText) {
+  return parsePlacemarkBlocks(kmlText).map((block, index) => {
+    const nameMatch = block.match(/<b>([^<]+)<\/b>/i);
+    const coordMatch = block.match(/<coordinates>\s*([0-9.\-]+),([0-9.\-]+),0\s*<\/coordinates>/i);
+    const imageMatch = block.match(/<img[^>]+src="([^"]+Parking\/[^"]+)"/i);
+    const availabilityTimeMatch = block.match(/Parking Lots Availability is correct as at\s*([^<\n]+)/i);
+    const availabilityCountMatch = block.match(/font-size:31px;font-weight:bold;'>([^<]+)<\/span>/i);
+    if (!nameMatch || !coordMatch) return null;
+    const imageUrl = imageMatch
+      ? `https:${imageMatch[1].startsWith('//') ? imageMatch[1] : `//${imageMatch[1].replace(/^https?:\/\//i, '')}`}`
+      : '';
+    return {
+      id: `pgs-${index + 1}`,
+      name: decodeHtmlEntities(nameMatch[1]),
+      lat: parseFloat(coordMatch[2]),
+      lon: parseFloat(coordMatch[1]),
+      imageUrl,
+      availability: decodeHtmlEntities(availabilityCountMatch?.[1] || ''),
+      availabilityUpdatedAt: decodeHtmlEntities(availabilityTimeMatch?.[1] || '')
+    };
+  }).filter((item) => item && Number.isFinite(item.lat) && Number.isFinite(item.lon));
+}
+
+function parseParkingRatesPage(html, sourceUrl) {
+  const rows = [];
+  const rowMatches = Array.from(String(html || '').matchAll(/<tr>([\s\S]*?)<\/tr>/gi));
+  rowMatches.forEach((rowMatch) => {
+    const cells = Array.from(rowMatch[1].matchAll(/<td[^>]*data-label="([^"]+)"[^>]*>([\s\S]*?)<\/td>/gi))
+      .map((m) => ({
+        label: decodeHtmlEntities(m[1]),
+        value: stripHtml(m[2])
+      }));
+    if (cells.length < 5) return;
+    const row = Object.fromEntries(cells.map((c) => [c.label, c.value]));
+    const carPark = row['Car Park'];
+    if (!carPark) return;
+    rows.push({
+      name: carPark,
+      normalizedName: normalizeLookupName(carPark),
+      weekdayBefore: row['Weekdays before 5/6pm'] || '',
+      weekdayAfter: row['Weekdays after 5/6pm'] || '',
+      saturday: row['Saturdays'] || '',
+      sunday: row['Sundays/Public Holidays'] || '',
+      sourceUrl
+    });
+  });
+  return rows;
+}
+
+function findBestParkingRateMatch(name, rows) {
+  const target = normalizeLookupName(name);
+  if (!target) return null;
+  const exact = rows.find((row) => row.normalizedName === target);
+  if (exact) return exact;
+  const contains = rows.find((row) => row.normalizedName.includes(target) || target.includes(row.normalizedName));
+  if (contains) return contains;
+  const targetTokens = target.split(' ').filter(Boolean);
+  let best = null;
+  let bestScore = 0;
+  rows.forEach((row) => {
+    const rowTokens = row.normalizedName.split(' ').filter(Boolean);
+    const overlap = targetTokens.filter((token) => rowTokens.includes(token)).length;
+    if (overlap > bestScore) {
+      bestScore = overlap;
+      best = row;
+    }
+  });
+  return bestScore >= 2 ? best : null;
+}
+
+async function fetchParkingRatesLookup() {
+  const pages = await Promise.all(
+    ONEMOTORING_PARKING_RATE_PAGE_URLS.map(async (url) => parseParkingRatesPage(await fetchTextCached(url), url))
+  );
+  return pages.flat();
+}
+
+async function fetchLocalErpRates() {
+  return withCache(`json:${ERP_RATES_JSON_PATH}`, ONEMOTORING_SOURCE_TTL_MS, async () => {
+    const raw = await fs.readFile(ERP_RATES_JSON_PATH, 'utf8');
+    return JSON.parse(raw);
+  });
 }
 
 function roundRoadCacheCoord(value) {
@@ -2724,6 +2904,139 @@ app.get('/api/geocode', async (req, res) => {
   res.status(404).json({ error: `Location \"${query}\" not found, try postal code or a more complete place name` });
 });
 
+app.get('/api/reverse-geocode', async (req, res) => {
+  const lat = parseFloat(req.query.lat);
+  const lon = parseFloat(req.query.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return res.status(400).json({ error: 'Invalid lat/lon parameters' });
+  }
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${encodeURIComponent(lat)}&lon=${encodeURIComponent(lon)}&format=jsonv2&addressdetails=1`,
+      { headers: { 'User-Agent': 'SingaporeTrafficApp/1.0 (Reverse Geocode)' } }
+    );
+    if (!r.ok) throw new Error(`Reverse geocode API error: ${r.status}`);
+    const d = await r.json();
+    const address = d?.address || {};
+    const name =
+      d?.name ||
+      address.amenity ||
+      address.building ||
+      address.road ||
+      address.suburb ||
+      address.neighbourhood ||
+      d?.display_name ||
+      'Current Location';
+    return res.json({
+      lat,
+      lon,
+      display: name,
+      postal: address.postcode || '',
+      address: d?.display_name || name
+    });
+  } catch (e) {
+    return res.status(500).json({ error: 'Reverse geocode failed', details: e.message });
+  }
+});
+
+app.get('/api/onemotoring/erp', async (req, res) => {
+  try {
+    const [kmlText, localRates] = await Promise.all([
+      fetchTextCached(ONEMOTORING_ERP_KML_URL),
+      fetchLocalErpRates().catch(() => ({ gantries: {} }))
+    ]);
+    const items = parseErpKml(kmlText);
+    const enriched = items.map((item) => {
+      const gantryNoMatch = String(item.name || '').match(/\((\d+)\)\s*$/);
+      const gantryNo = gantryNoMatch ? gantryNoMatch[1] : '';
+      const localBands = gantryNo ? (localRates?.gantries?.[gantryNo] || []) : [];
+      return {
+        ...item,
+        gantryNo,
+        localRates: Array.isArray(localBands) ? localBands : []
+      };
+    });
+    res.json({
+      value: enriched,
+      meta: {
+        total: enriched.length,
+        source: 'OneMotoring traffic.smart ERP KML',
+        sourceUrl: ONEMOTORING_ERP_KML_URL,
+        generatedAt: nowIso()
+      }
+    });
+  } catch (error) {
+    console.error('Failed to load OneMotoring ERP markers:', error.message);
+    res.status(500).json({ error: 'Failed to load ERP markers' });
+  }
+});
+
+app.get('/api/onemotoring/pgs', async (req, res) => {
+  try {
+    const [kmlText, parkingRates] = await Promise.all([
+      fetchTextCached(ONEMOTORING_PGS_KML_URL),
+      fetchParkingRatesLookup()
+    ]);
+    const items = parsePgsKml(kmlText).map((item) => {
+      const matchedRate = findBestParkingRateMatch(item.name, parkingRates);
+      return {
+        ...item,
+        rates: matchedRate ? {
+          name: matchedRate.name,
+          weekdayBefore: matchedRate.weekdayBefore,
+          weekdayAfter: matchedRate.weekdayAfter,
+          saturday: matchedRate.saturday,
+          sunday: matchedRate.sunday,
+          sourceUrl: matchedRate.sourceUrl
+        } : null
+      };
+    });
+    res.json({
+      value: items,
+      meta: {
+        total: items.length,
+        source: 'OneMotoring traffic.smart PGS KML + official parking rates pages',
+        sourceUrl: ONEMOTORING_PGS_KML_URL,
+        generatedAt: nowIso()
+      }
+    });
+  } catch (error) {
+    console.error('Failed to load OneMotoring PGS markers:', error.message);
+    res.status(500).json({ error: 'Failed to load PGS markers' });
+  }
+});
+
+app.get('/api/mobile-location/latest', (req, res) => {
+  res.json(getMobileLocationPayload());
+});
+
+app.post('/api/mobile-location/update', (req, res) => {
+  const lat = parseFloat(req.body?.lat);
+  const lon = parseFloat(req.body?.lon);
+  const accuracy = parseFloat(req.body?.accuracy);
+  const deviceName = trimText(req.body?.deviceName || 'Android device', 80);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    return res.status(400).json({ error: 'Invalid lat/lon' });
+  }
+  latestMobileLocation.lat = lat;
+  latestMobileLocation.lon = lon;
+  latestMobileLocation.accuracy = Number.isFinite(accuracy) ? accuracy : null;
+  latestMobileLocation.timestamp = Date.now();
+  latestMobileLocation.source = 'mobile';
+  latestMobileLocation.deviceName = deviceName;
+  return res.json({ ok: true, value: getMobileLocationPayload() });
+});
+
+app.post('/api/mobile-location/clear', (req, res) => {
+  latestMobileLocation.lat = null;
+  latestMobileLocation.lon = null;
+  latestMobileLocation.accuracy = null;
+  latestMobileLocation.timestamp = null;
+  latestMobileLocation.source = 'none';
+  latestMobileLocation.deviceName = '';
+  return res.json({ ok: true });
+});
+
 function readWeatherCoordsOrSendError(req, res) {
   const lat = parseFloat(req.query.lat);
   const lon = parseFloat(req.query.lon);
@@ -2836,6 +3149,19 @@ app.post('/api/ai/incident-summary', async (req, res) => {
   const area = String(incident.area || 'Unknown area').trim();
   const createdAt = String(incident.createdAt || nowIso()).trim();
   const cameraName = String(incident.cameraName || 'None').trim();
+  const lowerMessage = message.toLowerCase();
+  let fallbackReason = 'Traffic flow is likely reduced because vehicles are slowing and merging carefully around the affected section.';
+  if (lowerMessage.includes('accident') || lowerMessage.includes('collision') || lowerMessage.includes('crash')) {
+    fallbackReason = 'This is likely caused by a vehicle collision or lane blockage, so traffic is slowing while drivers merge around it.';
+  } else if (lowerMessage.includes('breakdown') || lowerMessage.includes('vehicle') || lowerMessage.includes('stalled')) {
+    fallbackReason = 'This is likely caused by a broken-down vehicle occupying part of the road and reducing available lane space.';
+  } else if (lowerMessage.includes('road work') || lowerMessage.includes('roadwork') || lowerMessage.includes('maintenance')) {
+    fallbackReason = 'This is likely caused by road maintenance or lane closure work, which is narrowing traffic flow through the area.';
+  } else if (lowerMessage.includes('congestion') || lowerMessage.includes('jam') || lowerMessage.includes('slow traffic')) {
+    fallbackReason = 'This is likely caused by heavy traffic build-up, with vehicles braking frequently and moving in short gaps.';
+  } else if (lowerMessage.includes('obstacle') || lowerMessage.includes('debris')) {
+    fallbackReason = 'This is likely caused by an obstacle on the road, so vehicles are slowing down to pass it safely.';
+  }
   const prompt = `You are a Singapore traffic assistant writing for everyday drivers. Return strict JSON only with keys: location,time,reason,duration.
 Incident text: ${message}
 Area: ${area}
@@ -2844,6 +3170,7 @@ Camera: ${cameraName}
 Rules:
 - reason must be plain, human, easy to understand, no jargon, no code-like words.
 - reason should sound like a real person explaining likely cause in one short sentence.
+- reason must be inferred from the incident type or message, and must not simply repeat the location or area.
 - duration should be practical and easy for drivers to understand.
 Keep each value within 1 sentence.`;
   try {
@@ -2860,11 +3187,11 @@ Keep each value within 1 sentence.`;
       parsed = {
         location: area,
         time: createdAt,
-        reason: `Likely due to a road incident in ${area}, traffic may be moving slowly in this section.`,
+        reason: fallbackReason,
         duration: '30-90 minutes (estimated)'
       };
     }
-    const humanReason = String(parsed.reason || '').trim() || `Likely due to a road incident in ${area}, traffic may be moving slowly in this section.`;
+    const humanReason = String(parsed.reason || '').trim() || fallbackReason;
     res.json({
       location: parsed.location || area,
       time: parsed.time || createdAt,
@@ -3147,10 +3474,9 @@ async function startServer() {
   try {
     await pool.query('SELECT 1');
     await initAuthDatabase();
-    app.listen(config.PORT, () => {
+    app.listen(config.PORT, '0.0.0.0', () => {
       console.log(`Using data.gov.sg Traffic Images API`);
       console.log(`Singapore Traffic Monitoring System started: http://localhost:${config.PORT}/ui2/`);
-      console.log(`PostgreSQL connected`);
     });
   } catch (error) {
     console.error('❌ Startup failed, unable to connect PostgreSQL:', error.message);

@@ -1,87 +1,73 @@
-# FYP Demo
+# FAST Demo
 
-当前项目主入口：
+FAST is a Singapore traffic forecasting and monitoring demo platform. The current web entry is:
 
 - `http://localhost:3000/ui2/`
 
-## 1. 当前架构
+## Overview
 
-1. 前端：[/Users/apple/Desktop/fyp_demo/UI 2](/Users/apple/Desktop/fyp_demo/UI%202)
-2. 后端：[/Users/apple/Desktop/fyp_demo/camera1/server.js](/Users/apple/Desktop/fyp_demo/camera1/server.js)
-3. Python 计算：[/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py](/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py)
-4. 数据库与认证：
-   - 数据库：Supabase PostgreSQL
-   - 认证：Supabase Auth（`auth.users`，UUID）
+The current system includes:
+- Home / About / Business Model public pages
+- Dashboard for live traffic incidents and camera evidence
+- Map View for live cameras and incident points
+- Route Planner with three route options, route confirmation, live location tracking, and route-related cameras/incidents
+- Weather query
+- Alerts with incident details and traffic news
+- Habit Routes
+- Profile / Settings
+- Admin Users
 
-## 2. 当前认证与数据库说明
+## Current Architecture
 
-当前版本已经不再使用旧的本地 `public.users` / `public.sessions` 登录体系。
+- Frontend: `UI 2/`
+- Main backend: `camera1/server.js`
+- Python compute service: `camera1/py/api_server.py`
+- Core compute modules:
+  - `camera1/py/compute_engine.py`
+  - `camera1/py/ml_traffic_predictor.py`
+- Database: Supabase PostgreSQL
+- Authentication: Supabase Auth (`auth.users`, UUID)
 
-现在统一使用：
+## Authentication and Database
 
-1. `auth.users`
-   - Supabase Auth 用户表
-   - 用户主键为 `uuid`
+The current version uses Supabase Auth and Supabase PostgreSQL.
 
-2. `public.app_user_profiles`
-   - 保存业务侧用户资料和角色
-   - 例如 `name`、`role`
+Main tables in use:
+- `auth.users`
+- `public.app_user_profiles`
+- `public.app_user_settings`
+- `public.app_user_feedback_reports`
+- `public.habit_routes`
+- `public.saved_places`
+- `public.traffic_alerts`
+- `public.app_settings`
+- `public.signup_verifications`
 
-3. `public.app_user_settings`
-   - 保存设置页中的公司地点、家庭地点、通勤时间、常用路线
+## Run Locally
 
-4. `public.app_user_feedback_reports`
-   - 保存用户反馈
+### 1. Install Node.js dependencies
 
-5. `public.habit_routes`
-   - 保存 Habit Routes
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
+npm install
+```
 
-6. `public.saved_places`
-   - 保存地点信息
+### 2. Prepare Python environment for FastAPI
 
-7. `public.traffic_alerts`
-   - 保存 Habit Routes 相关交通告警
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements-fastapi.txt
+```
 
-8. `public.app_settings`
-   - 保存系统级配置，例如模拟路线配置
+### 3. Configure environment variables
 
-9. `public.signup_verifications`
-   - 保存邮箱验证码注册流程中的临时验证码数据
+Edit:
+- `camera1/.env`
 
-已经删除的旧表：
-
-1. `public.users`
-2. `public.sessions`
-3. `public.user_settings`
-4. `public.user_feedback_reports`
-5. `public.habit_route_alert_dismissals`
-
-## 3. 当前核心功能
-
-1. 用户登录、注册、登出
-2. 邮箱验证码注册流程
-3. Dashboard 实时事故展示
-4. Map View 实时摄像头与事故点展示
-5. Route Planner 三策略路径规划
-6. Habit Routes 保存、加载、删除、监控
-7. Alerts 与路线告警
-8. 用户反馈提交与管理员查看
-9. 管理员用户列表与统计
-10. 管理员模拟路线与模拟事故
-
-## 4. 环境要求
-
-1. Node.js >= 18
-2. Python 3
-3. 可访问的 Supabase 项目
-
-## 5. `.env` 配置
-
-编辑文件：
-
-- [/Users/apple/Desktop/fyp_demo/camera1/.env](/Users/apple/Desktop/fyp_demo/camera1/.env)
-
-当前需要的关键变量：
+Typical required variables:
 
 ```env
 PORT=3000
@@ -93,117 +79,147 @@ SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 
 PYTHON_BIN=python3
+FASTAPI_BASE_URL=http://127.0.0.1:8000
 
-MAIL_DEV_MODE=false
-SMTP_HOST=smtp.gmail.com
+MAIL_DEV_MODE=true
+SMTP_HOST=
 SMTP_PORT=587
-SMTP_USER=...
-SMTP_PASS=...
-SMTP_FROM=...
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
 
-ONEMAP_API_KEY=...
 LTA_ACCOUNT_KEY=...
 OPENWEATHER_API_KEY=...
 GEMINI_API_KEY=...
+ONEMAP_API_KEY=...
 ```
 
-说明：
-
-1. `DATABASE_URL`：当前连接的 Supabase PostgreSQL connection string
-2. `SUPABASE_URL`：当前使用的 Supabase 项目地址
-3. `SUPABASE_ANON_KEY`：用于后端调用 Supabase Auth 密码登录接口
-4. `SUPABASE_SERVICE_ROLE_KEY`：用于后端创建/删除 Auth 用户，不能放前端，不能提交到 GitHub
-
-## 6. 启动方式
+### 4. Start FastAPI
 
 ```bash
 cd /Users/apple/Desktop/fyp_demo/camera1
-npm install
+source .venv/bin/activate
+npm run start:fastapi
+```
+
+### 5. Start Node.js backend
+
+Open another terminal:
+
+```bash
+cd /Users/apple/Desktop/fyp_demo/camera1
 npm start
 ```
 
-启动后访问：
+### 6. Open the site
 
 - `http://localhost:3000/ui2/`
 
-如果 `3000` 端口被占用，先停止旧进程，再重新执行 `npm start`。
+## Public vs Logged-in Access
 
-## 7. 当前关键接口
+Public users can access:
+- Home
+- About
+- Business Model
+- Dashboard
+- Map View
+- Route Planner
+- Weather
+- Alerts
+- Habit Routes page view
 
-1. `POST /api/auth/login`
-2. `POST /api/auth/signup/request-code`
-3. `POST /api/auth/signup/verify-code`
-4. `DELETE /api/auth/account`
-5. `GET /api/user/settings`
-6. `PUT /api/user/settings`
-7. `PUT /api/user/name`
-8. `PUT /api/user/password`
-9. `GET /api/habit-routes`
-10. `POST /api/habit-routes`
-11. `PATCH /api/habit-routes/:id`
-12. `DELETE /api/habit-routes/:id`
-13. `GET /api/incidents`
-14. `POST /api/route-plan`
-15. `POST /api/feedback`
-16. `GET /api/admin/users`
-17. `GET /api/admin/feedback`
+Logged-in users can additionally use:
+- Profile
+- Settings
+- Feedback submission
+- Habit route saving and management
 
-## 8. 当前登录体系说明
+Admin users can additionally use:
+- Admin Users
+- Admin simulation functions
 
-当前登录流程是：
+## Route Planner Notes
 
-1. 前端提交邮箱和密码到 `/api/auth/login`
-2. 后端使用 Supabase Auth 进行密码登录
-3. 后端返回 Supabase access token
-4. 前端把 token 存在 `sessionStorage`
-5. 后续请求通过 `Authorization: Bearer <token>` 调用后端接口
-6. 后端使用该 token 向 Supabase Auth 查询当前用户身份
+Current Route Planner behavior:
+- Supports postal code, place name, and MRT station input
+- Start point can use current location
+- Returns 3 route strategies:
+  - fastest
+  - fewer lights
+  - balanced
+- Preference button can switch among the three strategies
+- Route cards show:
+  - ETA
+  - extra delay
+  - distance
+  - lights
+  - incidents count
+  - cameras count
+- After clicking `USE THIS ROUTE`:
+  - start and destination pins are added
+  - a red live-location marker follows the user
+  - route-related camera points and incident points appear on the map
+  - start/destination popup shows name and weather
 
-所以当前项目是：
+## Live Data Sources
 
-- 前端不直接连 Supabase SDK 做登录
-- 前端统一调用你自己的 Node.js API
-- Node.js 再去对接 Supabase Auth 和 Supabase PostgreSQL
+Current system integrates data from:
+- data.gov.sg
+- LTA DataMall
+- OneMap
+- OpenWeather
+- Gemini
+- Google News RSS
+- OpenStreetMap / Overpass-derived local road network snapshot
 
-## 9. 常见问题
+## Local Road Network
 
-1. `Authentication failed`
-   - 检查 `SUPABASE_URL`
-   - 检查 `SUPABASE_ANON_KEY`
-   - 检查 access token 是否有效
+Route planning now prefers a local road network snapshot instead of relying only on live Overpass requests.
 
-2. `Supabase Auth is not fully configured`
-   - 检查 `.env` 是否同时配置了：
-     - `SUPABASE_URL`
-     - `SUPABASE_ANON_KEY`
-     - `SUPABASE_SERVICE_ROLE_KEY`
+Road network file:
+- `camera1/data/sg-road-network-overpass.json`
 
-3. `PostgreSQL connected` 失败
-   - 检查 `DATABASE_URL`
-   - 检查 `DATABASE_SSL=true`
+This improves route planning stability and reduces external timeout issues.
 
-4. 注册验证码失败
-   - 检查 SMTP 配置
-   - 或将 `MAIL_DEV_MODE=true` 走开发模式
+## Common Issues
 
-5. Python 路线规划失败
-   - 检查 `PYTHON_BIN=python3`
-   - 检查本机 Python 依赖
+### FastAPI cannot start
 
-## 10. 相关文档
+Check:
+- Python virtual environment is activated
+- `requirements-fastapi.txt` is installed
+- `python3` architecture matches installed packages
 
-1. [/Users/apple/Desktop/fyp_demo/README_一键使用说明.md](/Users/apple/Desktop/fyp_demo/README_%E4%B8%80%E9%94%AE%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E.md)
-2. [/Users/apple/Desktop/fyp_demo/README_代码结构说明.md](/Users/apple/Desktop/fyp_demo/README_%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E.md)
-3. [/Users/apple/Desktop/fyp_demo/camera1/docs/摄像头实现指南.md](/Users/apple/Desktop/fyp_demo/camera1/docs/%E6%91%84%E5%83%8F%E5%A4%B4%E5%AE%9E%E7%8E%B0%E6%8C%87%E5%8D%97.md)
-4. [/Users/apple/Desktop/fyp_demo/camera1/docs/A星寻路实现指南.md](/Users/apple/Desktop/fyp_demo/camera1/docs/A%E6%98%9F%E5%AF%BB%E8%B7%AF%E5%AE%9E%E7%8E%B0%E6%8C%87%E5%8D%97.md)
-5. [/Users/apple/Desktop/fyp_demo/camera1/docs/ROUTING_README.md](/Users/apple/Desktop/fyp_demo/camera1/docs/ROUTING_README.md)
+### Port 3000 is already in use
 
-## 11. GitHub 更新
+Find the process:
+
+```bash
+lsof -nP -iTCP:3000 -sTCP:LISTEN
+```
+
+Then stop it and restart `npm start`.
+
+### Current location cannot be obtained
+
+Check:
+- browser location permission
+- macOS location services
+- site permission for `localhost`
+
+### Route planning fails
+
+Check:
+- FastAPI is running on `127.0.0.1:8000`
+- Node backend is running
+- `.env` keys are configured
+
+## GitHub Update
 
 ```bash
 cd /Users/apple/Desktop/fyp_demo
 git status
 git add .
 git commit -m "your update message"
-git push
+git push origin main
 ```
