@@ -174,11 +174,14 @@ async function sendVerificationEmail(email, code, name) {
 }
 
 function toPublicUser(row) {
+  const membership = getEffectiveMembership(row);
   return {
     id: row.id,
     name: row.name,
     email: row.email,
-    role: row.role
+    role: row.role,
+    memberTier: membership.tier,
+    memberExpiresAt: membership.expiresAt
   };
 }
 
@@ -210,6 +213,17 @@ function normalizeUserProfilePayload(payload) {
     region: trimText(payload?.region, 120),
     profession: trimText(payload?.profession, 120),
     school: trimText(payload?.school, 160)
+  };
+}
+
+function getEffectiveMembership(row) {
+  const requestedTier = String(row?.member_tier || '').trim().toLowerCase();
+  const expiresAt = row?.member_expires_at ? new Date(row.member_expires_at).toISOString() : '';
+  const expiresTs = expiresAt ? Date.parse(expiresAt) : NaN;
+  const isAdvanced = requestedTier === 'advanced' && Number.isFinite(expiresTs) && expiresTs > Date.now();
+  return {
+    tier: isAdvanced ? 'advanced' : 'free',
+    expiresAt: isAdvanced ? expiresAt : ''
   };
 }
 
@@ -296,7 +310,7 @@ async function ensureUserProfile(userId, email, name, role = 'user') {
       email = EXCLUDED.email,
       name = COALESCE(NULLIF(app_user_profiles.name, ''), EXCLUDED.name),
       updated_at = EXCLUDED.updated_at
-    RETURNING user_id AS id, email, name, role
+    RETURNING user_id AS id, email, name, role, member_tier, member_expires_at
     `,
     [userId, email, safeName, safeRole, nowIso(), nowIso()]
   );
@@ -311,6 +325,8 @@ async function getUserProfileById(userId) {
       email,
       name,
       role,
+      member_tier,
+      member_expires_at,
       bio,
       gender,
       birthday,
@@ -349,6 +365,8 @@ async function initAuthDatabase() {
       email TEXT NOT NULL,
       name TEXT NOT NULL,
       role TEXT NOT NULL CHECK(role IN ('user','admin')),
+      member_tier TEXT NOT NULL DEFAULT 'free' CHECK(member_tier IN ('free','advanced')),
+      member_expires_at TIMESTAMPTZ,
       bio TEXT NOT NULL DEFAULT '',
       gender TEXT NOT NULL DEFAULT '',
       birthday DATE,
@@ -447,6 +465,8 @@ async function initAuthDatabase() {
   `);
 
   await pool.query(`
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS member_tier TEXT NOT NULL DEFAULT 'free';
+    ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS member_expires_at TIMESTAMPTZ;
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS bio TEXT NOT NULL DEFAULT '';
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS gender TEXT NOT NULL DEFAULT '';
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS birthday DATE;
@@ -1060,6 +1080,8 @@ app.get('/api/user/profile', requireAuth, async (req, res) => {
     const user = await getUserProfileById(req.session.user.id);
     if (!user) return res.status(404).json({ error: 'User does not exist' });
     const profile = {
+      memberTier: getEffectiveMembership(user).tier,
+      memberExpiresAt: getEffectiveMembership(user).expiresAt,
       bio: user.bio || '',
       gender: user.gender || '',
       birthday: user.birthday ? new Date(user.birthday).toISOString().slice(0, 10) : '',
@@ -1094,6 +1116,8 @@ app.put('/api/user/profile', requireAuth, async (req, res) => {
         email,
         name,
         role,
+        member_tier,
+        member_expires_at,
         bio,
         gender,
         birthday,
@@ -1117,6 +1141,8 @@ app.put('/api/user/profile', requireAuth, async (req, res) => {
       ok: true,
       user: toPublicUser(updated.rows[0]),
       profile: {
+        memberTier: getEffectiveMembership(updated.rows[0]).tier,
+        memberExpiresAt: getEffectiveMembership(updated.rows[0]).expiresAt,
         bio: updated.rows[0].bio || '',
         gender: updated.rows[0].gender || '',
         birthday: updated.rows[0].birthday ? new Date(updated.rows[0].birthday).toISOString().slice(0, 10) : '',
@@ -1128,6 +1154,42 @@ app.put('/api/user/profile', requireAuth, async (req, res) => {
   } catch (error) {
     console.error('Failed to save user profile:', error.message);
     res.status(500).json({ error: 'Failed to save user profile' });
+  }
+});
+
+app.post('/api/user/membership/upgrade', requireAuth, async (req, res) => {
+  if (req.session.user.role === 'admin') {
+    return res.status(400).json({ error: 'Admin account does not use public membership plans' });
+  }
+  try {
+    const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+    const updated = await pool.query(
+      `
+      UPDATE app_user_profiles
+      SET
+        member_tier = 'advanced',
+        member_expires_at = $2,
+        updated_at = $3
+      WHERE user_id = $1
+      RETURNING
+        user_id AS id,
+        email,
+        name,
+        role,
+        member_tier,
+        member_expires_at
+      `,
+      [req.session.user.id, expiresAt, nowIso()]
+    );
+    if (!updated.rows[0]) return res.status(404).json({ error: 'User does not exist' });
+    res.json({
+      ok: true,
+      user: toPublicUser(updated.rows[0]),
+      membership: getEffectiveMembership(updated.rows[0])
+    });
+  } catch (error) {
+    console.error('Failed to upgrade membership:', error.message);
+    res.status(500).json({ error: 'Failed to upgrade membership' });
   }
 });
 
@@ -1192,7 +1254,7 @@ app.put('/api/user/name', requireAuth, async (req, res) => {
       UPDATE app_user_profiles
       SET name = $1, updated_at = $3
       WHERE user_id = $2
-      RETURNING user_id AS id, name, email, role
+      RETURNING user_id AS id, name, email, role, member_tier, member_expires_at
       `,
       [name, req.session.user.id, nowIso()]
     );

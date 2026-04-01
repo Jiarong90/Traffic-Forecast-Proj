@@ -301,6 +301,9 @@ Currently studying at University of Wollongong.">
         <div class="profile-avatar-lg"></div>
         <h1 class="section-head" id="profile-name">--</h1>
         <p class="profile-email" id="profile-email">--</p>
+        <div class="profile-membership-wrap hidden" id="profile-membership-wrap">
+          <button type="button" class="profile-membership-pill" id="profile-membership-btn">FREE USER</button>
+        </div>
         <div class="profile-edit-grid">
           <div class="profile-edit-item profile-edit-item-full">
             <label for="profile-bio">Personal Introduction</label>
@@ -340,6 +343,20 @@ Currently studying at University of Wollongong.">
         <p class="settings-feedback" id="profile-feedback"></p>
       </section>
     </main>
+
+    <div class="profile-membership-overlay hidden" id="profile-membership-overlay">
+      <div class="profile-membership-modal">
+        <button type="button" class="profile-membership-close" id="profile-membership-close">×</button>
+        <h2 class="profile-membership-title" id="profile-membership-title">FREE USER</h2>
+        <p class="profile-membership-sub" id="profile-membership-sub">Current plan details</p>
+        <div class="profile-membership-list" id="profile-membership-list"></div>
+        <div class="profile-membership-upgrade hidden" id="profile-membership-upgrade">
+          <p class="profile-membership-paynote">Scan the PayNow QR code below to upgrade to Advanced User for 30 days.</p>
+          <img src="assets/images/paynow.jpg" alt="PayNow QR" class="profile-membership-qr" />
+          <button type="button" class="btn-dark full" id="profile-membership-confirm-btn">I HAVE COMPLETED PAYMENT</button>
+        </div>
+      </div>
+    </div>
 
     <!-- Settings -->
     <main id="settings" class="page">

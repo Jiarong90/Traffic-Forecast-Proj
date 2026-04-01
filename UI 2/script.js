@@ -52,6 +52,15 @@
   var settingsPasswordNewInput = document.getElementById("settings-password-new");
   var profileNameEl = document.getElementById("profile-name");
   var profileEmailEl = document.getElementById("profile-email");
+  var profileMembershipWrap = document.getElementById("profile-membership-wrap");
+  var profileMembershipBtn = document.getElementById("profile-membership-btn");
+  var profileMembershipOverlay = document.getElementById("profile-membership-overlay");
+  var profileMembershipClose = document.getElementById("profile-membership-close");
+  var profileMembershipTitle = document.getElementById("profile-membership-title");
+  var profileMembershipSub = document.getElementById("profile-membership-sub");
+  var profileMembershipList = document.getElementById("profile-membership-list");
+  var profileMembershipUpgrade = document.getElementById("profile-membership-upgrade");
+  var profileMembershipConfirmBtn = document.getElementById("profile-membership-confirm-btn");
   var profileBioInput = document.getElementById("profile-bio");
   var profileGenderInput = document.getElementById("profile-gender");
   var profileBirthdayInput = document.getElementById("profile-birthday");
@@ -73,6 +82,8 @@
     frequentRoutes: []
   };
   var userProfileCache = {
+    memberTier: "free",
+    memberExpiresAt: "",
     bio: "",
     gender: "",
     birthday: "",
@@ -181,6 +192,8 @@
 
   function setUserProfile(profile) {
     userProfileCache = {
+      memberTier: String(profile?.memberTier || "free"),
+      memberExpiresAt: String(profile?.memberExpiresAt || ""),
       bio: String(profile?.bio || ""),
       gender: String(profile?.gender || ""),
       birthday: String(profile?.birthday || ""),
@@ -252,6 +265,29 @@
     if (profileSchoolInput) profileSchoolInput.value = data.school || "";
   }
 
+  function formatMembershipLabel(user) {
+    if (!user || user.role === "admin") return "";
+    return String(user.memberTier || "free").toLowerCase() === "advanced" ? "ADVANCED USER" : "FREE USER";
+  }
+
+  function openMembershipModal() {
+    var auth = getStoredAuth();
+    var user = auth && auth.user;
+    if (!user || user.role === "admin") return;
+    var isAdvanced = String(user.memberTier || "free").toLowerCase() === "advanced";
+    if (profileMembershipTitle) profileMembershipTitle.textContent = formatMembershipLabel(user);
+    if (profileMembershipSub) profileMembershipSub.textContent = "";
+    if (profileMembershipList) profileMembershipList.innerHTML = "";
+    if (profileMembershipUpgrade) {
+      profileMembershipUpgrade.classList.toggle("hidden", isAdvanced);
+    }
+    if (profileMembershipOverlay) profileMembershipOverlay.classList.remove("hidden");
+  }
+
+  function closeMembershipModal() {
+    if (profileMembershipOverlay) profileMembershipOverlay.classList.add("hidden");
+  }
+
   function syncProfileCacheFromForm(options) {
     markProfileDirty();
     userProfileCache.bio = (profileBioInput && profileBioInput.value || "").trim();
@@ -293,6 +329,15 @@
   function renderProfile(user) {
     if (profileNameEl) profileNameEl.textContent = user?.name || "--";
     if (profileEmailEl) profileEmailEl.textContent = user?.email || "--";
+    if (profileMembershipWrap) {
+      var showMembership = !!(user && user.role !== "admin");
+      profileMembershipWrap.classList.toggle("hidden", !showMembership);
+      if (profileMembershipBtn && showMembership) {
+        var label = formatMembershipLabel(user);
+        profileMembershipBtn.textContent = label;
+        profileMembershipBtn.classList.toggle("advanced", label === "ADVANCED USER");
+      }
+    }
     fillProfileForm(userProfileCache);
   }
 
@@ -854,6 +899,49 @@
         setProfileFeedback("Profile updated.", false);
       } catch (err) {
         setProfileFeedback("Profile update failed: " + err.message, true);
+      }
+    });
+  }
+
+  if (profileMembershipBtn) {
+    profileMembershipBtn.addEventListener("click", function () {
+      openMembershipModal();
+    });
+  }
+
+  if (profileMembershipClose) {
+    profileMembershipClose.addEventListener("click", function () {
+      closeMembershipModal();
+    });
+  }
+
+  if (profileMembershipOverlay) {
+    profileMembershipOverlay.addEventListener("click", function (e) {
+      if (e.target === profileMembershipOverlay) closeMembershipModal();
+    });
+  }
+
+  if (profileMembershipConfirmBtn) {
+    profileMembershipConfirmBtn.addEventListener("click", async function () {
+      try {
+        var auth = getStoredAuth();
+        if (!auth || !auth.user) return;
+        var resp = await window.fastAuthFetch("/api/user/membership/upgrade", { method: "POST" });
+        var data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || "Membership upgrade failed");
+        setStoredAuth({ token: auth.token, user: data.user || auth.user });
+        updateHeaderAuth();
+        if (data.user) renderProfile(data.user);
+        if (data.membership) {
+          setUserProfile(Object.assign({}, userProfileCache, {
+            memberTier: data.membership.tier,
+            memberExpiresAt: data.membership.expiresAt
+          }));
+        }
+        openMembershipModal();
+        setProfileFeedback("Membership upgraded to Advanced User for 30 days.", false);
+      } catch (err) {
+        setProfileFeedback("Membership upgrade failed: " + err.message, true);
       }
     });
   }

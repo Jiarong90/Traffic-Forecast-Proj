@@ -781,6 +781,100 @@ body {
 .profile-email { color: #64748b; margin-top: 6px; }
 .profile-page-card > .section-head,
 .profile-page-card > .profile-email { text-align: center; }
+.profile-membership-wrap {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
+}
+.profile-membership-pill {
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: rgba(239, 246, 255, 0.92);
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+}
+.profile-membership-pill.advanced {
+  background: rgba(255, 247, 237, 0.96);
+  border-color: rgba(234, 88, 12, 0.22);
+  color: #c2410c;
+}
+.profile-membership-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: rgba(15, 23, 42, 0.44);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.profile-membership-modal {
+  width: min(540px, calc(100vw - 32px));
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 28px 70px rgba(15, 23, 42, 0.26);
+  padding: 24px;
+  position: relative;
+}
+.profile-membership-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+.profile-membership-title {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 8px;
+}
+.profile-membership-sub {
+  color: #64748b;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.profile-membership-list {
+  display: grid;
+  gap: 10px;
+}
+.profile-membership-item {
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  color: #334155;
+  font-size: 14px;
+}
+.profile-membership-upgrade {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid #e2e8f0;
+}
+.profile-membership-paynote {
+  color: #475569;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+.profile-membership-qr {
+  width: min(220px, 100%);
+  display: block;
+  margin: 0 auto 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
 .profile-edit-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
