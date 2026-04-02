@@ -124,16 +124,42 @@ function normalizeRouteItem(item, index) {
 function normalizeUserSettings(payload) {
   const companyLocation = String(payload?.companyLocation || '').trim().slice(0, 160);
   const homeLocation = String(payload?.homeLocation || '').trim().slice(0, 160);
+  const placesRaw = Array.isArray(payload?.frequentPlaces) ? payload.frequentPlaces.slice(0, 4) : [];
+  const frequentPlaces = placesRaw.map((p, i) => {
+    const name = String(p?.name || '').trim().slice(0, 40);
+    const query = String(p?.query || '').trim().slice(0, 160);
+    if (!name || !query) return null;
+    return { name: name || `Place ${i + 1}`, query };
+  }).filter(Boolean);
   const commuteToWorkTime = String(payload?.commuteToWorkTime || '').trim().slice(0, 10);
   const commuteToHomeTime = String(payload?.commuteToHomeTime || '').trim().slice(0, 10);
   const routesRaw = Array.isArray(payload?.frequentRoutes) ? payload.frequentRoutes.slice(0, 3) : [];
   const frequentRoutes = routesRaw.map((r, i) => normalizeRouteItem(r, i)).filter(Boolean);
+  const vehiclesRaw = Array.isArray(payload?.vehicles) ? payload.vehicles.slice(0, 3) : [];
+  const allowedTypes = new Set(['sedan', 'suv', 'mpv', 'motorcycle']);
+  const allowedFuelGrades = new Set(['ron92', 'ron95', 'ron98']);
+  const vehicles = vehiclesRaw.map((v, i) => {
+    const name = String(v?.name || '').trim().slice(0, 30);
+    const vehicleType = allowedTypes.has(String(v?.vehicleType || '').trim()) ? String(v.vehicleType).trim() : 'sedan';
+    const fuelGrade = allowedFuelGrades.has(String(v?.fuelGrade || '').trim()) ? String(v.fuelGrade).trim() : 'ron95';
+    const consumption = Number(v?.consumption);
+    if (!name) return null;
+    if (!Number.isFinite(consumption) || consumption < 2 || consumption > 30) return null;
+    return {
+      name: name || `Vehicle ${i + 1}`,
+      vehicleType,
+      fuelGrade,
+      consumption: Math.round(consumption * 10) / 10
+    };
+  }).filter(Boolean);
   return {
     companyLocation,
     homeLocation,
+    frequentPlaces,
     commuteToWorkTime,
     commuteToHomeTime,
-    frequentRoutes
+    frequentRoutes,
+    vehicles
   };
 }
 
@@ -384,9 +410,11 @@ async function initAuthDatabase() {
       user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
       company_location TEXT NOT NULL DEFAULT '',
       home_location TEXT NOT NULL DEFAULT '',
+      frequent_places JSONB NOT NULL DEFAULT '[]'::jsonb,
       commute_to_work_time TEXT NOT NULL DEFAULT '',
       commute_to_home_time TEXT NOT NULL DEFAULT '',
       frequent_routes JSONB NOT NULL DEFAULT '[]'::jsonb,
+      vehicles JSONB NOT NULL DEFAULT '[]'::jsonb,
       updated_at TIMESTAMPTZ NOT NULL
     );
 
@@ -473,6 +501,8 @@ async function initAuthDatabase() {
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS region TEXT NOT NULL DEFAULT '';
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS profession TEXT NOT NULL DEFAULT '';
     ALTER TABLE app_user_profiles ADD COLUMN IF NOT EXISTS school TEXT NOT NULL DEFAULT '';
+    ALTER TABLE app_user_settings ADD COLUMN IF NOT EXISTS frequent_places JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE app_user_settings ADD COLUMN IF NOT EXISTS vehicles JSONB NOT NULL DEFAULT '[]'::jsonb;
   `);
 
   await pool.query(
@@ -1048,25 +1078,35 @@ app.get('/api/user/settings', requireAuth, async (req, res) => {
     if (!user) return res.status(404).json({ error: 'User does not exist' });
     const settingsQ = await pool.query(
       `
-      SELECT company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes
+      SELECT company_location, home_location, frequent_places, commute_to_work_time, commute_to_home_time, frequent_routes, vehicles
       FROM app_user_settings
       WHERE user_id = $1
       `,
       [user.id]
     );
     const row = settingsQ.rows[0];
+    const frequentPlaces = Array.isArray(row?.frequent_places) && row.frequent_places.length
+      ? row.frequent_places.slice(0, 4)
+      : [
+          row?.company_location ? { name: 'Company', query: row.company_location } : null,
+          row?.home_location ? { name: 'Home', query: row.home_location } : null
+        ].filter(Boolean);
     const settings = row ? {
       companyLocation: row.company_location || '',
       homeLocation: row.home_location || '',
+      frequentPlaces,
       commuteToWorkTime: row.commute_to_work_time || '',
       commuteToHomeTime: row.commute_to_home_time || '',
-      frequentRoutes: Array.isArray(row.frequent_routes) ? row.frequent_routes.slice(0, 3) : []
+      frequentRoutes: Array.isArray(row.frequent_routes) ? row.frequent_routes.slice(0, 3) : [],
+      vehicles: Array.isArray(row.vehicles) ? row.vehicles.slice(0, 3) : []
     } : {
       companyLocation: '',
       homeLocation: '',
+      frequentPlaces: [],
       commuteToWorkTime: '',
       commuteToHomeTime: '',
-      frequentRoutes: []
+      frequentRoutes: [],
+      vehicles: []
     };
     res.json({ user: toPublicUser(user), settings });
   } catch (error) {
@@ -1199,27 +1239,32 @@ app.put('/api/user/settings', requireAuth, async (req, res) => {
     await pool.query(
       `
       INSERT INTO app_user_settings (
-        user_id, company_location, home_location, commute_to_work_time, commute_to_home_time, frequent_routes, updated_at
+        user_id, company_location, home_location, frequent_places, commute_to_work_time, commute_to_home_time, frequent_routes, vehicles, updated_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7)
+      VALUES ($1, $2, $3, $4::jsonb, $5, $6, $7::jsonb, $8::jsonb, $9)
       ON CONFLICT(user_id) DO UPDATE SET
         company_location = EXCLUDED.company_location,
         home_location = EXCLUDED.home_location,
+        frequent_places = EXCLUDED.frequent_places,
         commute_to_work_time = EXCLUDED.commute_to_work_time,
         commute_to_home_time = EXCLUDED.commute_to_home_time,
         frequent_routes = EXCLUDED.frequent_routes,
+        vehicles = EXCLUDED.vehicles,
         updated_at = EXCLUDED.updated_at
       `,
       [
         req.session.user.id,
-        settings.companyLocation,
-        settings.homeLocation,
+        settings.frequentPlaces[0]?.query || '',
+        settings.frequentPlaces[1]?.query || '',
+        JSON.stringify(settings.frequentPlaces),
         settings.commuteToWorkTime,
         settings.commuteToHomeTime,
         JSON.stringify(settings.frequentRoutes),
+        JSON.stringify(settings.vehicles),
         nowIso()
       ]
     );
+    await pool.query(`DELETE FROM saved_places WHERE user_id = $1 AND label LIKE 'PLACE_%'`, [req.session.user.id]);
     const syncPlaces = async (label, placeName) => {
       const value = String(placeName || '').trim();
       await pool.query(`DELETE FROM saved_places WHERE user_id = $1 AND label = $2`, [req.session.user.id, label]);
@@ -1234,12 +1279,40 @@ app.put('/api/user/settings', requireAuth, async (req, res) => {
         [req.session.user.id, value, label, nowIso()]
       );
     };
-    await syncPlaces('COMPANY', settings.companyLocation);
-    await syncPlaces('HOME', settings.homeLocation);
+    for (let i = 0; i < settings.frequentPlaces.length; i += 1) {
+      const place = settings.frequentPlaces[i];
+      await syncPlaces(`PLACE_${i + 1}`, place.query);
+    }
     res.json({ ok: true, settings });
   } catch (error) {
     console.error('Failed to save user settings:', error.message);
     res.status(500).json({ error: 'Failed to save user settings' });
+  }
+});
+
+app.put('/api/user/settings/vehicles', requireAuth, async (req, res) => {
+  try {
+    const settings = normalizeUserSettings({ vehicles: req.body?.vehicles });
+    await pool.query(
+      `
+      INSERT INTO app_user_settings (
+        user_id, vehicles, updated_at
+      )
+      VALUES ($1, $2::jsonb, $3)
+      ON CONFLICT(user_id) DO UPDATE SET
+        vehicles = EXCLUDED.vehicles,
+        updated_at = EXCLUDED.updated_at
+      `,
+      [
+        req.session.user.id,
+        JSON.stringify(settings.vehicles),
+        nowIso()
+      ]
+    );
+    res.json({ ok: true, vehicles: settings.vehicles });
+  } catch (error) {
+    console.error('Failed to save vehicles:', error.message);
+    res.status(500).json({ error: 'Failed to save vehicles' });
   }
 });
 

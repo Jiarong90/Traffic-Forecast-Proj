@@ -371,15 +371,10 @@ Currently studying at University of Wollongong.">
             </div>
             <div class="settings-item">
               <label for="settings-name">Display Name</label>
-              <input type="text" id="settings-name" placeholder="Your name" />
-            </div>
-            <div class="settings-item">
-              <label for="settings-company">Company Location</label>
-              <input type="text" id="settings-company" placeholder="Postal / place / MRT" />
-            </div>
-            <div class="settings-item">
-              <label for="settings-home">Home Location</label>
-              <input type="text" id="settings-home" placeholder="Postal / place / MRT" />
+              <div class="settings-inline-row">
+                <input type="text" id="settings-name" placeholder="Your name" />
+                <button type="button" class="btn-dark settings-inline-btn" id="settings-save-profile-btn">SAVE PROFILE</button>
+              </div>
             </div>
             <div class="settings-item">
               <label for="settings-commute-go">Go to work time</label>
@@ -391,7 +386,37 @@ Currently studying at University of Wollongong.">
             </div>
           </div>
 
-          <h2 class="subsection-title">Frequent Routes (max 3)</h2>
+          <h2 class="subsection-title">Frequent Locations & Routes</h2>
+          <div class="settings-places-grid">
+            <div class="settings-item">
+              <label>Frequent Location 1</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-1" placeholder="Place name" />
+                <input type="text" id="settings-place-query-1" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 2</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-2" placeholder="Place name" />
+                <input type="text" id="settings-place-query-2" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 3</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-3" placeholder="Place name" />
+                <input type="text" id="settings-place-query-3" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 4</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-4" placeholder="Place name" />
+                <input type="text" id="settings-place-query-4" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+          </div>
           <div class="settings-routes" id="settings-routes-wrap">
             <div class="settings-route-row">
               <input type="text" id="settings-route-name-1" placeholder="Route name (e.g. Home → Office)" />
@@ -411,7 +436,6 @@ Currently studying at University of Wollongong.">
           </div>
 
           <div class="settings-actions">
-            <button type="button" class="btn-dark" id="settings-save-profile-btn">SAVE PROFILE</button>
             <button type="button" class="btn-dark" id="settings-save-routes-btn">SAVE LOCATIONS & ROUTES</button>
           </div>
         </form>
@@ -431,6 +455,47 @@ Currently studying at University of Wollongong.">
           <button type="button" class="user-dropdown-item delete-account" id="settings-delete-account-btn">
             <span class="icon-warning"></span> Delete Account
           </button>
+        </section>
+
+        <section class="settings-vehicles-card">
+          <h2 class="subsection-title">My Vehicles</h2>
+          <div id="settings-vehicles-list" class="settings-vehicles-list"></div>
+          <p class="settings-desc">Save up to 3 vehicles for fuel and ERP cost estimates.</p>
+          <button type="button" class="btn-dark" id="settings-add-vehicle-btn" style="margin-top:12px">+ ADD VEHICLE</button>
+          <div class="settings-vehicle-form hidden" id="settings-vehicle-form">
+            <div class="vehicle-form-grid">
+              <div class="vehicle-form-item">
+                <label>Nickname</label>
+                <input type="text" id="vf-name" placeholder="e.g. Family Car" maxlength="30" />
+              </div>
+              <div class="vehicle-form-item">
+                <label>Vehicle Type</label>
+                <select id="vf-vehicle-type" class="vehicle-form-select">
+                  <option value="sedan">Sedan</option>
+                  <option value="suv">SUV</option>
+                  <option value="mpv">MPV</option>
+                  <option value="motorcycle">Motorcycle</option>
+                </select>
+              </div>
+              <div class="vehicle-form-item">
+                <label>Fuel Grade</label>
+                <select id="vf-fuel-grade" class="vehicle-form-select">
+                  <option value="ron92">RON 92</option>
+                  <option value="ron95" selected>RON 95</option>
+                  <option value="ron98">RON 98</option>
+                </select>
+              </div>
+              <div class="vehicle-form-item">
+                <label>Fuel Consumption (L/100km)</label>
+                <input type="number" id="vf-consumption" placeholder="8.0" min="2" max="30" step="0.1" />
+              </div>
+            </div>
+            <div class="vehicle-form-actions">
+              <button type="button" class="btn-dark" id="vf-save-btn">SAVE VEHICLE</button>
+              <button type="button" class="btn-outline" id="vf-cancel-btn">CANCEL</button>
+            </div>
+            <p class="settings-feedback" id="vf-feedback"></p>
+          </div>
         </section>
         <p class="settings-feedback" id="settings-feedback"></p>
       </section>
@@ -618,6 +683,35 @@ Currently studying at University of Wollongong.">
           </div>
           <button type="button" class="btn-dark full" id="route-confirm-btn">USE THIS ROUTE</button>
           <button type="button" class="btn-dark full" id="route-view-cameras-btn">VIEW LIVE CAMERAS</button>
+          <div class="cost-panel" id="cost-panel">
+            <div class="cost-panel-header">
+              <span class="cost-panel-title">TRIP COST ESTIMATE</span>
+            </div>
+            <div class="cost-type-toggle-row">
+              <button type="button" class="cost-type-btn active" id="cost-type-sedan">Sedan</button>
+              <button type="button" class="cost-type-btn" id="cost-type-suv">SUV</button>
+              <button type="button" class="cost-type-btn" id="cost-type-mpv">MPV</button>
+              <button type="button" class="cost-type-btn" id="cost-type-motorcycle">Motorcycle</button>
+            </div>
+            <div class="cost-vehicle-row">
+              <label class="cost-label" for="cost-fuel-grade">FUEL</label>
+              <select id="cost-fuel-grade" class="cost-vehicle-select">
+                <option value="ron92">RON 92 — S$3.39/L</option>
+                <option value="ron95" selected>RON 95 — S$3.44/L</option>
+                <option value="ron98">RON 98 — S$3.92/L</option>
+              </select>
+            </div>
+            <div class="cost-vehicle-row hidden" id="cost-saved-vehicle-row">
+              <label class="cost-label" for="cost-vehicle-select">SAVED VEHICLE</label>
+              <select id="cost-vehicle-select" class="cost-vehicle-select cost-vehicle-select-saved">
+                <option value="">User own vehicle</option>
+              </select>
+            </div>
+            <div class="cost-vehicle-row">
+              <span class="cost-label">CONSUMPTION</span>
+              <span class="cost-consumption" id="cost-consumption">8.0 L/100km</span>
+            </div>
+          </div>
         </aside>
       </div>
       <section class="route-options">

@@ -1645,7 +1645,7 @@ body {
 .route-marker { position: absolute; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 600; padding: 8px 12px; background: #fff; border: 1px solid #ccc; border-radius: 6px; }
 .route-marker.origin { top: 20px; left: 50%; transform: translateX(-50%); }
 .route-marker.dest { bottom: 20px; left: 50%; transform: translateX(-50%); }
-.routes-legend { position: absolute; top: 16px; right: 16px; padding: 12px 16px; border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 12px; background: rgba(255,255,255,0.86); font-size: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.routes-legend { position: absolute; top: 16px; right: 16px; z-index: 5200; padding: 12px 16px; border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 12px; background: rgba(255,255,255,0.86); font-size: 12px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .legend-title { font-weight: 700; margin-bottom: 8px; }
 .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
 .bar { display: inline-block; width: 24px; height: 6px; border-radius: 2px; }
@@ -1765,6 +1765,23 @@ body {
 .route-card-icons { display: flex; gap: 8px; margin-top: 8px; font-size: 12px; color: #0f172a; }
 .route-card-label { font-size: 11px; font-weight: 700; letter-spacing: 0.05em; margin-top: 8px; color: #475569; }
 .route-card-metrics { font-size: 12px; color: #475569; margin-top: 6px; }
+.route-card-costs {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255,255,255,0.3);
+  display: grid;
+  gap: 5px;
+}
+.route-card-cost-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 11px;
+  color: #334155;
+}
+.route-card-cost-row span:first-child { color: #475569; }
+.route-card-cost-row span:last-child { font-weight: 700; color: #0f172a; white-space: nowrap; }
 
 /* ========== Weather ========== */
 #weather { display: none; }
@@ -2583,4 +2600,63 @@ body {
   .about-team-grid {
     grid-template-columns: 1fr;
   }
+}
+
+.cost-panel { margin-top: 16px; border: 1px solid #d8e3f0; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.86); }
+.cost-panel-header { display: flex; align-items: center; padding: 10px 14px; background: rgba(248,250,252,0.95); border-bottom: 1px solid #e2e8f0; }
+.cost-panel-title { font-size: 12px; font-weight: 700; letter-spacing: .04em; color: #1f2937; }
+.cost-type-toggle-row { display: flex; border-bottom: 1px solid #e2e8f0; }
+.cost-type-btn { flex: 1; padding: 8px 0; border: none; background: #f8fafc; font-size: 11px; font-weight: 700; color: #64748b; cursor: pointer; transition: background .15s ease, color .15s ease; border-right: 1px solid #e2e8f0; }
+.cost-type-btn:last-child { border-right: none; }
+.cost-type-btn.active { background: #1e40af; color: #fff; }
+.cost-type-btn:hover:not(.active) { background: #e2e8f0; color: #1e40af; }
+.cost-vehicle-row { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid #f0f4f8; }
+.cost-vehicle-row:last-child { border-bottom: none; }
+.cost-label { font-size: 11px; font-weight: 700; color: #64748b; white-space: nowrap; }
+.cost-vehicle-select { flex: 1; font-size: 12px; border: 1px solid #d1d5db; border-radius: 6px; padding: 5px 8px; background: #fff; cursor: pointer; outline: none; }
+.cost-vehicle-select:focus { border-color: #2563eb; }
+.cost-vehicle-select-saved {
+  flex: 0 0 150px;
+  max-width: 150px;
+}
+.cost-consumption {
+  flex: 1;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.settings-vehicles-card { margin-top: 24px; padding: 20px; border: 1px solid #e0e7ef; border-radius: 12px; background: rgba(255,255,255,0.88); }
+.settings-vehicles-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+.vehicle-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid #e0e7ef; border-radius: 10px; background: #fafcff; gap: 10px; }
+.vehicle-item-left { display: flex; flex-direction: column; gap: 3px; }
+.vehicle-item-name { font-weight: 700; font-size: 14px; color: #111827; }
+.vehicle-item-meta { font-size: 12px; color: #64748b; }
+.btn-vehicle-delete { font-size: 12px; background: none; border: 1px solid #e0e7ef; color: #dc2626; border-radius: 6px; padding: 4px 10px; cursor: pointer; flex-shrink: 0; transition: background .15s ease; }
+.btn-vehicle-delete:hover { background: #fef2f2; }
+.settings-vehicle-form { margin-top: 16px; padding: 16px; border: 1px dashed #d1d5db; border-radius: 10px; background: #f8fafc; }
+.vehicle-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.vehicle-form-item label { display: block; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 5px; }
+.vehicle-form-item input, .vehicle-form-select { width: 100%; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 6px; padding: 8px 10px; font-size: 13px; background: #fff; outline: none; transition: border-color .15s ease; }
+.vehicle-form-item input:focus, .vehicle-form-select:focus { border-color: #2563eb; }
+.vehicle-form-actions { display: flex; gap: 10px; }
+.btn-outline { padding: 8px 18px; border: 1px solid #cbd5e1; background: #fff; color: #1f2937; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background .15s ease; }
+.btn-outline:hover { background: #f8fafc; }
+.settings-inline-row { display: flex; align-items: center; gap: 10px; }
+.settings-inline-row input { flex: 1; }
+.settings-inline-btn { white-space: nowrap; flex-shrink: 0; }
+.settings-places-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 14px 0 18px; }
+.settings-place-row { display: grid; grid-template-columns: 0.95fr 1.35fr; gap: 10px; }
+
+@media (max-width: 600px) {
+  .vehicle-form-grid { grid-template-columns: 1fr; }
+  .settings-inline-row { flex-direction: column; align-items: stretch; }
+  .settings-places-grid { grid-template-columns: 1fr; }
+  .settings-place-row { grid-template-columns: 1fr; }
 }
