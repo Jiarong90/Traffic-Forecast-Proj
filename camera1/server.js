@@ -2072,6 +2072,63 @@ async function callGeminiText(prompt) {
   return data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 }
 
+function extractJsonObject(text) {
+  const raw = String(text || '').trim();
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start < 0 || end <= start) return null;
+  try {
+    return JSON.parse(raw.slice(start, end + 1));
+  } catch (_) {
+    return null;
+  }
+}
+
+function buildChatFallback(message) {
+  const text = String(message || '').trim();
+  const lower = text.toLowerCase();
+  const routeMatch = text.match(/from\s+(.+?)\s+to\s+(.+)/i);
+  if (routeMatch) {
+    return {
+      type: 'action',
+      action: 'plan_route',
+      params: {
+        from: routeMatch[1].trim(),
+        to: routeMatch[2].trim()
+      },
+      text: `Planning route from ${routeMatch[1].trim()} to ${routeMatch[2].trim()}.`
+    };
+  }
+  if (/(habit route|saved route|my routes)/i.test(lower)) {
+    return {
+      type: 'action',
+      action: 'view_habit_routes',
+      params: {},
+      text: 'Opening your saved routes.'
+    };
+  }
+  if (/^\s*(accept|yes|confirm)\s*$/i.test(text)) {
+    return {
+      type: 'action',
+      action: 'reroute_from_jam_decision',
+      params: { reroute_decision: true },
+      text: 'Accepting the alternate route.'
+    };
+  }
+  if (/^\s*(reject|decline|no)\s*$/i.test(text)) {
+    return {
+      type: 'action',
+      action: 'reroute_from_jam_decision',
+      params: { reroute_decision: false },
+      text: 'Keeping the current route.'
+    };
+  }
+  return {
+    type: 'chat',
+    text: 'Ask me to plan a route, open your saved routes, or help with Singapore traffic conditions.'
+  };
+}
+
 function decodeHtmlLite(text = '') {
   return String(text || '')
     .replace(/<!\[CDATA\[|\]\]>/g, '')
@@ -2487,6 +2544,32 @@ async function callFastApiJson(pathname, payload, timeoutMs = 12000) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ payload: payload || {} }),
+      signal: controller.signal
+    });
+    let data = {};
+    try {
+      data = await resp.json();
+    } catch (_) {}
+    if (!resp.ok) {
+      throw new Error(data?.detail || data?.error || `FastAPI error: ${resp.status}`);
+    }
+    return data;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      throw new Error(`FastAPI timeout: ${pathname}`);
+    }
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function callFastApiGetJson(pathname, timeoutMs = 12000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const resp = await fetch(`${FASTAPI_BASE_URL}${pathname}`, {
+      method: 'GET',
       signal: controller.signal
     });
     let data = {};
@@ -3338,6 +3421,71 @@ Keep each value within 1 sentence.`;
   }
 });
 
+app.post('/api/chat', async (req, res) => {
+  const message = String(req.body?.message || '').trim();
+  const chatHistory = Array.isArray(req.body?.chatHistory) ? req.body.chatHistory : [];
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required' });
+  }
+
+  if (!GEMINI_API_KEY) {
+    return res.json(buildChatFallback(message));
+  }
+
+  const compactHistory = chatHistory
+    .slice(-8)
+    .map((item) => {
+      const role = item?.role === 'model' ? 'assistant' : 'user';
+      const parts = Array.isArray(item?.parts) ? item.parts : [];
+      const text = parts.map((p) => p?.text || '').join(' ').trim();
+      return `${role}: ${text}`;
+    })
+    .filter(Boolean)
+    .join('\n');
+
+  const prompt = `
+You are FASTbot for FAST, a Singapore traffic forecasting and monitoring demo.
+Return strict JSON only. No markdown.
+
+Allowed action names:
+- plan_route
+- view_habit_routes
+- select_habit_route
+- select_jam
+- reroute_from_jam
+- reroute_from_jam_decision
+
+If no action is needed, return:
+{"type":"chat","text":"..."}
+
+If an action is needed, return:
+{"type":"action","action":"ACTION_NAME","params":{...},"text":"short loading message"}
+
+Rules:
+- Stay on Singapore traffic, navigation, incidents, cameras, ERP, weather, and saved routes.
+- If the user gives a clear route planning intent, extract "from" and "to" when possible.
+- If the user asks to open saved routes, use view_habit_routes.
+- If the user replies with accept/yes or reject/no after rerouting discussion, use reroute_from_jam_decision.
+- Keep text short and UI-oriented.
+
+Conversation:
+${compactHistory || '(none)'}
+user: ${message}
+  `.trim();
+
+  try {
+    const text = await callGeminiText(prompt);
+    const parsed = extractJsonObject(text);
+    if (!parsed || !parsed.type) {
+      return res.json(buildChatFallback(message));
+    }
+    return res.json(parsed);
+  } catch (error) {
+    console.error('FASTbot error:', error.message);
+    return res.json(buildChatFallback(message));
+  }
+});
+
 app.post('/api/ml/traffic-impact', async (req, res) => {
   const weather = req.body?.weather || {};
   const forecast = Array.isArray(req.body?.forecast) ? req.body.forecast : [];
@@ -3372,6 +3520,36 @@ app.post('/api/ml/traffic-impact', async (req, res) => {
   } catch (error) {
     console.error('ML traffic impact prediction failed:', error.message);
     res.status(500).json({ error: 'ML traffic impact prediction failed', details: error.message });
+  }
+});
+
+app.get('/api/ml/expressway-forecast', async (req, res) => {
+  try {
+    const data = await callFastApiGetJson('/api/expressway-forecast', 15000);
+    res.json(data);
+  } catch (error) {
+    console.error('Expressway forecast failed:', error.message);
+    res.status(500).json({ error: 'Failed to load expressway forecast', details: error.message });
+  }
+});
+
+app.get('/api/ml/hotspots', async (req, res) => {
+  try {
+    const data = await callFastApiGetJson('/api/hotspots', 15000);
+    res.json(data);
+  } catch (error) {
+    console.error('Hotspot analytics failed:', error.message);
+    res.status(500).json({ error: 'Failed to load hotspot analytics', details: error.message });
+  }
+});
+
+app.post('/api/ml/recalculate', requireAuth, async (req, res) => {
+  try {
+    const data = await callFastApiJson('/api/recalculate', req.body || {}, 20000);
+    res.json(data);
+  } catch (error) {
+    console.error('Route recalculation failed:', error.message);
+    res.status(500).json({ error: 'Failed to recalculate route', details: error.message });
   }
 });
 

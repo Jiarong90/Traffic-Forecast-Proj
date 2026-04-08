@@ -522,6 +522,9 @@
     var opts = options || {};
     var headers = Object.assign({}, opts.headers || {});
     if (auth && auth.token) headers.Authorization = "Bearer " + auth.token;
+    if (opts.body && !headers["Content-Type"] && !headers["content-type"] && !(opts.body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
     return fetch(url, Object.assign({}, opts, { headers: headers }));
   };
 
@@ -699,6 +702,7 @@
       scrollHomeToSlide(homeCurrentSlide || 0);
     }
   }
+  window.showFastPage = showPage;
 
   function getPageFromHash() {
     var hash = (window.location.hash || '#home').slice(1);
@@ -1807,6 +1811,11 @@ document.addEventListener("DOMContentLoaded", () => {
     alertLocationReady: false,
     alertIncidentById: new Map(),
     alertsInfoFeed: null,
+    routeSidebarTab: "planner",
+    totalSegmentsScanned: 0,
+    officialChanges: 0,
+    majorAnomaliesCaught: 0,
+    historicalPrecision: "N/A",
     
   };
 
@@ -2127,7 +2136,8 @@ document.addEventListener("DOMContentLoaded", () => {
         zoom: MAP_DEFAULT_ZOOM,
         minZoom: MAP_MIN_ZOOM,
         zoomControl: false,
-        preferCanvas: true
+        preferCanvas: true,
+        worldCopyJump: false
       });
       L.control.zoom({ position: "bottomright" }).addTo(state.liveMap);
       L.tileLayer("https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png", {
@@ -2148,7 +2158,8 @@ document.addEventListener("DOMContentLoaded", () => {
         zoom: MAP_DEFAULT_ZOOM,
         minZoom: MAP_MIN_ZOOM,
         zoomControl: false,
-        preferCanvas: true
+        preferCanvas: true,
+        worldCopyJump: false
       });
       L.control.zoom({ position: "bottomright" }).addTo(state.plannerMap);
       L.tileLayer("https://www.onemap.gov.sg/maps/tiles/Default/{z}/{x}/{y}.png", {
@@ -3308,6 +3319,88 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
     `).join("");
+  }
+
+  function renderExpresswaySectorCard(expressway, sectors) {
+    const tabs = sectors.map((sector, index) => `
+      <button type="button" class="analytics-tab-btn ${index === 0 ? "active" : ""}" data-expressway="${escapeHtml(expressway)}" data-sector="${escapeHtml(sector.name)}">
+        ${escapeHtml(sector.name)}
+      </button>
+    `).join("");
+
+    const panels = sectors.map((sector, index) => {
+      const jammedCount = Number.isFinite(Number(sector?.jammed_count)) ? Number(sector.jammed_count) : 0;
+      const recoveringCount = Number.isFinite(Number(sector?.recovering_count)) ? Number(sector.recovering_count) : 0;
+      const incidentsCount = Number.isFinite(Number(sector?.incidents_count)) ? Number(sector.incidents_count) : 0;
+      const speedBandText = sector?.avg_speed == null || sector?.avg_speed === "" ? "--" : String(sector.avg_speed);
+      const statusClass = jammedCount > 5 ? "status-jammed" : jammedCount > 0 ? "status-warning" : "";
+      return `
+        <div class="analytics-sector ${index === 0 ? "active" : ""} ${statusClass}" data-expressway-panel="${escapeHtml(expressway)}" data-sector-panel="${escapeHtml(sector.name)}">
+          <div class="analytics-stat-line">Jammed: <strong>${jammedCount}</strong></div>
+          <div class="analytics-stat-line">Recovering: <strong>${recoveringCount}</strong></div>
+          <div class="analytics-stat-line">T+15 speed band: <strong>${escapeHtml(speedBandText)}</strong></div>
+          <div class="analytics-stat-line">Incidents: <strong>${incidentsCount}</strong></div>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="analytics-card">
+        <div class="analytics-card-title">${escapeHtml(expressway)}</div>
+        <div class="analytics-tab-bar">${tabs}</div>
+        ${panels}
+      </div>
+    `;
+  }
+
+  async function refreshExpresswayDashboard() {
+    const container = document.getElementById("expressway-forecast-grid");
+    if (!container) return;
+    container.innerHTML = `<div class="analytics-empty">Loading specialist predictions...</div>`;
+    try {
+      const res = await fetch("/api/ml/expressway-forecast");
+      const data = await res.json();
+      if (!res.ok || !data || typeof data !== "object") {
+        throw new Error(data?.error || "Failed to load expressway forecast");
+      }
+      const entries = Object.entries(data);
+      if (!entries.length) {
+        container.innerHTML = `<div class="analytics-empty">No expressway analytics available.</div>`;
+        return;
+      }
+      container.innerHTML = entries.map(([expressway, payload]) => renderExpresswaySectorCard(expressway, Array.isArray(payload?.sectors) ? payload.sectors : [])).join("");
+    } catch (err) {
+      container.innerHTML = `<div class="analytics-empty">Failed to load specialist predictions: ${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function refreshHotspotsDashboard() {
+    const container = document.getElementById("hotspot-grid");
+    if (!container) return;
+    container.innerHTML = `<div class="analytics-empty">Loading hotspots analytics...</div>`;
+    try {
+      const res = await fetch("/api/ml/hotspots");
+      const response = await res.json();
+      const items = Array.isArray(response?.data) ? response.data : [];
+      if (!res.ok) {
+        throw new Error(response?.error || "Failed to load hotspot analytics");
+      }
+      if (!items.length) {
+        container.innerHTML = `<div class="analytics-empty">No hotspot analytics available.</div>`;
+        return;
+      }
+      container.innerHTML = items.map((spot) => `
+        <div class="analytics-card">
+          <div class="analytics-card-title">${escapeHtml(spot.road_name || "Unknown road")}</div>
+          <div class="analytics-card-meta">${Number(spot.unique_incidents || 0)} incidents</div>
+          <div class="analytics-stat-line">Accidents: <strong>${Number(spot.accidents || 0)}</strong></div>
+          <div class="analytics-stat-line">Breakdowns: <strong>${Number(spot.breakdowns || 0)}</strong></div>
+          <div class="analytics-stat-line">Avg clearance: <strong>${Math.round(Number(spot.avg_duration || 0))} mins</strong></div>
+        </div>
+      `).join("");
+    } catch (err) {
+      container.innerHTML = `<div class="analytics-empty">Failed to load hotspot analytics: ${escapeHtml(err.message)}</div>`;
+    }
   }
 
   // 管理员用户统计面板渲染（用户总数、验证数、会话数等）
@@ -5011,6 +5104,35 @@ document.addEventListener("DOMContentLoaded", () => {
         toggleRouteFavoritesPanel();
       });
     }
+    const plannerTabBtn = document.getElementById("btn-tab-planner");
+    const habitsTabBtn = document.getElementById("btn-tab-habits");
+    if (plannerTabBtn) plannerTabBtn.addEventListener("click", () => switchSidebar("planner"));
+    if (habitsTabBtn) habitsTabBtn.addEventListener("click", () => switchSidebar("habits"));
+    const routeSidebarRefreshBtn = document.getElementById("route-sidebar-habit-refresh-btn");
+    if (routeSidebarRefreshBtn) {
+      routeSidebarRefreshBtn.addEventListener("click", async () => {
+        await loadHabitRoutesFromServer();
+      });
+    }
+    const expresswayRefreshBtn = document.getElementById("expressway-refresh-btn");
+    if (expresswayRefreshBtn) {
+      expresswayRefreshBtn.addEventListener("click", () => {
+        refreshExpresswayDashboard().catch((err) => console.error(err));
+      });
+    }
+    document.addEventListener("click", (event) => {
+      const tabBtn = event.target.closest(".analytics-tab-btn");
+      if (!tabBtn) return;
+      const expressway = tabBtn.getAttribute("data-expressway");
+      const sector = tabBtn.getAttribute("data-sector");
+      const card = tabBtn.closest(".analytics-card");
+      if (!card || !expressway || !sector) return;
+      card.querySelectorAll(".analytics-tab-btn").forEach((btn) => btn.classList.remove("active"));
+      tabBtn.classList.add("active");
+      card.querySelectorAll(`[data-expressway-panel="${expressway}"]`).forEach((panel) => {
+        panel.classList.toggle("active", panel.getAttribute("data-sector-panel") === sector);
+      });
+    });
     const incidentSourceBtn = document.getElementById("admin-incident-source-btn");
     if (incidentSourceBtn) {
       incidentSourceBtn.addEventListener("click", async () => {
@@ -5069,6 +5191,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     window.addEventListener("hashchange", () => {
       const page = (window.location.hash || "#home").slice(1);
+      if (page === "route-planner") {
+        switchSidebar(state.routeSidebarTab || "planner");
+        loadHabitRoutesFromServer().catch((err) => console.error(err));
+      }
       if (page === "alerts") {
         renderAlertsPanels();
         refreshAlertsInfoFeed();
@@ -5088,6 +5214,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const tabs = document.querySelectorAll(".nav-tab");
     tabs.forEach((tab) => {
       tab.addEventListener("click", () => {
+        if (tab.getAttribute("data-page") === "route-planner") {
+          switchSidebar(state.routeSidebarTab || "planner");
+          loadHabitRoutesFromServer().catch((err) => {
+            console.error("Failed to load route planner saved routes:", err);
+          });
+        }
         if (tab.getAttribute("data-page") === "alerts") {
           renderAlertsPanels();
           refreshAlertsInfoFeed();
@@ -5117,6 +5249,8 @@ document.addEventListener("DOMContentLoaded", () => {
     ensureMaps();
     bindActions();
     bindTripCostControls();
+    bindChatAssistant();
+    switchSidebar(state.routeSidebarTab || "planner");
 
     try {
       const panel = document.getElementById("admin-sim-panel");
@@ -5133,6 +5267,8 @@ document.addEventListener("DOMContentLoaded", () => {
       renderRouteFavoritesPanel();
       state.cameras = await fetchCameras();
       updateDashboardStats();
+      refreshExpresswayDashboard().catch((err) => console.error(err));
+      refreshHotspotsDashboard().catch((err) => console.error(err));
       try {
         await refreshDashboardIncidents();
       } catch (incErr) {
@@ -5149,6 +5285,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (state.mapPgsVisible) drawPgsMarkers();
       if (state.adminFeedbackVisible) drawAdminFeedbackMarkers();
       await loadHabitRoutesFromServer();
+      updateSentinelDashboard();
       checkTrafficAlerts();
       if (isAdmin()) renderStandaloneSimulationInfo(null);
       const currentPage = (window.location.hash || "#home").slice(1);
@@ -5622,25 +5759,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Should load the list of saved habit routes, display the relevant details 
   // and put action buttons for each row
   function renderHabitRoutesList() {
-    const container = document.getElementById("habit-routes-list");
-    if (!container) return;
+    const containers = [
+      document.getElementById("habit-routes-list"),
+      document.getElementById("route-sidebar-habit-list")
+    ].filter(Boolean);
+    if (!containers.length) return;
 
-    if (!state.habitSavedRoutes.length) {
-      container.innerHTML = `<div class="habit-route-card">No saved habit routes yet.</div>`;
-      return;
-    }
+    updateSentinelDashboard();
 
-    container.innerHTML = "";
+    containers.forEach((container) => {
+      if (!state.habitSavedRoutes.length) {
+        container.innerHTML = `<div class="habit-route-card">No saved habit routes yet.</div>`;
+        return;
+      }
 
-    state.habitSavedRoutes.forEach((route, i) => {
-      const card = document.createElement("div");
-      card.className = "habit-route-card";
+      container.innerHTML = "";
 
-      const routeDisplayName = route.route_name || "My Route";
-      const directions = `${escapeHtml(route.from)} → ${escapeHtml(route.to)}`;
+      state.habitSavedRoutes.forEach((route) => {
+        const card = document.createElement("div");
+        card.className = "habit-route-card";
 
-      // Update the list to enable users to update name of their route
-      card.innerHTML = `
+        card.innerHTML = `
       <div style="padding: 16px; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
             <div style="flex: 1; padding-right: 10px;">
@@ -5686,128 +5825,84 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
     `;
-      const renameGroup = card.querySelector(`#rename-group-${route.id}`);
-      const titleEl = card.querySelector(`#title-${route.id}`);
+        const renameGroup = card.querySelector(`#rename-group-${route.id}`);
+        const titleEl = card.querySelector(`#title-${route.id}`);
 
-      card.querySelector(".btn-rename-edit").onclick = () => renameGroup.classList.remove("hidden");
-      card.querySelector(".habit-cancel-rename").onclick = () => renameGroup.classList.add("hidden");
+        card.querySelector(".btn-rename-edit").onclick = () => renameGroup.classList.remove("hidden");
+        card.querySelector(".habit-cancel-rename").onclick = () => renameGroup.classList.add("hidden");
 
-      // send the patch request
-      card.querySelector(".habit-confirm-rename").onclick = async () => {
-        const newName = card.querySelector(".habit-new-name-input").value.trim();
-        if (!newName) return;
+        card.querySelector(".habit-confirm-rename").onclick = async () => {
+          const newName = card.querySelector(".habit-new-name-input").value.trim();
+          if (!newName) return;
 
-        const res = await window.fastAuthFetch(`/api/habit-routes/${route.id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ route_name: newName })
+          const res = await window.fastAuthFetch(`/api/habit-routes/${route.id}`, {
+            method: "PATCH",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ route_name: newName })
+          });
+
+          if (res.ok) {
+            titleEl.innerText = newName;
+            renameGroup.classList.add("hidden");
+            route.route_name = newName;
+          } else {
+            alert("Failed to rename route.");
+          }
+        };
+
+        const settingsPanel = card.querySelector(".habit-route-settings");
+        card.querySelector(".habit-load-btn").addEventListener("click", async () => {
+          await loadHabitRouteIntoPlanner(route);
+        });
+        card.querySelector(".habit-alerts-btn").addEventListener("click", () => {
+          settingsPanel.classList.toggle("hidden");
+        });
+        card.querySelector(".habit-save-settings-btn").addEventListener("click", async () => {
+          await saveHabitRouteSettings(route.id, card);
+        });
+        card.querySelector(".habit-delete-btn").addEventListener("click", async () => {
+          await deleteHabitRoute(route.id);
         });
 
-        if (res.ok) {
-          titleEl.innerText = newName;
-          renameGroup.classList.add("hidden");
-          route.route_name = newName; 
-        } else {
-          alert("Failed to rename route.");
-        }
-      };
-      // Handle save, update alerts and delete button
-      const settingsPanel = card.querySelector(".habit-route-settings");
-
-      card.querySelector(".habit-load-btn").addEventListener("click", async () => {
-        await drawHabitRouteOnMap(route);
+        container.appendChild(card);
       });
-
-      card.querySelector(".habit-alerts-btn").addEventListener("click", () => {
-        settingsPanel.classList.toggle("hidden");
-      });
-
-      card.querySelector(".habit-save-settings-btn").addEventListener("click", async () => {
-        await saveHabitRouteSettings(route.id, card);
-      });
-
-      card.querySelector(".habit-delete-btn").addEventListener("click", async () => {
-        await deleteHabitRoute(route.id);
-      });
-
-      container.appendChild(card);
     });
   }
 
   // Load route to map
-  async function drawHabitRouteOnMap(route) {
-    if (!state.habitRoutesMap || !state.habitRoutePolylineLayer) return;
-    if (!route || !Array.isArray(route.coords) || route.coords.length < 2) return;
-    
-    const res = await window.fastAuthFetch("/api/habit-routes/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        coords_json: route.coords
-      })
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Habit route analyze failed:", data);
-      alert("Failed to load saved route.");
+  async function loadHabitRouteIntoPlanner(route) {
+    if (!route) return;
+    const startQuery = String(route.from || "").trim();
+    const endQuery = String(route.to || "").trim();
+    if (!startQuery || !endQuery) {
+      alert("This saved route is missing its start or destination.");
       return;
     }
 
-    state.habitRoutePolylineLayer.clearLayers();
+    if (window.showFastPage) window.showFastPage("route-planner");
+    window.location.hash = "route-planner";
+    switchSidebar("planner");
 
-    
-    const coords = data.coords || route.coords;
-    const matchInfo = data.match_info || {};
-    const segmentMatches = matchInfo.segment_matches || [];
-    const segments = [];
-    for (let j = 0; j < coords.length - 1; j += 1) {
-      const matchData = segmentMatches[j];
-
-      if (matchData) {
-        const lineColor = matchData.color || "#3b82f6";
-        const trafficStatus = matchData.traffic_status || "Collecting Data...";
-        const currentBand = matchData.current_band || "N/A";
-        const predBand = matchData.pred_band;
-
-        const line = L.polyline([coords[j], coords[j + 1]], {
-          color: lineColor,
-          weight: 7,
-          opacity: 1
-        });
-
-        line.bindPopup(`
-          <div style="font-size:12px;max-width:260px;">
-            <strong>${escapeHtml(matchData.road_name || "LTA Road")}</strong><br/>
-            <b>Link ID:</b> ${escapeHtml(matchData.link_id || "")}<br/>
-            <b>Distance to incident:</b> ${escapeHtml(matchData.distance_m ?? "N/A")} m<br/>
-            <b>Current Band:</b> ${escapeHtml(currentBand)}<br/>
-            <b>Predicted Band:</b> ${escapeHtml(predBand ?? "N/A")} (${escapeHtml(trafficStatus)})
-          </div>
-        `);
-
-        line.addTo(state.habitRoutePolylineLayer);
-        segments.push(line);
-      } else {
-        const line = L.polyline([coords[j], coords[j + 1]], {
-          color: "#94a3b8",
-          weight: 4,
-          opacity: 0.6,
-          dashArray: "5, 10"
-        });
-        line.addTo(state.habitRoutePolylineLayer);
-        segments.push(line);
-      }
+    const startEl = document.getElementById("route-start-postal");
+    const endEl = document.getElementById("route-end-postal");
+    if (!startEl || !endEl) {
+      alert("Route planner is not ready.");
+      return;
     }
 
-    if (segments.length) {
-      const fg = L.featureGroup(segments);
-      state.habitRoutesMap.fitBounds(fg.getBounds(), { padding: [40, 40] });
+    startEl.value = startQuery;
+    endEl.value = endQuery;
+    clearConfirmedRouteTracking();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    if (state.plannerMap) state.plannerMap.invalidateSize();
+
+    try {
+      await calculateRoutes();
+    } catch (err) {
+      console.error("Habit route load into planner failed:", err);
+      alert("Failed to load saved route.");
     }
   }
 
@@ -5930,6 +6025,171 @@ document.addEventListener("DOMContentLoaded", () => {
         btn.innerHTML = originalText;
       }
     }
+  }
+
+  function updateSentinelDashboard() {
+    const dash = document.getElementById("sentinel-stats");
+    if (!dash) return;
+    const monitoredCount = state.habitSavedRoutes.filter((route) => route.alert_enabled).length;
+    dash.innerHTML = `
+      <div class="sentinel-stats-panel">
+        <div class="sentinel-stats-title">Route Session Metrics</div>
+        <div class="sentinel-stats-grid">
+          <div>
+            <div class="sentinel-stat-value">${state.habitSavedRoutes.length}</div>
+            <div class="sentinel-stat-label">Saved Routes</div>
+          </div>
+          <div>
+            <div class="sentinel-stat-value">${monitoredCount}</div>
+            <div class="sentinel-stat-label">Monitored</div>
+          </div>
+          <div>
+            <div class="sentinel-stat-value">${state.dashboardIncidents.length}</div>
+            <div class="sentinel-stat-label">Live Incidents</div>
+          </div>
+          <div>
+            <div class="sentinel-stat-value">${state.routeContext?.events?.length || 0}</div>
+            <div class="sentinel-stat-label">Route Events</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function switchSidebar(tab) {
+    const planner = document.getElementById("planner-tab-content");
+    const habits = document.getElementById("habits-tab-content");
+    const plannerBtn = document.getElementById("btn-tab-planner");
+    const habitsBtn = document.getElementById("btn-tab-habits");
+    if (!planner || !habits || !plannerBtn || !habitsBtn) return;
+    const plannerActive = tab !== "habits";
+    state.routeSidebarTab = plannerActive ? "planner" : "habits";
+    planner.classList.toggle("hidden", !plannerActive);
+    habits.classList.toggle("hidden", plannerActive);
+    plannerBtn.classList.toggle("active", plannerActive);
+    habitsBtn.classList.toggle("active", !plannerActive);
+    if (!plannerActive) {
+      loadHabitRoutesFromServer().catch((err) => console.error(err));
+    }
+  }
+
+  async function openHabitRoutesAction() {
+    window.location.hash = "route-planner";
+    switchSidebar("habits");
+    await loadHabitRoutesFromServer();
+  }
+
+  async function openRoutePlannerAction() {
+    if (window.showFastPage) window.showFastPage("route-planner");
+    window.location.hash = "route-planner";
+    switchSidebar("planner");
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    if (state.plannerMap) state.plannerMap.invalidateSize();
+  }
+
+  async function handlePlanRoute(params) {
+    const from = String(params?.from || "").trim();
+    const to = String(params?.to || "").trim();
+    if (!from || !to) return "Please provide both a starting point and a destination.";
+    const fromInput = document.getElementById("route-start-postal");
+    const toInput = document.getElementById("route-end-postal");
+    if (!fromInput || !toInput) return "Route planner UI is not available right now.";
+    await openRoutePlannerAction();
+    fromInput.value = from;
+    toInput.value = to;
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    await calculateRoutes();
+    return `Planning route from ${from} to ${to}.`;
+  }
+
+  async function dispatchBotAction(data) {
+    switch (data.action) {
+      case "view_habit_routes":
+        await openHabitRoutesAction();
+        return { followUpText: "Saved routes opened." };
+      case "plan_route":
+        return { followUpText: await handlePlanRoute(data.params || {}) };
+      default:
+        return { followUpText: "That action is not available in the current demo build." };
+    }
+  }
+
+  function appendChatMessage(label, text) {
+    const msgContainer = document.getElementById("chat-messages");
+    if (!msgContainer) return;
+    const row = document.createElement("div");
+    row.className = "ai-chat-msg";
+    row.innerHTML = `<strong>${escapeHtml(label)}:</strong> ${escapeHtml(text)}`;
+    msgContainer.appendChild(row);
+    msgContainer.scrollTop = msgContainer.scrollHeight;
+  }
+
+  async function sendChatMessage() {
+    const input = document.getElementById("chat-input");
+    const msgContainer = document.getElementById("chat-messages");
+    if (!input || !msgContainer) return;
+    const text = input.value.trim();
+    if (!text) return;
+    appendChatMessage("You", text);
+    input.value = "";
+    try {
+      const res = await window.fastAuthFetch("/api/chat", {
+        method: "POST",
+        body: JSON.stringify({ message: text, chatHistory: [] })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Chat failed");
+      if (data.type === "action") {
+        if (data.text) appendChatMessage("FASTbot", data.text);
+        const actionResult = await dispatchBotAction(data);
+        if (actionResult?.followUpText) appendChatMessage("FASTbot", actionResult.followUpText);
+      } else {
+        appendChatMessage("FASTbot", data.text || "No reply.");
+      }
+    } catch (err) {
+      appendChatMessage("FASTbot", `Failed to process the request: ${err.message}`);
+    }
+  }
+
+  function bindChatAssistant() {
+    const launcher = document.getElementById("ai-chat-launcher");
+    const container = document.getElementById("ai-chat-container");
+    const closeBtn = document.getElementById("ai-chat-close");
+    const sendBtn = document.getElementById("ai-chat-send");
+    const input = document.getElementById("chat-input");
+    const micBtn = document.getElementById("mic-btn");
+    if (!launcher || !container || !closeBtn || !sendBtn || !input) return;
+
+    launcher.addEventListener("click", () => container.classList.toggle("hidden"));
+    closeBtn.addEventListener("click", () => container.classList.add("hidden"));
+    sendBtn.addEventListener("click", () => { sendChatMessage(); });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        sendChatMessage();
+      }
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition || !micBtn) {
+      if (micBtn) micBtn.style.display = "none";
+      return;
+    }
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    micBtn.addEventListener("click", () => {
+      recognition.start();
+      micBtn.textContent = "🔴";
+    });
+    recognition.onresult = (event) => {
+      input.value = event.results?.[0]?.[0]?.transcript || "";
+      micBtn.textContent = "🎙️";
+      sendChatMessage();
+    };
+    recognition.onerror = () => {
+      micBtn.textContent = "🎙️";
+    };
   }
 
   // ALERTS section

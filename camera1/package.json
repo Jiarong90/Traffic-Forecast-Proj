@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "start:fastapi": "python3 -m uvicorn py.api_server:app --host 127.0.0.1 --port 8000"
+    "start:fastapi": "python3 -m uvicorn py.combined_api_server:app --host 127.0.0.1 --port 8000"
   },
   "engines": {
     "node": ">=18.0.0"

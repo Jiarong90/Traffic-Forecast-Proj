@@ -2,60 +2,57 @@
 
 ## 当前实现位置
 
-A* 路径规划当前主要位于：
-- `camera1/py/compute_engine.py`
+路径规划核心位于：
+- [/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py](/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py)
 
-FastAPI 入口位于：
-- `camera1/py/api_server.py`
+FastAPI 当前入口：
+- [/Users/apple/Desktop/fyp_demo/camera1/py/combined_api_server.py](/Users/apple/Desktop/fyp_demo/camera1/py/combined_api_server.py)
 
-Node.js 路由入口位于：
-- `camera1/server.js`
+Node 路由入口：
+- [/Users/apple/Desktop/fyp_demo/camera1/server.js](/Users/apple/Desktop/fyp_demo/camera1/server.js)
 - `POST /api/route-plan`
+- `POST /api/ml/recalculate`
 
 ## 当前实现方式
 
-当前系统不是直接使用 OSMnx 图路由。
+当前系统不是直接把浏览器地图当路由器。
 
 而是：
-1. 读取本地新加坡路网快照
-2. 从快照中截取当前起点终点附近的子图
-3. 在 Python 中构图
-4. 使用 A* 进行路径搜索
-5. 生成三条策略路线：
-   - fastest
-   - fewer lights
-   - balanced
+1. 使用本地新加坡路网快照
+2. 截取起终点附近子图
+3. Python 构图
+4. A* / 多策略搜索
+5. 返回三条候选路线
 
-## 输入
-
-路径规划输入包含：
-- 起点坐标
-- 终点坐标
-- 查询范围参数
-- 信号点位数据
-- 实时事件评估所需上下文
-
-## 输出
+## 当前输出
 
 每条路线输出包含：
-- 路线 id
-- 路线标签
-- 路线颜色
-- 预计时间
-- 总距离
-- 红绿灯数量
-- 路线坐标序列
+- id
+- label
+- color
+- estMinutes
+- totalDist
+- lights
+- coords
+
+## 重规划
+
+当前已经支持从实时位置重新规划路线。
+
+对应计算入口：
+- `recalculate_route(...)`
+
+用途：
+- 用户偏航后，从当前实时位置到原终点重新计算路线
 
 ## 红绿灯统计
 
-当前红绿灯数量优先基于真实信号点位。
+当前红绿灯数量基于真实信号点，并带有去重处理。
 
-逻辑可以简单理解为：
-- 距离路线足够近的信号点会被计入
-- 很接近的一组信号点会做合并，避免同一路口重复统计
-
-如果真实信号点不足，再回退到路口结构估算。
+现有目标是：
+- 避免同一个大型路口重复统计
+- 保证 `fewer lights` 路线相对更合理
 
 ## 当前说明
 
-这个 A* 实现用于 demo 展示和多策略路线生成，不是商业导航引擎。
+这是 demo 级别的路径规划实现，不是商业级车载导航引擎。

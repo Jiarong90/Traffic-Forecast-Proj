@@ -547,32 +547,22 @@ Currently studying at University of Wollongong.">
         </div>
       </section>
 
-      <div class="live-cards">
-        <div class="live-card congestion">
-          <span class="live-badge">Live</span>
-          <span class="icon-chart"></span>
-          <h3 class="live-title">Current Congestion</h3>
-          <p class="live-value yellow">Moderate</p>
-          <p class="live-desc">Average speed: 45 km/h</p>
-          <div class="progress-bar yellow"></div>
+      <div class="dashboard-section dashboard-analytics-section">
+        <div class="dashboard-section-head">
+          <h3 class="dashboard-section-title">Expressway Outlook</h3>
+          <button type="button" class="refresh-btn" id="expressway-refresh-btn">Update Live</button>
         </div>
-        <div class="live-card incidents">
-          <span class="live-badge">Live</span>
-          <span class="icon-warning red"></span>
-          <h3 class="live-title">Active Incidents</h3>
-          <p class="live-value" id="live-incidents-total">--</p>
-          <p class="live-desc" id="live-incidents-breakdown">--</p>
-          <div class="mini-bars">
-            <span></span><span></span><span></span><span></span><span></span>
-          </div>
+        <div id="expressway-forecast-grid" class="analytics-grid">
+          <div class="analytics-empty">Loading specialist predictions...</div>
         </div>
-        <div class="live-card weather">
-          <span class="live-badge">Live</span>
-          <span class="icon-cloud"></span>
-          <h3 class="live-title">Weather Status</h3>
-          <p class="live-value blue">Cloudy</p>
-          <p class="live-desc">28°C, No rain expected</p>
-          <label class="checkbox-label"><input type="checkbox" checked /> Good driving conditions</label>
+      </div>
+
+      <div class="dashboard-section dashboard-analytics-section">
+        <div class="dashboard-section-head">
+          <h3 class="dashboard-section-title">High-Risk Zones <span class="dashboard-section-sub">(Historical)</span></h3>
+        </div>
+        <div id="hotspot-grid" class="analytics-grid">
+          <div class="analytics-empty">Loading hotspots analytics...</div>
         </div>
       </div>
 
@@ -654,6 +644,11 @@ Currently studying at University of Wollongong.">
           </div>
         </div>
         <aside class="route-details-panel">
+          <div class="route-sidebar-tabs">
+            <button type="button" class="route-sidebar-tab active" id="btn-tab-planner">PLANNER</button>
+            <button type="button" class="route-sidebar-tab" id="btn-tab-habits">SAVED</button>
+          </div>
+          <div id="planner-tab-content">
           <div class="panel-head">
             <div>
               <strong id="route-detail-title">FASTEST</strong>
@@ -711,6 +706,15 @@ Currently studying at University of Wollongong.">
               <span class="cost-label">CONSUMPTION</span>
               <span class="cost-consumption" id="cost-consumption">8.0 L/100km</span>
             </div>
+          </div>
+          </div>
+          <div id="habits-tab-content" class="hidden">
+            <div id="sentinel-stats"></div>
+            <div class="route-saved-head">
+              <h2 class="subsection-title">MY ROUTES</h2>
+              <button type="button" class="btn-dark route-saved-refresh-btn" id="route-sidebar-habit-refresh-btn">REFRESH</button>
+            </div>
+            <div id="route-sidebar-habit-list" class="route-sidebar-habit-list"></div>
           </div>
         </aside>
       </div>
@@ -1091,6 +1095,21 @@ Currently studying at University of Wollongong.">
     </div>
   </div>
   <div class="feedback-toast" id="feedbackToast">Feedback submitted. Thank you for helping the community.</div>
+  <button type="button" id="ai-chat-launcher" class="ai-chat-launcher">Chat</button>
+  <div id="ai-chat-container" class="ai-chat-container hidden">
+    <div class="ai-chat-header">
+      <span>FASTbot</span>
+      <button type="button" id="ai-chat-close" class="ai-chat-close">×</button>
+    </div>
+    <div id="chat-messages" class="ai-chat-messages">
+      <div class="ai-chat-system">Good day. Ask FASTbot to plan a route, open saved routes, or explain traffic conditions.</div>
+    </div>
+    <div class="ai-chat-input-row">
+      <input type="text" id="chat-input" class="ai-chat-input" placeholder="Type a message..." />
+      <button type="button" id="mic-btn" class="ai-chat-mic">🎙️</button>
+      <button type="button" id="ai-chat-send" class="ai-chat-send">Send</button>
+    </div>
+  </div>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="ml-traffic-model.js"></script>
   <script src="script.js"></script>

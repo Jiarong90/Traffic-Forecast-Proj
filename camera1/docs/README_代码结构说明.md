@@ -2,73 +2,82 @@
 
 ## 顶层结构
 
-### `/Users/apple/Desktop/fyp_demo/UI 2`
+### [/Users/apple/Desktop/fyp_demo/UI 2](/Users/apple/Desktop/fyp_demo/UI%202)
 前端界面。
 
 主要文件：
-- `index.html`: 页面结构
-- `styles.css`: 全局样式
-- `script.js`: 页面逻辑、交互、路由、地图、导航、About/Home 页面行为
-- `ml-traffic-model.js`: 前端 ML 预测辅助模块（当前主要用于 Alerts 详情）
-- `assets/`: logo、首页图片、成员图片等静态资源
+- [index.html](/Users/apple/Desktop/fyp_demo/UI%202/index.html)
+- [styles.css](/Users/apple/Desktop/fyp_demo/UI%202/styles.css)
+- [script.js](/Users/apple/Desktop/fyp_demo/UI%202/script.js)
+- [ml-traffic-model.js](/Users/apple/Desktop/fyp_demo/UI%202/ml-traffic-model.js)
+- `assets/images/`
 
-### `/Users/apple/Desktop/fyp_demo/camera1`
+### [/Users/apple/Desktop/fyp_demo/camera1](/Users/apple/Desktop/fyp_demo/camera1)
 主后端目录。
 
 主要文件：
-- `server.js`: Node.js 主服务
-- `config.js`: 基础配置
-- `package.json`: Node 启动脚本
-- `requirements-fastapi.txt`: FastAPI 依赖
+- [server.js](/Users/apple/Desktop/fyp_demo/camera1/server.js)
+- [config.js](/Users/apple/Desktop/fyp_demo/camera1/config.js)
+- [package.json](/Users/apple/Desktop/fyp_demo/camera1/package.json)
+- [requirements-fastapi.txt](/Users/apple/Desktop/fyp_demo/camera1/requirements-fastapi.txt)
 
 ## Python 目录
 
-### `/Users/apple/Desktop/fyp_demo/camera1/py`
-Python 计算服务。
+### [/Users/apple/Desktop/fyp_demo/camera1/py](/Users/apple/Desktop/fyp_demo/camera1/py)
 
-文件说明：
-- `api_server.py`: FastAPI 入口
-- `compute_engine.py`: 路径规划、事件分析、事故/摄像头匹配等核心计算
-- `ml_traffic_predictor.py`: 交通影响预测
-- `train_model.py`: ML 训练脚本
-- `ml_config.py`: ML 配置
-- `ml_models/`: 模型文件
+当前核心文件：
+- [combined_api_server.py](/Users/apple/Desktop/fyp_demo/camera1/py/combined_api_server.py)
+- [compute_engine.py](/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py)
+- [ml_traffic_predictor.py](/Users/apple/Desktop/fyp_demo/camera1/py/ml_traffic_predictor.py)
+- [train_model.py](/Users/apple/Desktop/fyp_demo/camera1/py/train_model.py)
+- [ml_config.py](/Users/apple/Desktop/fyp_demo/camera1/py/ml_config.py)
+
+当前辅助目录：
+- [/Users/apple/Desktop/fyp_demo/camera1/py/data](/Users/apple/Desktop/fyp_demo/camera1/py/data)
+- [/Users/apple/Desktop/fyp_demo/camera1/py/model](/Users/apple/Desktop/fyp_demo/camera1/py/model)
+- [/Users/apple/Desktop/fyp_demo/camera1/py/static](/Users/apple/Desktop/fyp_demo/camera1/py/static)
 
 ## 数据目录
 
-### `/Users/apple/Desktop/fyp_demo/camera1/data`
-本地数据。
+### [/Users/apple/Desktop/fyp_demo/camera1/data](/Users/apple/Desktop/fyp_demo/camera1/data)
 
 当前重要文件：
-- `sg-road-network-overpass.json`: 本地新加坡路网快照，路径规划优先使用
-- `LTATrafficSignalAspectGEOJSON.geojson`: 信号点位数据
+- [sg-road-network-overpass.json](/Users/apple/Desktop/fyp_demo/camera1/data/sg-road-network-overpass.json)
+- [erp_rates_2026-03-23.json](/Users/apple/Desktop/fyp_demo/camera1/data/erp_rates_2026-03-23.json)
 
 ## 当前运行链路
 
 ### 页面链路
 
-- 浏览器访问 `http://localhost:3000/ui2/`
-- Node.js 提供静态页面和业务接口
-- Node.js 调 FastAPI 做计算型任务
-- Node.js 访问 Supabase、天气、LTA、OneMap、新闻等外部数据源
+- 浏览器 -> `UI 2`
+- 前端 -> Node `server.js`
+- Node -> FastAPI `combined_api_server.py`
+- Node / FastAPI -> Supabase / LTA / OneMap / data.gov / OpenWeather / OneMotoring / Gemini
 
 ### 认证链路
 
-- 前端 -> `server.js`
-- `server.js` -> Supabase Auth
-- 用户信息使用 `auth.users` + `public.app_user_profiles`
+- 前端 -> Node
+- Node -> Supabase Auth
+- 用户资料和设置 -> `app_user_profiles` / `app_user_settings`
 
-### 路径规划链路
+### 导航链路
 
-- 前端 `Route Planner`
+- `Route Planner`
 - `POST /api/route-plan`
-- Node.js 准备路网和输入参数
-- FastAPI 调 `compute_engine.py`
-- 返回三条策略路线
+- Node 准备请求
+- FastAPI / Python 计算
+- 返回三条路线
+- 前端再做事件分析、费用展示、路线确认和实时跟踪
 
-## 当前页面结构
+### Dashboard 分析链路
 
-主要页面：
+- `Expressway Outlook`
+- `High-Risk Zones`
+- 前端请求 Node
+- Node 代理到 FastAPI combined service
+
+## 当前页面
+
 - Home
 - About
 - Dashboard
@@ -84,7 +93,6 @@ Python 计算服务。
 
 ## 当前说明
 
-- Home / About / Business Model 是公开页面
-- Dashboard / Map View / Route Planner / Weather / Alerts 提供公开查看能力
-- 登录后可用 Profile、Settings、反馈、Habit Routes 管理
-- Admin 用户可用管理员界面和模拟功能
+- `FASTbot` 位于前端浮动聊天入口
+- Android GPS 是一个单独的移动端定位页
+- `start.sh` 是当前推荐启动入口

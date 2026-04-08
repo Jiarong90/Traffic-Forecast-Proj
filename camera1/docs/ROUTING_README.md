@@ -2,17 +2,16 @@
 
 ## Current Route Planning Flow
 
-The current route planning flow is:
-
 1. User enters start and destination
 2. Start supports:
    - postal code
    - place name
    - MRT station
    - current location
-3. Frontend calls `POST /api/route-plan`
-4. Node.js prepares the route request
-5. FastAPI runs compute logic in `compute_engine.py`
+3. Frontend calls:
+   - `POST /api/route-plan`
+4. Node prepares request context
+5. FastAPI / Python computes route candidates
 6. Three route options are returned:
    - fastest
    - fewer lights
@@ -20,45 +19,69 @@ The current route planning flow is:
 
 ## Current Route Planner Features
 
-Each route card shows:
+### Route cards
+
+Each route card currently shows:
 - ETA
 - delay
 - distance
-- traffic lights
+- lights
 - incidents count
 - cameras count
+- fuel cost
+- fuel used
+- ERP charges
+- total estimated cost
 
-The preference button can switch among:
-- FASTEST ROUTE
-- FEWER LIGHTS
-- BALANCED
+### Cost controls
 
-After selecting and confirming a route:
-- start pin is placed
-- destination pin is placed
-- a red live-location marker follows the user
-- route-related camera points are shown
-- route-related incident points are shown
-- start/destination popup shows place name and weather
+`TRIP COST ESTIMATE` currently supports:
+- vehicle type
+- fuel grade
+- fuel consumption
+- saved vehicle selection from Settings
 
-## Local Road Network
+### After route confirmation
 
-Route planning now prefers the local Singapore road network snapshot:
+After clicking `USE THIS ROUTE`:
+- start pin appears
+- destination pin appears
+- live red-dot navigation starts
+- travelled part turns grey
+- remaining route keeps route color
+- route incidents appear on map
+- route cameras appear on map
+- nearest live camera can be toggled
 
-- `camera1/data/sg-road-network-overpass.json`
+### Habit routes integration
 
-This reduces timeout issues from live Overpass requests.
+Saved habit routes can now be loaded into the planner.
 
-## Related APIs
+Current behavior:
+- `LOAD` fills start and destination
+- switches back to planner tab
+- runs full route calculation again
 
-- `GET /api/geocode`
-- `GET /api/reverse-geocode`
-- `GET /api/weather/current`
-- `POST /api/route-plan`
-- `POST /api/route-events/analyze`
-- `POST /api/route-events/evaluate`
+## Chatbot Routing
+
+`FASTbot` can trigger route planning.
+
+Current supported flow:
+- ask for a route
+- bot switches to `Route Planner`
+- fills start / destination
+- directly triggers route calculation
+
+## Current Location
+
+Current location can come from:
+- Android mobile upload source
+- browser fallback
+
+Android guide:
+- [/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md](/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md)
 
 ## Notes
 
-- FastAPI should be running before route planning is tested.
-- Current location depends on browser geolocation permission.
+- Route analytics can partially degrade if FastAPI is down.
+- Dashboard analytics and route analytics are no longer fully independent; both rely on the combined FastAPI service for advanced blocks.

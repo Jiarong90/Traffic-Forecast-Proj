@@ -724,6 +724,177 @@ def plan_routes(payload):
     return {"routes": plans}
 
 
+def recalculate_route(payload):
+    blocked_edges = set(str(edge) for edge in (payload.get("blocked_edges") or []))
+    roads = payload.get("roads") or {}
+    start = payload.get("start") or {}
+    end = payload.get("end") or {}
+
+    start_lat = to_float(start.get("lat"))
+    start_lon = to_float(start.get("lon"))
+    end_lat = to_float(end.get("lat"))
+    end_lon = to_float(end.get("lon"))
+    if None in (start_lat, start_lon, end_lat, end_lon):
+        return {"routes": []}
+
+    start = {"lat": start_lat, "lon": start_lon}
+    end = {"lat": end_lat, "lon": end_lon}
+
+    nodes = build_graph_recalc(roads)
+    if not nodes:
+        return {"routes": []}
+
+    start_key = nearest_node(nodes, start_lat, start_lon)
+    end_key = nearest_node(nodes, end_lat, end_lon)
+    if not start_key or not end_key:
+        return {"routes": []}
+
+    road_meta = payload.get("road_meta") or {}
+    t15_cache = payload.get("t15_cache") or {}
+    band_to_kmh = {1: 7, 2: 15, 3: 25, 4: 35, 5: 45, 6: 55, 7: 65, 8: 85}
+    preference = payload.get("preference", "fastest")
+    modes = [
+        {"id": "fastest", "label": "FASTEST", "color": "#2563eb", "desc": "Prioritize total time"},
+        {"id": "fewerLights", "label": "FEWER LIGHTS", "color": "#16a34a", "desc": "Reduce intersection waiting"},
+        {"id": "balanced", "label": "BALANCED", "color": "#ea580c", "desc": "Near-fastest with fewer lights"},
+    ]
+
+    preferred_mode = next((m for m in modes if m["id"] == preference), modes[0])
+    ordered_modes = [preferred_mode] + [m for m in modes if m["id"] != preferred_mode["id"]]
+
+    plans = []
+    used_edge_sets: List[set] = []
+
+    for mode in ordered_modes:
+        def cost_fn(edge, from_node, to_node):
+            ep = edge_key(from_node["key"], to_node["key"])
+            base = edge["weight"]
+            link_id = find_link_id_from_meta(to_node["lat"], to_node["lon"], road_meta)
+            speed_kmh = 40.0
+            if link_id:
+                link_id_int = int(link_id)
+                if link_id_int in t15_cache:
+                    predicted_sb = (t15_cache.get(link_id_int) or {}).get("predicted_val", 5)
+                    speed_kmh = band_to_kmh.get(predicted_sb, 40.0)
+            if link_id and str(link_id) in blocked_edges:
+                return base * 10
+
+            dist_km = edge["weight"] * 40.0
+            base = dist_km / max(speed_kmh, 1)
+            intersection_cost = (45 / 3600.0) if (to_node.get("degree") or 0) >= 3 else 0.0
+            reuse_penalty = 10.0 if any(ep in s for s in used_edge_sets) else 0.0
+
+            if mode["id"] == "fastest":
+                return base + reuse_penalty
+            if mode["id"] == "fewerLights":
+                return base + intersection_cost * 1.8 + reuse_penalty
+            return base + intersection_cost * 0.9 + reuse_penalty
+
+        path_keys = a_star(nodes, start_key, end_key, cost_fn)
+        if len(path_keys) < 2:
+            continue
+
+        edge_set = set()
+        for i in range(len(path_keys) - 1):
+            edge_set.add(edge_key(path_keys[i], path_keys[i + 1]))
+        signature = ",".join(sorted(edge_set))
+        if any(p.get("signature") == signature for p in plans):
+            continue
+
+        total_dist = calc_path_distance(path_keys, nodes, start, end)
+        est_minutes = (total_dist / 1000.0 / 40.0) * 60.0
+        coords = get_route_coords_recalc(path_keys, nodes, start, end)
+
+        plans.append({
+            "id": mode["id"],
+            "label": mode["label"],
+            "color": mode["color"],
+            "desc": mode["desc"],
+            "totalDist": total_dist,
+            "estMinutes": est_minutes,
+            "trafficLights": count_lights_by_degree(path_keys, nodes),
+            "coords": coords,
+            "signature": signature,
+        })
+        used_edge_sets.append(edge_set)
+
+    plans.sort(key=lambda x: x.get("estMinutes", float("inf")))
+    return {"routes": plans}
+
+
+def get_route_coords_recalc(path_keys, nodes, start, end):
+    coords = [{"lat": start["lat"], "lon": start["lon"], "degree": 0}]
+    for k in path_keys:
+        n = nodes[k]
+        degree = n.get("degree", 0)
+        coords.append({
+            "lat": n["lat"],
+            "lon": n["lon"],
+            "degree": degree,
+            "is_exit": degree > 2
+        })
+    coords.append({"lat": end["lat"], "lon": end["lon"], "degree": 0})
+    return coords
+
+
+def find_link_id_from_meta(lat, lon, road_meta):
+    best_id = None
+    min_dist = float("inf")
+    for lid, data in (road_meta or {}).items():
+        d = (lat - data["mid_lat"]) ** 2 + (lon - data["mid_lon"]) ** 2
+        if d < min_dist:
+            min_dist = d
+            best_id = lid
+    return str(best_id) if best_id else None
+
+
+def build_graph_recalc(roads):
+    nodes: Dict[str, Dict] = {}
+
+    def ensure(lat, lon):
+      k = node_key(lat, lon)
+      if k not in nodes:
+          nodes[k] = {"key": k, "lat": lat, "lon": lon, "edges": [], "degree": 0}
+      return nodes[k]
+
+    for el in (roads or {}).get("elements", []):
+        if el.get("type") != "way":
+            continue
+
+        tags = el.get("tags") or {}
+        oneway = str(tags.get("oneway", "")).strip().lower()
+        geom = el.get("geometry") or []
+        if len(geom) < 2:
+            continue
+
+        for i in range(len(geom) - 1):
+            a, b = geom[i], geom[i + 1]
+            a_lat, a_lon = to_float(a.get("lat")), to_float(a.get("lon"))
+            b_lat, b_lon = to_float(b.get("lat")), to_float(b.get("lon"))
+            if None in (a_lat, a_lon, b_lat, b_lon):
+                continue
+
+            n1, n2 = ensure(a_lat, a_lon), ensure(b_lat, b_lon)
+            dist_m = haversine(a_lat, a_lon, b_lat, b_lon)
+            if dist_m < 2:
+                continue
+
+            base_hours = (dist_m / 1000.0) / 40.0
+
+            if oneway in ("yes", "1", "true"):
+                n1["edges"].append({"to": n2["key"], "weight": base_hours})
+            elif oneway == "-1":
+                n2["edges"].append({"to": n1["key"], "weight": base_hours})
+            else:
+                n1["edges"].append({"to": n2["key"], "weight": base_hours})
+                n2["edges"].append({"to": n1["key"], "weight": base_hours})
+
+            n1["degree"] += 1
+            n2["degree"] += 1
+
+    return nodes
+
+
 # -------------------- CLI 入口 --------------------
 def main():
     """
@@ -752,6 +923,8 @@ def main():
         result = evaluate_route_events(payload)
     elif args.op == "plan_routes":
         result = plan_routes(payload)
+    elif args.op == "recalculate_route":
+        result = recalculate_route(payload)
     else:
         raise RuntimeError(f"Unsupported op: {args.op}")
 
