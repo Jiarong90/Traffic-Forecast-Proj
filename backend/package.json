@@ -1,0 +1,22 @@
+{
+  "name": "singapore-traffic-cameras",
+  "version": "1.0.0",
+  "description": "Singapore traffic monitoring camera live viewer",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "start:fastapi": "cd .. && PYTHONPATH=. backend/.venv/bin/python -m uvicorn python.api_server:app --host 127.0.0.1 --port 8000"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.48.0",
+    "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "nodemailer": "^6.9.15",
+    "pg": "^8.13.1"
+  }
+}

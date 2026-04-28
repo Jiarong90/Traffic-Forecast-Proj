@@ -1,6 +1,4 @@
 # Git
-.git
-.gitignore
 
 # macOS
 .DS_Store
@@ -10,9 +8,17 @@
 **/npm-debug.log*
 **/yarn-error.log*
 
+# Runtime/local logs
+**/*.log
+
 # Env / secrets
 **/.env
 **/.env.*
+
+# Python
+**/.venv
+**/__pycache__
+**/*.pyc
 
 # Editor
 .vscode

@@ -1,259 +1,448 @@
 # FAST Demo
 
-FAST is a Singapore traffic forecasting and monitoring demo platform.
+FAST means **Forecasting Analytics for Singapore Traffic**.
 
-Main web entry:
-- `http://localhost:3000/ui2/`
+It is a Singapore traffic forecasting and monitoring demo platform that combines traffic incidents, live camera evidence, route planning, weather information, alerts, user feedback, mobile GPS positioning, and admin-side review functions.
 
-## Current Stack
+Current web entry:
 
-- Frontend: `/Users/apple/Desktop/fyp_demo/UI 2`
-- Node backend: [/Users/apple/Desktop/fyp_demo/camera1/server.js](/Users/apple/Desktop/fyp_demo/camera1/server.js)
-- FastAPI backend: [/Users/apple/Desktop/fyp_demo/camera1/py/combined_api_server.py](/Users/apple/Desktop/fyp_demo/camera1/py/combined_api_server.py)
-- Core route/analysis engine: [/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py](/Users/apple/Desktop/fyp_demo/camera1/py/compute_engine.py)
-- Traffic ML helper: [/Users/apple/Desktop/fyp_demo/camera1/py/ml_traffic_predictor.py](/Users/apple/Desktop/fyp_demo/camera1/py/ml_traffic_predictor.py)
-- Database: Supabase PostgreSQL
-- Auth: Supabase Auth (`auth.users`, UUID)
+```text
+http://localhost:3000/
+```
 
 ## Current Features
 
-- Public pages:
-  - Home
-  - About
-  - Business Model
-- Public functional pages:
-  - Dashboard
-  - Map View
-  - Route Planner
-  - Weather
-  - Alerts
-  - Habit Routes page view
-- Logged-in user features:
-  - Profile
-  - Settings
-  - Feedback submission
-  - Habit route save / rename / delete / alert window
-  - Vehicle profiles for trip cost estimation
-  - Membership display and upgrade demo flow
-- Admin features:
-  - Admin Users
-  - Admin simulation controls
+- Public Home / About / Business Model pages
+- Dashboard with live incident overview, recent updates, camera evidence, expressway outlook and hotspot analytics
+- Map View with cameras, incidents, ERP, PGS and user feedback map points
+- Route Planner with three route options, route confirmation, live location marker, route camera/incident/feedback points and trip cost estimates
+- Weather page with postal code/place search and current-location lookup
+- Alerts page with traffic reports, traffic news and AI-assisted incident detail explanation
+- Habit Routes and frequent locations for logged-in users
+- Profile and Settings
+- Membership display and PayNow upgrade demo flow
+- Admin Users page with user list and feedback history
+- FASTbot chatbot
+- Android phone GPS upload through `mobile-location.html`
 
-## Dashboard
+## Current Architecture
 
-Current Dashboard includes:
-- Incident Overview
-- Recent Updates
-- Incident Camera Evidence
-- Expressway Outlook
-- High-Risk Zones (Historical)
+```text
+fyp_demo/
+  start.sh
+  README.md
 
-Notes:
-- `Expressway Outlook` and `High-Risk Zones` depend on the FastAPI combined service.
-- If FastAPI is not running, those blocks will fail to load.
+  frontend/
+    index.html
+    mobile-location.html
+    ml-traffic-model.js
+    sw.js
+    assets/images/
+    css/
+    js/
 
-## Map View
+  backend/
+    server.js
+    config.js
+    package.json
+    src/
+      app.js
+      db.js
+      state.js
+      context.js
+      middleware/
+      routes/
+      services/
+      utils/
 
-Current Map View supports:
-- live camera display/hide
-- LTA incident display/hide
-- ERP display/hide
-- PGS display/hide
-- camera / incident / ERP / PGS custom map icons
-- feedback submission button on the map
+  python/
+    api_server.py
+    requirements-fastapi.txt
+    compute/
+    ml/
+    data/
+    models/
 
-## Route Planner
-
-Current Route Planner supports:
-- start / destination by postal code, place, MRT, or current location
-- 3 route options:
-  - fastest
-  - fewer lights
-  - balanced
-- route preference switching
-- route card summary:
-  - ETA
-  - extra delay
-  - distance
-  - lights
-  - incidents count
-  - cameras count
-  - fuel cost
-  - fuel used
-  - ERP charges
-  - total estimated cost
-- saved vehicle selection for route cost estimation
-- `USE THIS ROUTE`
-- live red-dot navigation
-- route camera and incident points after confirmation
-- automatic rerouting after deviation
-- nearest live camera toggle
-- chatbot-triggered route planning
-- loading habit routes into planner
-
-## Settings and Vehicles
-
-Current Settings includes:
-- display name
-- email display
-- password update
-- frequent locations and routes
-- up to 3 saved vehicles
-
-Vehicle profiles store:
-- nickname
-- vehicle type
-- fuel grade
-- fuel consumption
-
-Saved vehicles are persisted in backend settings and can be reused in `TRIP COST ESTIMATE`.
-
-## Android Live GPS
-
-This project supports Android phone GPS as a live location source.
-
-Usage guide:
-- [/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md](/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md)
-
-## Current Run Method
-
-Recommended:
-
-```bash
-cd /Users/apple/Desktop/fyp_demo
-./start.sh
+  docs/
+    ANDROID_GPS_USAGE.md
+    README_代码结构说明.md
+    WINDOWS_DEPLOYMENT_GUIDE.md
 ```
 
-This starts:
-- FastAPI from `camera1/.venv`
-- Node backend on port `3000`
+### Frontend
 
-## Manual Run Method
+- Main page: `frontend/index.html`
+- Runtime JS:
+  - `frontend/js/auth.js`
+  - `frontend/js/pages/dashboard.js`
+  - `frontend/js/pages/routePlanner.js`
+  - `frontend/js/pages/weather.js`
+  - `frontend/js/features/reroute.js`
+  - `frontend/js/features/journey.js`
+  - `frontend/js/features/incidentImpact.js`
+  - `frontend/js/features/chatbot.js`
+  - `frontend/js/features/mobileMenu.js`
+  - `frontend/js/app.js`
+- Runtime CSS:
+  - `frontend/css/base.css`
+  - `frontend/css/layout.css`
+  - `frontend/css/components.css`
+  - `frontend/css/pages-dashboard.css`
+  - `frontend/css/pages-map.css`
+  - `frontend/css/pages-route.css`
+  - `frontend/css/pages-weather.css`
+  - `frontend/css/pages-alerts.css`
+  - `frontend/css/modals.css`
+
+### Backend
+
+- Main Node.js startup entry: `backend/server.js`
+- Express app and middleware: `backend/src/app.js`
+- Runtime config: `backend/config.js`
+- PostgreSQL pool: `backend/src/db.js`
+- Shared route context: `backend/src/context.js`
+- Route modules: `backend/src/routes/`
+- Service modules: `backend/src/services/`
+- Utility modules: `backend/src/utils/`
+- Node listens on:
+
+```text
+http://localhost:3000/
+```
+
+### Python / FastAPI
+
+- FastAPI entry: `python/api_server.py`
+- Route compute entry: `python/compute/routing.py`
+- Route compute modules: `python/compute/graph.py`, `python/compute/astar.py`, `python/compute/avoidance.py`, `python/compute/route_events.py`
+- Traffic impact model: `python/ml/traffic_predictor.py`
+- FastAPI listens on:
+
+```text
+http://127.0.0.1:8000/
+```
+
+## Authentication And Database
+
+The demo uses Supabase Auth and Supabase PostgreSQL.
+
+Main tables in use:
+
+- `auth.users`
+- `public.app_user_profiles`
+- `public.app_user_settings`
+- `public.app_user_feedback_reports`
+- `public.habit_routes`
+- `public.saved_places`
+- `public.traffic_alerts`
+- `public.signup_verifications`
+
+## Data Sources
+
+The project integrates:
+
+- data.gov.sg traffic images
+- LTA traffic incidents and traffic signal data
+- OneMap geocoding / reverse geocoding
+- OneMotoring ERP and PGS data
+- OpenWeather current weather and forecast
+- Gemini for AI text generation
+- Google News RSS for traffic news
+- Local OpenStreetMap / Overpass-derived Singapore road network snapshot
+
+## Local Road Network
+
+Route planning prefers the local Singapore road network snapshot:
+
+```text
+python/data/sg-road-network-overpass.json
+```
+
+This avoids depending entirely on live Overpass responses and reduces route planning timeout risk.
+
+## Quick Start macOS / Linux / WSL
 
 ### 1. Install Node dependencies
 
 ```bash
-cd /Users/apple/Desktop/fyp_demo/camera1
+cd /Users/apple/Desktop/fyp_demo/backend
 npm install
 ```
 
-### 2. Create and prepare Python virtual environment
+### 2. Create Python virtual environment
 
 ```bash
-cd /Users/apple/Desktop/fyp_demo/camera1
+cd /Users/apple/Desktop/fyp_demo/backend
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements-fastapi.txt
+python -m pip install -r ../python/requirements-fastapi.txt
 ```
 
-### 3. Install required system runtime for XGBoost on macOS
+### 3. Configure environment variables
 
-```bash
-brew install libomp
+Create or edit:
+
+```text
+backend/.env
 ```
 
-### 4. Start FastAPI
-
-```bash
-cd /Users/apple/Desktop/fyp_demo/camera1
-source .venv/bin/activate
-npm run start:fastapi
-```
-
-### 5. Start Node
-
-```bash
-cd /Users/apple/Desktop/fyp_demo/camera1
-npm start
-```
-
-## Environment Variables
-
-Edit:
-- [/Users/apple/Desktop/fyp_demo/camera1/.env](/Users/apple/Desktop/fyp_demo/camera1/.env)
-
-Main variables used now include:
+Typical variables:
 
 ```env
 PORT=3000
 DATABASE_URL=postgresql://...
 DATABASE_SSL=true
 
-SUPABASE_URL=...
+SUPABASE_URL=https://your-project.supabase.co
 SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 
+PYTHON_BIN=python3
 FASTAPI_BASE_URL=http://127.0.0.1:8000
 
-SMTP_HOST=...
+MAIL_DEV_MODE=true
+SMTP_HOST=
 SMTP_PORT=587
-SMTP_USER=...
-SMTP_PASS=...
-SMTP_FROM=...
+SMTP_USER=
+SMTP_PASS=
+SMTP_FROM=
 
-LTA_ACCOUNT_KEY=...
 OPENWEATHER_API_KEY=...
 GEMINI_API_KEY=...
 ONEMAP_API_KEY=...
+LTA_ACCOUNT_KEY=...
 ```
 
-## Data Sources
+### 4. Start both services
 
-- data.gov.sg
-- LTA DataMall
-- OneMap
-- OpenWeather
-- Google News RSS
-- Gemini
-- OneMotoring
-- local Singapore road network snapshot
+From the project root:
 
-## Important Local Data
+```bash
+cd /Users/apple/Desktop/fyp_demo
+./start.sh
+```
 
-- road snapshot:
-  - [/Users/apple/Desktop/fyp_demo/camera1/data/sg-road-network-overpass.json](/Users/apple/Desktop/fyp_demo/camera1/data/sg-road-network-overpass.json)
-- ERP rate data:
-  - [/Users/apple/Desktop/fyp_demo/camera1/data/erp_rates_2026-03-23.json](/Users/apple/Desktop/fyp_demo/camera1/data/erp_rates_2026-03-23.json)
+The script starts:
 
-## Common Problems
+- FastAPI: `http://127.0.0.1:8000`
+- Node.js web app: `http://localhost:3000/`
 
-### Dashboard expressway/hotspot blocks fail
+Logs:
+
+- `backend/fastapi.log`
+- `backend/node.log`
+
+Press `Ctrl+C` in the terminal to stop both services.
+
+## Manual Start
+
+If you do not use `start.sh`, run two terminals.
+
+Terminal 1:
+
+```bash
+cd /Users/apple/Desktop/fyp_demo/backend
+source .venv/bin/activate
+npm run start:fastapi
+```
+
+Terminal 2:
+
+```bash
+cd /Users/apple/Desktop/fyp_demo/backend
+npm start
+```
+
+Open:
+
+```text
+http://localhost:3000/
+```
+
+## Windows Deployment
+
+Use:
+
+```text
+docs/WINDOWS_DEPLOYMENT_GUIDE.md
+```
+
+Recommended Windows setup is WSL Ubuntu. Native Windows PowerShell is also documented.
+
+## Android Phone GPS
+
+The demo can use an Android phone as a live GPS device.
+
+Guide:
+
+```text
+docs/ANDROID_GPS_USAGE.md
+```
+
+Typical flow:
+
+1. Start the web app on the computer.
+2. Start `cloudflared tunnel --url http://localhost:3000`.
+3. Open the generated HTTPS URL on Android:
+
+```text
+https://your-cloudflared-url/mobile-location.html
+```
+
+4. Allow browser location permission.
+5. The desktop Route Planner can read the latest phone GPS from `/api/mobile-location/latest`.
+
+## Access Rules
+
+Public users can access:
+
+- Home
+- About
+- Business Model
+- Dashboard
+- Map View
+- Route Planner
+- Weather
+- Alerts
+
+Logged-in users can additionally use:
+
+- Profile
+- Settings
+- feedback submission
+- Habit Routes saving and management
+- saved vehicles and frequent locations
+
+Admin users can additionally use:
+
+- Admin Users
+- user feedback history
+- feedback deletion
+- admin replay recording endpoints
+
+## Route Planner Notes
+
+Route Planner supports:
+
+- postal code / place / MRT input
+- current location as start point
+- Android phone GPS as live position source
+- three route options:
+  - fastest
+  - fewer lights
+  - balanced
+- route preference switching
+- route card metrics:
+  - ETA
+  - delay
+  - distance
+  - traffic lights
+  - incident count
+  - camera count
+  - fuel cost
+  - ERP charges
+  - total estimated cost
+- route confirmation through `USE THIS ROUTE`
+- start and destination pins
+- live red location marker
+- grey travelled route segment
+- route-related camera / incident / feedback markers
+- nearest live camera toggle
+- rerouting when the user deviates or avoids incidents/congestion
+
+## Current Cleanup State
+
+The project has been cleaned and synchronized with the current structure:
+
+- Runtime code is organized into `frontend/`, `backend/`, and `python/`.
+- Empty frontend placeholder JS files were removed.
+- Empty backend service placeholder files were removed.
+- Removed admin simulation legacy controls and backend config leftovers.
+- Large unused data/model files were removed to reduce repository size.
+- Current large files are kept because they are still used by the demo:
+  - `python/data/sg-road-network-overpass.json`
+  - `python/data/LTATrafficSignalAspectGEOJSON.geojson`
+  - `python/models/traffic_model.pkl`
+  - `python/models/incident_classifier.pkl`
+  - `python/models/incident_regressor.pkl`
+
+## Useful Documentation
+
+- `docs/README_代码结构说明.md`: detailed code structure
+- `docs/ANDROID_GPS_USAGE.md`: Android phone GPS usage
+- `docs/WINDOWS_DEPLOYMENT_GUIDE.md`: Windows deployment guide
+
+## Common Issues
+
+### FastAPI cannot start
 
 Check:
-- FastAPI is running
-- `.venv` dependencies are installed
-- `libomp` is installed on macOS
 
-### FastAPI fails to start
+- `backend/.venv` exists
+- dependencies are installed from `python/requirements-fastapi.txt`
+- port `8000` is free
 
-Check:
-- use `camera1/.venv`
-- install from `requirements-fastapi.txt`
-- install `libomp`
-
-### Port already in use
+### Node cannot start
 
 Check:
+
+- `backend/node_modules` exists
+- `backend/.env` is configured
+- port `3000` is free
+
+### Port 3000 is already in use
 
 ```bash
 lsof -nP -iTCP:3000 -sTCP:LISTEN
+```
+
+Stop the existing process, then restart.
+
+### Port 8000 is already in use
+
+```bash
 lsof -nP -iTCP:8000 -sTCP:LISTEN
 ```
 
-### Android live location fails
+Stop the existing FastAPI process, then restart.
 
-Use:
-- HTTPS tunnel
-- latest `trycloudflare.com` address
-- active mobile sharing page
+### Route planning fails
 
-## Documentation
+Check:
 
-- [/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md](/Users/apple/Desktop/fyp_demo/ANDROID_GPS_USAGE.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/README.md](/Users/apple/Desktop/fyp_demo/camera1/README.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/docs/README_一键使用说明.md](/Users/apple/Desktop/fyp_demo/camera1/docs/README_%E4%B8%80%E9%94%AE%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/docs/README_代码结构说明.md](/Users/apple/Desktop/fyp_demo/camera1/docs/README_%E4%BB%A3%E7%A0%81%E7%BB%93%E6%9E%84%E8%AF%B4%E6%98%8E.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/docs/ROUTING_README.md](/Users/apple/Desktop/fyp_demo/camera1/docs/ROUTING_README.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/docs/A星寻路实现指南.md](/Users/apple/Desktop/fyp_demo/camera1/docs/A%E6%98%9F%E5%AF%BB%E8%B7%AF%E5%AE%9E%E7%8E%B0%E6%8C%87%E5%8D%97.md)
-- [/Users/apple/Desktop/fyp_demo/camera1/docs/摄像头实现指南.md](/Users/apple/Desktop/fyp_demo/camera1/docs/%E6%91%84%E5%83%8F%E5%A4%B4%E5%AE%9E%E7%8E%B0%E6%8C%87%E5%8D%97.md)
+- FastAPI is running on `127.0.0.1:8000`
+- Node is running on `localhost:3000`
+- local road network file exists:
+
+```text
+python/data/sg-road-network-overpass.json
+```
+
+### Current location cannot be obtained
+
+Check:
+
+- browser location permission
+- macOS / Windows location permission
+- use `localhost` or HTTPS
+- for Android phone GPS, use cloudflared HTTPS URL
+
+## GitHub Update
+
+Before pushing:
+
+```bash
+cd /Users/apple/Desktop/fyp_demo
+git status
+```
+
+Then:
+
+```bash
+git add .
+git commit -m "update FAST demo"
+git push origin main
+```
+
+Do not commit `.env`, `.venv`, `node_modules`, logs, or local backup folders.

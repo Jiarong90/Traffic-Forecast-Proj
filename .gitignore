@@ -19,10 +19,20 @@ yarn-error.log*
 .idea/
 
 # Python
+venv/
+.venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+
 
 # Build/cache
 .cache/
 dist/
 build/
+
+desktop.ini
+
+# Local backup area for large unused demo artifacts.
+.local-backups/

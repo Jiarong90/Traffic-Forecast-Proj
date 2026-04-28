@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FAST - Traffic Forecasting Web App</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/pages-dashboard.css" />
+  <link rel="stylesheet" href="css/pages-map.css" />
+  <link rel="stylesheet" href="css/pages-route.css" />
+  <link rel="stylesheet" href="css/pages-weather.css" />
+  <link rel="stylesheet" href="css/pages-alerts.css" />
+  <link rel="stylesheet" href="css/modals.css" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#2563eb">
+</head>
+
+<body>
+  <div class="app">
+    <!-- 顶栏 -->
+    <header class="header modern-navbar">
+
+      <a href="#home" class="logo" id="logo-home-link" aria-label="Go to FAST home page">
+        <img src="assets/images/logo2.jpg" alt="FAST Logo" class="brand-logo-img"
+          onerror="this.style.display='none';this.nextElementSibling.style.display='inline';" />
+        <span class="brand-logo-text">FAST</span>
+      </a>
+
+      <nav class="main-nav nav-center" id="main-nav">
+        <a href="#dashboard" class="nav-tab active" data-page="dashboard">Dashboard</a>
+        <a href="#map-view" class="nav-tab" data-page="map-view">Map View</a>
+        <a href="#route-planner" id="nav-route-planner-btn" class="nav-tab" data-page="route-planner">Route Planner</a>
+        <a href="#weather" class="nav-tab" data-page="weather">Weather</a>
+        <!-- <a href="#habit-routes" id="nav-habit-routes-btn" class="nav-tab" data-page="habit-routes">Habit Routes</a> -->
+        <a href="#alerts" class="nav-tab" data-page="alerts">Alerts</a>
+
+        <div class="nav-dropdown">
+          <button class="nav-dropbtn">About Us ▾</button>
+          <div class="dropdown-content">
+            <a href="#home" id="header-home-link">Home</a>
+            <a href="#about" id="header-about-link">About FAST</a>
+            <a href="#home" id="header-business-link">Business Model</a>
+          </div>
+        </div>
+        <a href="#admin-users" class="nav-tab hidden" data-page="admin-users" id="admin-users-tab">Admin Users</a>
+
+      </nav>
+
+
+      <div id="mobile-menu-panel" class="mobile-menu-panel hidden">
+        <a href="#dashboard" data-page="dashboard">Dashboard</a>
+        <a href="#map-view" data-page="map-view">Map View</a>
+        <a href="#route-planner" data-page="route-planner">Route Planner</a>
+        <a href="#weather" data-page="weather">Weather</a>
+        <a href="#alerts" data-page="alerts">Alerts</a>
+        <a href="#home">Home</a>
+        <a href="#about">About FAST</a>
+        <hr>
+        <a href="#signup">Sign Up</a>
+        <a href="#login">Login</a>
+      </div>
+
+      <div class="header-right">
+        <button id="mobile-menu-btn" class="mobile-menu-btn">☰ Menu</button>
+
+        <div class="alerts-dropdown-wrap" id="alerts-toggle">
+          <span class="icon-bell"></span>
+          <span id="nav-alert-badge" class="nav-badge hidden">0</span>
+          <div class="alerts-nav-dropdown hidden" id="alerts-nav-dropdown">
+            <div class="dropdown-header"></div>
+            <ul id="nav-alerts-list">
+              <li class="no-alerts">No new alerts.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="guest-auth-actions" id="guest-auth-actions">
+          <a href="#signup" class="btn-header-secondary" id="header-signup-btn">SIGN UP</a>
+          <a href="#login" class="btn-header-login" id="header-login-btn">LOGIN</a>
+        </div>
+
+        <div class="user-menu-wrap hidden" id="user-menu-wrap">
+          <span class="icon-user" id="user-avatar-btn" title="Account"></span>
+          <span class="icon-chevron-down" id="user-chevron"></span>
+          <div class="user-dropdown" id="user-dropdown">
+            <div class="user-dropdown-head">LOGGED IN AS</div>
+            <div class="user-dropdown-name" id="user-display-name">Jane Cooper</div>
+            <a href="#profile" class="user-dropdown-item" id="menu-profile-link"><span class="icon-profile"></span>
+              Profile</a>
+            <a href="#settings" class="user-dropdown-item" id="menu-settings-link"><span class="icon-settings"></span>
+              Settings</a>
+            <button type="button" class="user-dropdown-item logout"><span class="icon-logout"></span> Log Out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 主导航 -->
+
+
+    <main id="home" class="page active public-home-page">
+      <div class="home-scroll-deck" id="home-scroll-deck">
+        <section class="home-slide home-slide-1" data-home-slide="0">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">Singapore Traffic Monitoring System</p>
+            <h1 class="home-title">A clearer traffic command surface for daily travel.</h1>
+            <p class="home-desc">Accident view / Camera retrieval / Automotive-grade navigation / Automotive-grade
+              positioning / Habit route</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-2" data-home-slide="1">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">All-scenario service</p>
+            <h2 class="home-subtitle">Travel service solution</h2>
+            <p class="home-desc">Refueling service / charging service / parking service / big data operation</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-3" data-home-slide="2">
+          <div class="home-slide-overlay">
+            <p class="home-kicker">NAVIGATION AND MONITORING</p>
+            <h2 class="home-subtitle">Human-vehicle co-guidance solution</h2>
+            <p class="home-desc">Massive data / High-precision data / lane-level navigation / Refined rendering</p>
+          </div>
+        </section>
+        <section class="home-slide home-slide-4" data-home-slide="3">
+          <div class="home-slide-overlay home-slide-overlay-footer">
+            <div class="home-business-lead">
+              <p class="home-kicker">Business Model</p>
+              <p class="home-desc"><strong>Membership plans for public users and premium service access</strong></p>
+            </div>
+            <div class="home-pricing-grid">
+              <article class="home-pricing-card">
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">FREE USER</span>
+                  <strong class="home-pricing-price">S$0 / month</strong>
+                </div>
+                <ul class="home-pricing-list">
+                  <li>Traffic incident dashboard</li>
+                  <li>Traffic camera viewing</li>
+                  <li>Route planning</li>
+                  <li>Weather search</li>
+                  <li>Personalized definition</li>
+                  <li>Alert viewing</li>
+                  <li>Personal profile information</li>
+                  <li>Habit route saving</li>
+                </ul>
+              </article>
+              <article class="home-pricing-card home-pricing-card-featured">
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">PREMIUM USER</span>
+                  <strong class="home-pricing-price">S$30 / month</strong>
+                </div>
+                <ul class="home-pricing-list">
+                  <li>Save your favorite routes</li>
+                  <li>Get personalized alerts for your routes</li>
+                  <li>Access your personal AI assistant</li>
+                  <li>More service access to be added </li>
+                  <li>Additional business-side access to be added later</li>
+                </ul>
+              </article>
+            </div>
+            <div class="home-footer-grid">
+              <div class="home-footer-block">
+                <p class="home-footer-title">CONTACT US</p>
+                <div class="home-footer-placeholder">
+                  <a class="home-footer-template-box home-footer-link-box"
+                    href="mailto:trafficforecastfyp@gmail.com">trafficforecastfyp@gmail.com</a>
+                  <a class="home-footer-template-box home-footer-link-box"
+                    href="mailto:yangyuhao76@gmail.com">yangyuhao76@gmail.com</a>
+                </div>
+              </div>
+              <div class="home-footer-block">
+                <p class="home-footer-title">FRIENDLY LINKS</p>
+                <div class="home-footer-placeholder">
+                  <a class="home-footer-template-box home-footer-link-box"
+                    href="https://onemotoring.lta.gov.sg/content/onemotoring/home.html" target="_blank"
+                    rel="noopener noreferrer">https://onemotoring.lta.gov.sg/content/onemotoring/home.html</a>
+                  <a class="home-footer-template-box home-footer-link-box"
+                    href="https://www.lta.gov.sg/content/ltagov/en.html" target="_blank"
+                    rel="noopener noreferrer">https://www.lta.gov.sg/content/ltagov/en.html</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div class="home-slide-dots" id="home-slide-dots" aria-label="Home slides">
+        <button type="button" class="home-slide-dot active" data-home-dot="0" aria-label="Slide 1"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="1" aria-label="Slide 2"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="2" aria-label="Slide 3"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="3" aria-label="Slide 4"></button>
+      </div>
+    </main>
+
+    <main id="business-service-center" class="page public-home-page">
+      <section class="business-page-card">
+        <p class="home-kicker">Business Service Center</p>
+        <h1 class="section-head">Service Access for transport operators and project stakeholders</h1>
+        <p class="business-desc">This section is the public gateway for business-side access. Use the login or sign up
+          entry in the top-right corner to enter the full FAST system, then manage route monitoring, traffic analytics,
+          user feedback review, and admin-side operations from your account.</p>
+        <div class="business-feature-grid">
+          <article class="business-feature-card">
+            <h3>Operational Monitoring</h3>
+            <p>Review live incidents, traffic camera evidence, alerts, and weather-related transport conditions in one
+              place.</p>
+          </article>
+          <article class="business-feature-card">
+            <h3>Route and Scenario Planning</h3>
+            <p>Compare planned routes, evaluate disruptions, and review traffic-side operating conditions.
+            </p>
+          </article>
+          <article class="business-feature-card">
+            <h3>User and Feedback Management</h3>
+            <p>Track user accounts, review submitted feedback, and manage service-side traffic response workflows.</p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <main id="about" class="page public-home-page">
+      <section class="business-page-card">
+        <section class="about-section" id="about-company-profile">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Project introduction</h2>
+          </div>
+          <div class="about-copy-block">
+            <p>Forecasting Analytics for Singapore Traffic--FAST is a Singapore traffic forecasting and monitoring demo
+              platform designed to integrate accident visibility, live camera evidence, route planning, weather
+              information, alerts, and user feedback into one system.</p>
+            <p>The project aims to present traffic information in a clearer and more practical way for both public users
+              and operational-side users, so that they can understand road conditions faster, compare route options more
+              effectively, and respond to disruptions with better situational awareness.</p>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-vision-mission">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Vision and mission</h2>
+          </div>
+          <div class="about-mission-panel">
+            <div class="about-mission-card about-mission-card-full">
+              <span class="about-mission-label">Vision &amp; Mission</span>
+              <p>-Help people better understand traffic conditions and make better travel decisions.</p>
+              <p>-Instead of only showing current traffic information, the system focuses on predicting future traffic
+                impacts.</p>
+              <p>-Allows users to plan their trips earlier and avoid possible congestion.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="about-section" id="about-management-team">
+          <div class="about-section-head">
+            <h2 class="about-section-title">Team members</h2>
+          </div>
+          <div class="about-team-grid">
+            <article class="about-team-card" data-member-name="KOO JIA RONG" data-member-role="Role / Position"
+              data-member-bio="Add the detailed introduction for KOO JIA RONG here later.">
+              <div class="about-team-photo"></div>
+              <h3>KOO JIA RONG</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="YANG YUHAO" data-member-role="Software Engineer"
+              data-member-image="./assets/images/Yang.jpg" data-member-bio="Software Engineer for FAST, leading system architecture design and overall technical direction, and responsible for core system implementation.
+Currently studying at University of Wollongong.">
+              <div class="about-team-photo about-team-photo-real"
+                style="background-image:url('./assets/images/Yang.jpg');"></div>
+              <h3>YANG YUHAO</h3>
+              <p class="about-team-role about-team-role-no-caps">Software Engineer</p>
+            </article>
+            <article class="about-team-card" data-member-name="TAN YEE SHIEN" data-member-role="Role / Position"
+              data-member-bio="Add the detailed introduction for TAN YEE SHIEN here later.">
+              <div class="about-team-photo"></div>
+              <h3>TAN YEE SHIEN</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="Muhsin Bin Sadiq Basha"
+              data-member-role="Role / Position"
+              data-member-bio="Add the detailed introduction for Muhsin Bin Sadiq Basha here later.">
+              <div class="about-team-photo"></div>
+              <h3>Muhsin Bin Sadiq Basha</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+            <article class="about-team-card" data-member-name="Chan Wei Peng Christopher"
+              data-member-role="Role / Position"
+              data-member-bio="Add the detailed introduction for Chan Wei Peng Christopher here later.">
+              <div class="about-team-photo"></div>
+              <h3>Chan Wei Peng Christopher</h3>
+              <p class="about-team-role">Role / Position</p>
+            </article>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <!-- Login -->
+    <main id="login" class="page auth-page">
+      <div class="auth-card">
+        <h1 class="auth-title">WELCOME BACK</h1>
+        <p class="auth-desc">Access your saved routes and preferences.</p>
+        <form class="auth-form" id="login-form">
+          <label class="auth-label">EMAIL ADDRESS</label>
+          <div class="input-with-icon">
+            <span class="icon-envelope"></span>
+            <input type="email" placeholder="name@example.com" required />
+          </div>
+          <div class="auth-row">
+            <label class="auth-label">PASSWORD</label>
+            <a href="#" class="auth-link">FORGOT?</a>
+          </div>
+          <div class="input-with-icon">
+            <span class="icon-lock"></span>
+            <input type="password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn-auth">→ LOGIN →</button>
+        </form>
+        <p class="auth-switch">Don't have an account? <a href="#signup">Sign up</a></p>
+      </div>
+      <span class="help-icon auth-help">?</span>
+    </main>
+
+    <!-- Sign up -->
+    <main id="signup" class="page auth-page">
+      <div class="auth-card">
+        <h1 class="auth-title">JOIN FAST</h1>
+        <p class="auth-desc">Create an account to unlock personalized features.</p>
+        <form class="auth-form" id="signup-form">
+          <label class="auth-label">FULL NAME</label>
+          <input type="text" placeholder="Enter your name" class="auth-input" id="signup-name" required />
+          <label class="auth-label">EMAIL ADDRESS</label>
+          <div class="input-with-icon">
+            <span class="icon-envelope"></span>
+            <input type="email" placeholder="name@example.com" id="signup-email" required />
+          </div>
+          <label class="auth-label">PASSWORD</label>
+          <div class="input-with-icon">
+            <span class="icon-lock"></span>
+            <input type="password" placeholder="At least 6 chars, Aa + 0-9" id="signup-password" required />
+          </div>
+          <div class="auth-row">
+            <label class="auth-label">EMAIL VERIFICATION CODE</label>
+            <button type="button" class="auth-link" id="signup-send-code-btn">SEND CODE</button>
+          </div>
+          <input type="text" placeholder="Enter 6-digit code" class="auth-input" id="signup-code" maxlength="6" />
+          <p class="auth-note">Password must include uppercase, lowercase, and a number (min 6 chars).</p>
+          <p class="auth-error" id="signup-feedback"></p>
+          <button type="submit" class="btn-auth"><span class="icon-people"></span> VERIFY & CREATE ACCOUNT</button>
+        </form>
+        <hr class="auth-hr" />
+        <p class="auth-switch">Already have an account? <a href="#login">Log in</a></p>
+      </div>
+      <span class="help-icon auth-help">?</span>
+    </main>
+
+    <!-- Profile -->
+    <main id="profile" class="page">
+      <section class="profile-page-card">
+        <div class="profile-avatar-lg"></div>
+        <h1 class="section-head" id="profile-name">--</h1>
+        <p class="profile-email" id="profile-email">--</p>
+        <div class="profile-membership-wrap hidden" id="profile-membership-wrap">
+          <button type="button" class="profile-membership-pill" id="profile-membership-btn">FREE USER</button>
+        </div>
+        <div class="profile-edit-grid">
+          <div class="profile-edit-item profile-edit-item-full">
+            <label for="profile-bio">Personal Introduction</label>
+            <textarea id="profile-bio" placeholder="Write something about yourself..."></textarea>
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-gender">Gender</label>
+            <select id="profile-gender">
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+              <option value="prefer_not_to_say">Prefer not to say</option>
+            </select>
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-birthday">Birthday</label>
+            <input type="date" id="profile-birthday" />
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-region">Region</label>
+            <input type="text" id="profile-region" placeholder="Your region" />
+          </div>
+          <div class="profile-edit-item">
+            <label for="profile-profession">Profession</label>
+            <input type="text" id="profile-profession" placeholder="Your profession" />
+          </div>
+          <div class="profile-edit-item profile-edit-item-full">
+            <label for="profile-school">School</label>
+            <input type="text" id="profile-school" placeholder="Your school" />
+          </div>
+        </div>
+
+        <div class="profile-save-wrap">
+          <button type="button" class="btn-dark" id="profile-save-btn">SAVE</button>
+        </div>
+        <p class="settings-feedback" id="profile-feedback"></p>
+      </section>
+    </main>
+
+    <div class="profile-membership-overlay hidden" id="profile-membership-overlay">
+      <div class="profile-membership-modal">
+        <button type="button" class="profile-membership-close" id="profile-membership-close">×</button>
+        <h2 class="profile-membership-title" id="profile-membership-title">FREE USER</h2>
+        <p class="profile-membership-sub" id="profile-membership-sub">Current plan details</p>
+        <div class="profile-membership-list" id="profile-membership-list"></div>
+        <div class="profile-membership-upgrade hidden" id="profile-membership-upgrade">
+          <p class="profile-membership-paynote">Scan the PayNow QR code below to upgrade to Premium User for 30 days.
+          </p>
+          <img src="assets/images/paynow.jpg" alt="PayNow QR" class="profile-membership-qr" />
+          <button type="button" class="btn-dark full" id="profile-membership-confirm-btn">I HAVE COMPLETED
+            PAYMENT</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <main id="settings" class="page">
+      <section class="settings-page-card">
+        <h1 class="section-head">Settings</h1>
+        <p class="settings-desc">You can update your name/password and maintain frequent locations/routes here.</p>
+        <form id="settings-form" class="settings-form">
+          <div class="settings-grid">
+            <div class="settings-item">
+              <label for="settings-email">Email (fixed)</label>
+              <input type="email" id="settings-email" disabled />
+            </div>
+            <div class="settings-item">
+              <label for="settings-name">Display Name</label>
+              <div class="settings-inline-row">
+                <input type="text" id="settings-name" placeholder="Your name" />
+                <button type="button" class="btn-dark settings-inline-btn" id="settings-save-profile-btn">SAVE
+                  PROFILE</button>
+              </div>
+            </div>
+            <div class="settings-item">
+              <label for="settings-commute-go">Go to work time</label>
+              <input type="time" id="settings-commute-go" />
+            </div>
+            <div class="settings-item">
+              <label for="settings-commute-back">Back home time</label>
+              <input type="time" id="settings-commute-back" />
+            </div>
+          </div>
+
+          <h2 class="subsection-title">Frequent Locations & Routes</h2>
+          <div class="settings-places-grid">
+            <div class="settings-item">
+              <label>Frequent Location 1</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-1" placeholder="Place name" />
+                <input type="text" id="settings-place-query-1" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 2</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-2" placeholder="Place name" />
+                <input type="text" id="settings-place-query-2" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 3</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-3" placeholder="Place name" />
+                <input type="text" id="settings-place-query-3" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+            <div class="settings-item">
+              <label>Frequent Location 4</label>
+              <div class="settings-place-row">
+                <input type="text" id="settings-place-name-4" placeholder="Place name" />
+                <input type="text" id="settings-place-query-4" placeholder="Postal / place / MRT" />
+              </div>
+            </div>
+          </div>
+          <div class="settings-routes" id="settings-routes-wrap">
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-1" placeholder="Route name (e.g. Home → Office)" />
+              <input type="text" id="settings-route-start-1" placeholder="Start" />
+              <input type="text" id="settings-route-end-1" placeholder="End" />
+            </div>
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-2" placeholder="Route name" />
+              <input type="text" id="settings-route-start-2" placeholder="Start" />
+              <input type="text" id="settings-route-end-2" placeholder="End" />
+            </div>
+            <div class="settings-route-row">
+              <input type="text" id="settings-route-name-3" placeholder="Route name" />
+              <input type="text" id="settings-route-start-3" placeholder="Start" />
+              <input type="text" id="settings-route-end-3" placeholder="End" />
+            </div>
+          </div>
+
+          <div class="settings-actions">
+            <button type="button" class="btn-dark" id="settings-save-routes-btn">SAVE LOCATIONS & ROUTES</button>
+          </div>
+        </form>
+
+        <section class="settings-password-card">
+          <h2 class="subsection-title">Change Password</h2>
+          <div class="settings-password-grid">
+            <input type="password" id="settings-password-current" placeholder="Current password" />
+            <input type="password" id="settings-password-new" placeholder="New password (Aa + 0-9, min 6)" />
+            <button type="button" class="btn-dark" id="settings-change-password-btn">UPDATE PASSWORD</button>
+          </div>
+        </section>
+
+        <section class="settings-danger-card">
+          <h2 class="subsection-title">Danger Zone</h2>
+          <p>Delete account will permanently remove your data.</p>
+          <button type="button" class="user-dropdown-item delete-account" id="settings-delete-account-btn">
+            <span class="icon-warning"></span> Delete Account
+          </button>
+        </section>
+
+        <section class="settings-vehicles-card">
+          <h2 class="subsection-title">My Vehicles</h2>
+          <div id="settings-vehicles-list" class="settings-vehicles-list"></div>
+          <p class="settings-desc">Save up to 3 vehicles for fuel and ERP cost estimates.</p>
+          <button type="button" class="btn-dark" id="settings-add-vehicle-btn" style="margin-top:12px">+ ADD
+            VEHICLE</button>
+          <div class="settings-vehicle-form hidden" id="settings-vehicle-form">
+            <div class="vehicle-form-grid">
+              <div class="vehicle-form-item">
+                <label>Nickname</label>
+                <input type="text" id="vf-name" placeholder="e.g. Family Car" maxlength="30" />
+              </div>
+              <div class="vehicle-form-item">
+                <label>Vehicle Type</label>
+                <select id="vf-vehicle-type" class="vehicle-form-select">
+                  <option value="sedan">Sedan</option>
+                  <option value="suv">SUV</option>
+                  <option value="mpv">MPV</option>
+                  <option value="motorcycle">Motorcycle</option>
+                </select>
+              </div>
+              <div class="vehicle-form-item">
+                <label>Fuel Grade</label>
+                <select id="vf-fuel-grade" class="vehicle-form-select">
+                  <option value="ron92">RON 92</option>
+                  <option value="ron95" selected>RON 95</option>
+                  <option value="ron98">RON 98</option>
+                </select>
+              </div>
+              <div class="vehicle-form-item">
+                <label>Fuel Consumption (L/100km)</label>
+                <input type="number" id="vf-consumption" placeholder="8.0" min="2" max="30" step="0.1" />
+              </div>
+            </div>
+            <div class="vehicle-form-actions">
+              <button type="button" class="btn-dark" id="vf-save-btn">SAVE VEHICLE</button>
+              <button type="button" class="btn-outline" id="vf-cancel-btn">CANCEL</button>
+            </div>
+            <p class="settings-feedback" id="vf-feedback"></p>
+          </div>
+        </section>
+        <p class="settings-feedback" id="settings-feedback"></p>
+      </section>
+    </main>
+
+    <!-- Dashboard -->
+    <main id="dashboard" class="page active">
+      <section class="traffic-summary">
+        <p class="summary-meta" id="summary-last-updated">Last updated: --</p>
+      </section>
+
+      <section class="incident-overview card" id="incident-overview-section">
+        <div class="card-head">
+          <h2 class="card-title">Incident Overview</h2>
+          <span class="icon-trend-up"></span>
+          <span class="icon-pin small"></span>
+        </div>
+        <div class="incident-grid">
+          <div class="incident-total">
+            <span class="icon-warning"></span>
+            <span class="total-label">▲ TOTAL</span>
+            <span class="total-num" id="incident-total-num">--</span>
+            <span class="total-desc">Active incidents</span>
+          </div>
+          <div class="severity-blocks">
+            <div class="severity high">
+              <span class="dot"></span>
+              <span class="num" id="severity-high-num">--</span>
+              <span class="label">Critical impact</span>
+              <span class="tag">HIGH SEVERITY</span>
+            </div>
+            <div class="severity medium">
+              <span class="dot"></span>
+              <span class="num" id="severity-medium-num">--</span>
+              <span class="label">Moderate impact</span>
+              <span class="tag">MEDIUM SEVERITY</span>
+            </div>
+            <div class="severity low">
+              <span class="dot"></span>
+              <span class="num" id="severity-low-num">--</span>
+              <span class="label">Minor impact</span>
+              <span class="tag">LOW SEVERITY</span>
+            </div>
+          </div>
+        </div>
+        <div class="incident-footer">
+          <span id="incident-highest-severity">Highest severity: --</span>
+          <span id="incident-max-radius">Max congestion radius: --</span>
+        </div>
+      </section>
+
+      <!-- <div class="live-cards">
+        <div class="live-card congestion">
+          <span class="live-badge">Live</span>
+          <span class="icon-chart"></span>
+          <h3 class="live-title">Current Congestion</h3>
+          <p class="live-value yellow">Moderate</p>
+          <p class="live-desc">Average speed: 45 km/h</p>
+          <div class="progress-bar yellow"></div>
+        </div>
+        <div class="live-card incidents">
+          <span class="live-badge">Live</span>
+          <span class="icon-warning red"></span>
+          <h3 class="live-title">Active Incidents</h3>
+          <p class="live-value" id="live-incidents-total">--</p>
+          <p class="live-desc" id="live-incidents-breakdown">--</p>
+          <div class="mini-bars">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+        <div class="live-card weather">
+          <span class="live-badge">Live</span>
+          <span class="icon-cloud"></span>
+          <h3 class="live-title">Weather Status</h3>
+          <p class="live-value blue">Cloudy</p>
+          <p class="live-desc">28°C, No rain expected</p>
+          <label class="checkbox-label"><input type="checkbox" checked /> Good driving conditions</label>
+        </div>
+      </div> -->
+
+      <div class="dashboard-section" style="margin-top: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0; color: #1e293b; font-size: 1.25rem;">Expressway Forecast <span
+              style="font-size: 0.9rem; font-weight: 400;">(T+15 Predictions)</span>
+            <div class="speedband-tooltip">
+              <span class="info-icon">ⓘ</span>
+              <div class="tooltip-content">
+                <div
+                  style="font-weight: 700; border-bottom: 1px solid #334155; padding-bottom: 4px; margin-bottom: 8px;">
+                  LTA Speed Bands (km/h)
+                </div>
+                <div class="band-grid">
+                  <span style="color: #ef4444;">Band 1: 0 - 9</span>
+                  <span style="color: #ef4444;">Band 2: 10 - 19</span>
+                  <span style="color: #ef4444;">Band 3: 20 - 29</span>
+                  <span style="color: #f59e0b;">Band 4: 30 - 39</span>
+                  <span style="color: #f59e0b;">Band 5: 40 - 49</span>
+                  <span style="color: #22c55e;">Band 6: 50 - 59</span>
+                  <span style="color: #22c55e;">Band 7: 60 - 69</span>
+                  <span style="color: #22c55e;">Band 8: 70+</span>
+                </div>
+              </div>
+            </div>
+          </h3>
+          <button onclick="refreshExpresswayDashboard()" class="refresh-btn"
+            style="padding: 5px 12px; font-size: 12px; cursor: pointer;">Update Live</button>
+        </div>
+
+        <div id="expressway-forecast-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+          <div style="color: #94a3b8; font-style: italic;">Loading specialist predictions...</div>
+        </div>
+      </div>
+
+      <div class="dashboard-section" style="margin-top: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0; color: #1e293b; font-size: 1.25rem;">
+            Incident Hotspots <span style="font-size: 0.9rem; font-weight: 400;">(Past 3 months)</span>
+          </h3>
+        </div>
+
+        <div id="hotspot-grid"
+          style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+          <div style="color: #94a3b8; font-style: italic;">Loading hotspots analytics...</div>
+        </div>
+      </div>
+
+      <section class="recent-updates" id="recent-updates-section">
+        <div class="recent-updates-head">
+          <h2 class="subsection-title">Recent Updates</h2>
+          <div class="recent-actions">
+            <button type="button" class="btn-dark hidden" id="admin-incident-source-btn">DATA: LTA LIVE</button>
+            <button type="button" class="btn-dark" id="incident-sort-btn">SORT: TIME</button>
+          </div>
+        </div>
+        <ul class="updates-list" id="dashboard-updates-list"></ul>
+        <h2 class="subsection-title evidence-title">Incident Camera Evidence</h2>
+        <div id="dashboard-evidence-list" class="evidence-grid"></div>
+      </section>
+
+    </main>
+
+    <!-- Map View -->
+    <main id="map-view" class="page">
+      <div class="map-area">
+        <div class="map-toolbar">
+          <button type="button" class="btn-dark" id="map-toggle-cameras-btn"><span class="dot red"></span> HIDE LIVE
+            MONITORING</button>
+          <button type="button" class="btn-dark" id="map-toggle-incidents-btn"><span class="icon-warning red"></span>
+            SHOW LTA INCIDENTS</button>
+          <button type="button" class="btn-dark" id="map-toggle-erp-btn"><span class="icon-info"></span> SHOW
+            ERP</button>
+          <button type="button" class="btn-dark" id="map-toggle-pgs-btn"><span class="icon-pin"></span> SHOW
+            PGS</button>
+          <!-- expressway-only display for expressway analysis -->
+          <div id="expressways-wrapper" style="position: relative; display: inline-block;">
+            <button type="button" class="btn-dark" id="map-toggle-expressways-btn">
+              <span class="icon-road"></span> SHOW EXPRESSWAYS ▾
+            </button>
+
+            <div id="expressways-dropdown-menu" class="expressways-dropdown-menu">
+              <label><input type="checkbox" class="exp-checkbox" value="AYE"> AYE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="BKE"> BKE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="CTE"> CTE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="ECP"> ECP</label>
+              <label><input type="checkbox" class="exp-checkbox" value="KPE"> KPE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="MCE"> MCE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="PIE"> PIE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="SLE"> SLE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="TPE"> TPE</label>
+              <label><input type="checkbox" class="exp-checkbox" value="KJE"> KJE</label>
+            </div>
+          </div>
+          <button type="button" class="btn-dark" id="map-toggle-hotspots-btn">
+            <span class="icon-warning"></span> SHOW HOTSPOTS
+          </button>
+        </div>
+        <div id="liveMap"></div>
+
+        <!-- Incident Clearance Panel -->
+        <div id="incident-ml-panel" class="incident-ml-panel">
+          <div class="incident-ml-panel-header">
+            <div class="incident-ml-panel-badge" id="incident-ml-badge">INCIDENT</div>
+            <button type="button" class="incident-ml-panel-close" id="incident-ml-close">&times;</button>
+          </div>
+          <div class="incident-ml-panel-title" id="incident-ml-title"></div>
+          <div class="incident-ml-panel-meta" id="incident-ml-meta"></div>
+          <div class="incident-ml-panel-message" id="incident-ml-message"></div>
+          <div class="incident-ml-panel-body" id="incident-ml-body">
+            <div style="color:#9ca3af;font-size:12px;padding:12px 0;">Loading ML assessment…</div>
+          </div>
+        </div>
+
+        <div class="map-feedback-actions">
+          <button type="button" class="btn-dark map-feedback-toggle-fab" id="map-toggle-feedback-btn"><span
+              class="icon-pin"></span> SHOW USER FEEDBACK</button>
+          <button type="button" class="btn-dark map-feedback-fab" id="fabFeedback"><span class="icon-plane"></span>
+            SUBMIT FEEDBACK <span class="fb-count-badge" id="fbCountBadge" style="display:none"></span></button>
+        </div>
+        <span class="help-icon">?</span>
+      </div>
+    </main>
+
+    <!-- Route Planner -->
+    <main id="route-planner" class="page">
+      <section class="route-planner-section">
+        <h1 class="page-title">Route Planner</h1>
+        <div class="route-inputs">
+          <div class="input-row">
+            <span class="icon-pin"></span>
+            <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)"
+              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <span class="icon-plane swap"></span>
+            <input type="text" id="route-end-postal" placeholder="Enter destination (postal/place/MRT station)"
+              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
+            <div class="route-start-suggestions hidden" id="route-start-suggestions">
+              <button type="button" class="route-start-suggestion" id="route-start-current-option">Current
+                Location</button>
+            </div>
+
+          </div>
+          <div class="route-actions">
+            <button type="button" class="pref-btn" id="route-preference-btn"><span class="icon-info"></span> PREFERENCE:
+              FASTEST ROUTE</button>
+            <button type="button" class="btn-calculate" id="route-calculate-btn">CALCULATE</button>
+            <button type="button" class="btn-dark" id="route-toggle-favorites-btn">SHOW COMMON PLACES/ROUTES</button>
+          </div>
+          <div class="route-planning-hint" id="route-planning-hint">Click CALCULATE to generate route plan.</div>
+          <div class="route-favorites-panel hidden" id="route-favorites-panel">
+            <h3>Common Places & Routes</h3>
+            <div id="route-favorites-list"></div>
+          </div>
+        </div>
+      </section>
+      <div class="route-layout">
+        <div class="route-map-area">
+          <div id="plannerMap"></div>
+
+          <div id="journey-hud" class="journey-hud hidden">
+            <div class="hud-header">
+              <div class="status-indicator">
+                <span id="hud-dot" class="dot-green"></span>
+                <span class="hud-title">FAST Sentinel (T+15)</span>
+              </div>
+            </div>
+
+            <div id="hud-road-info-container" class="hud-road-info">
+            </div>
+
+            <div id="hud-body" class="hud-body">
+              <div id="current-road-label"
+                style="font-size: 0.85em; color: #64748b; margin-bottom: 8px; font-weight: 600;">Currently on:
+                Navigating...</div>
+              <div id="hud-main-text">Scanning immediate path...</div>
+              <div id="hud-sub-text"></div>
+            </div>
+
+            <!-- For feedback section, add a footer-->
+
+            <div class="hud-footer" id="hud-feedback-drawer">
+              <button type="button" class="drawer-trigger" onclick="toggleFeedbackDrawer()">
+                <span id="drawer-icon">📝</span> REPORT INCIDENT
+              </button>
+
+              <div id="drawer-content" class="drawer-content hidden">
+                <div class="command-bar">
+                  <div class="command-row">
+                    <button class="cmd-btn type" data-type="CONGESTION">Jam</button>
+                    <button class="cmd-btn type" data-type="ACCIDENT">Accident</button>
+                    <button class="cmd-btn type" data-type="ROAD WORK">Roadwork</button>
+                  </div>
+                  <div class="command-row">
+                    <button class="cmd-btn sev active" data-sev="MEDIUM">Medium</button>
+                    <button class="cmd-btn sev" data-sev="HIGH">High</button>
+                    <button class="submit-arrow" onclick="executeHudSubmit()">➔</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+          <div class="routes-legend">
+            <div class="legend-title">ROUTES</div>
+            <div class="legend-item"><span class="bar blue"></span> FASTEST</div>
+            <div class="legend-item"><span class="bar green"></span> FEWER LIGHTS</div>
+            <div class="legend-item"><span class="bar orange"></span> BALANCED</div>
+          </div>
+
+          <!-- Admin Toolbar Section for RECORD and REPLAY -->
+          <!-- <button id="admin-tools-btn" class="admin-tools-fab">ADMIN</button> -->
+
+          <!-- Admin Modal -->
+          <div id="admin-tools-modal" class="admin-tools-modal hidden">
+            <div class="admin-tools-header" id="admin-tools-header"
+              style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+              <h3 style="margin:0; font-size:16px;">Admin Tools</h3>
+              <button type="button" id="admin-tools-close-btn"
+                style="border:none; background:none; font-size:20px; cursor:pointer;">×</button>
+            </div>
+
+            <div style="font-size:12px; color:#64748b; margin-bottom:6px;">Selected Route</div>
+            <div id="admin-selected-route-name" style="font-weight:700; margin-bottom:14px;">None</div>
+
+            <div style="display:grid; gap:8px; margin-bottom:16px;">
+              <button type="button" class="btn-dark" id="admin-start-recording-btn">START RECORDING</button>
+              <button type="button" class="btn-dark" id="admin-stop-recording-btn">STOP RECORDING</button>
+              <button type="button" class="btn-dark" id="admin-refresh-replay-list-btn">REFRESH RECORDINGS</button>
+            </div>
+
+            <div style="font-size:12px; color:#64748b; margin-bottom:6px;">Recording Status</div>
+            <div id="admin-recording-status" style="margin-bottom:14px;">Idle</div>
+
+            <div style="font-size:12px; color:#64748b; margin-bottom:6px;">Replay Library</div>
+            <div id="admin-replay-list">No recordings yet.</div>
+          </div>
+          <!-- End Admin Toolbar Section -->
+        </div>
+        <!-- FOR Route Planner sidebar panel -->
+        <aside class="route-details-panel">
+
+          <div style="display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px;">
+            <button type="button" onclick="switchSidebar('planner')" id="btn-tab-planner"
+              style="flex:1; padding:10px; border:none; background:white; font-weight:bold; cursor:pointer; border-bottom: 2px solid #3b82f6;">PLANNER</button>
+            <button type="button" onclick="switchSidebar('habits')" id="btn-tab-habits"
+              style="flex:1; padding:10px; border:none; background:white; font-weight:bold; cursor:pointer; color:#94a3b8;">SAVED</button>
+          </div>
+
+          <div id="planner-tab-content">
+            <div class="panel-head">
+              <div>
+                <strong id="route-detail-title">FASTEST</strong>
+                <span class="panel-sub">ROUTE DETAILS</span>
+              </div>
+              <span class="icon-close">×</span>
+            </div>
+            <div class="panel-row"><span class="label">TIME</span><span id="route-detail-time">--</span></div>
+            <div class="panel-row"><span class="label">DISTANCE</span><span id="route-detail-distance">--</span></div>
+            <div class="panel-row"><span class="label">EXTRA DELAY</span><span id="route-detail-delay">--</span></div>
+            <div class="panel-row">
+              <span class="label">T+15 ETA</span>
+              <b id="route-detail-t15-eta" style="color: #3b82f6;">--</b>
+            </div>
+            <div class="panel-row">
+              <span class="label">HOTSPOTS</span>
+              <b id="route-detail-hotspots">--</b>
+            </div>
+            <div class="panel-row">
+              <span class="label">TRAFFIC</span>
+              <span id="route-detail-traffic"><span class="dot green"></span> --</span>
+            </div>
+            <div class="panel-row">
+              <span class="label">LIGHTS</span>
+              <span id="route-detail-lights"><span class="icon-traffic"></span> --</span>
+            </div>
+            <div class="panel-block">
+              <span class="label">ROUTE TYPE</span>
+              <p id="route-detail-type">--</p>
+            </div>
+            <div class="panel-block">
+              <span class="label">ADDITIONAL INFO</span>
+              <p id="route-detail-speed">Average speed: --</p>
+              <p id="route-detail-cameras">Cameras available: --</p>
+            </div>
+            <button type="button" class="btn-dark full" id="route-confirm-btn">USE THIS ROUTE</button>
+            <button type="button" class="btn-dark full" id="route-journey-btn" onclick="startJourneySimulation()"
+              style="background: #2563eb; margin-top: 10px;">
+              START LIVE JOURNEY
+            </button>
+            <button type="button" class="btn-dark full" id="route-view-cameras-btn">VIEW LIVE CAMERAS</button>
+
+            <div class="cost-panel" id="cost-panel">
+              <div class="cost-panel-header">
+                <span class="cost-panel-title">TRIP COST ESTIMATE</span>
+              </div>
+              <div class="cost-type-toggle-row">
+                <button type="button" class="cost-type-btn active" id="cost-type-sedan">Sedan</button>
+                <button type="button" class="cost-type-btn" id="cost-type-suv">SUV</button>
+                <button type="button" class="cost-type-btn" id="cost-type-mpv">MPV</button>
+                <button type="button" class="cost-type-btn" id="cost-type-motorcycle">Motorcycle</button>
+              </div>
+              <div class="cost-vehicle-row">
+                <label class="cost-label" for="cost-fuel-grade">FUEL</label>
+                <select id="cost-fuel-grade" class="cost-vehicle-select">
+                  <option value="ron92">RON 92 — S$3.39/L</option>
+                  <option value="ron95" selected>RON 95 — S$3.44/L</option>
+                  <option value="ron98">RON 98 — S$3.92/L</option>
+                </select>
+              </div>
+              <div class="cost-vehicle-row hidden" id="cost-saved-vehicle-row">
+                <label class="cost-label" for="cost-vehicle-select">SAVED VEHICLE</label>
+                <select id="cost-vehicle-select" class="cost-vehicle-select cost-vehicle-select-saved">
+                  <option value="">User own vehicle</option>
+                </select>
+              </div>
+              <div class="cost-vehicle-row">
+                <span class="cost-label">CONSUMPTION</span>
+                <span class="cost-consumption" id="cost-consumption">8.0 L/100km</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- For "SAVED ROUTES" planning panel -->
+          <div id="habit_tab_content" style="display: none;">
+            <div id="habit-route-planner-panel" style="padding:4px; margin-bottom:4px;">
+
+              <div id="habit-tab-title"
+                style="display: none; margin-bottom:10px; font-size: 14px; font-weight: 700; text-align: center;">
+                Choose FAST Planning Mode
+              </div>
+
+              <div class="habit-mode-group">
+                <button type="button" class="btn btn-sm btn-outline-primary habit-mode-btn active" data-mode="now">
+                  NOW
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary habit-mode-btn" data-mode="leave">
+                  LEAVE AT
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary habit-mode-btn" data-mode="best">
+                  SMART
+                </button>
+              </div>
+
+
+
+              <div id="habit-plan-datetime-wrap" class="hidden" style="margin-bottom:10px;">
+                <input type="datetime-local" id="habit-plan-datetime" class="form-control form-control-sm">
+              </div>
+
+              <div id="habit-plan-helper" style="font-size:12px; text-align: center;">
+                Using current traffic conditions. <br>
+                <b>No route currently selected.</b>
+              </div>
+
+              <div id="habit-plan-selected-wrap" style="display: none; padding:10px; background:#f8fafc;">
+                <div style="font-size:12px; font-weight: 700; margin-bottom:4px;">Selected Route:</div>
+                <div id="habit-plan-results" style="font-size:13px; font-weight:700; color:#1e293b;">
+                  Please select a route below!
+                </div>
+              </div>
+            </div>
+
+            <div id="habit-plan-divider"></div>
+
+            <div id="habit-routes-section">
+              <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 10px;">
+                <h2 class="subsection-title" style="margin:0;">My Routes</h2>
+                <!-- <button type="button" class="btn-dark" id="habit-routes-refresh-btn"
+                  style="font-size: 10px; padding: 4px 8px;">R</button> -->
+              </div>
+
+              <div id="habit-routes-list" style="max-height: 65vh; overflow-y: auto;">
+              </div>
+            </div>
+            <!-- <div class="habit-sidebar-actions" style="margin-top: 15px; display: grid; gap: 8px;">
+              <button type="button" class="btn-dark" id="habit-routes-clear-map-btn">CLEAR MAP</button>
+              <button type="button" class="btn-dark" id="habit-routes-demo-btn">LOAD DEMO SCENARIO</button>
+            </div> -->
+          </div>
+
+
+        </aside>
+      </div>
+      <section class="route-options">
+        <h2 class="subsection-title" id="route-options-title">ROUTE OPTIONS (0)</h2>
+        <div class="route-cards" id="route-cards"></div>
+      </section>
+
+
+    </main>
+
+    <!-- Weather -->
+    <main id="weather" class="page">
+      <section class="weather-awareness">
+        <h1 class="page-title">Weather Awareness</h1>
+        <p class="weather-desc">Enter postal code, MRT Station, or Location for live weather data.</p>
+
+        <div class="weather-search">
+          <div class="weather-location-wrap">
+            <input type="text" id="postalCode" placeholder="Enter location..." autocomplete="off" autocorrect="off"
+              autocapitalize="off" spellcheck="false" />
+            <div class="weather-location-suggestions hidden" id="weather-location-suggestions">
+              <button type="button" class="weather-location-suggestion" id="weather-current-location-option">Current
+                Location</button>
+            </div>
+          </div>
+          <button type="button" class="btn-search" id="searchBtn">🔍 SEARCH</button>
+          <button type="button" class="btn-save-loc" id="saveLocBtn" title="Save this location">🔖 Save</button>
+        </div>
+
+        <div class="saved-locations" id="savedLocations">
+          <span class="saved-label">SAVED:</span>
+          <span class="saved-empty" id="savedEmpty">No saved locations yet.</span>
+        </div>
+
+        <div class="weather-timestamp" id="weatherTimestamp" style="display:none">
+          <span>🕐 Last updated: <strong id="lastUpdatedTime">--</strong></span>
+          <button type="button" class="btn-refresh-data" id="refreshDataBtn">↻ Refresh</button>
+        </div>
+      </section>
+
+      <div class="weather-cards">
+        <div class="weather-card">
+          <h3 class="weather-card-title">LOCATION DETAILS</h3>
+          <div class="detail-row">
+            <span class="icon-pin"></span>
+            <strong>FULL ADDRESS</strong><br />
+            <span id="loc-address">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>POSTAL CODE</strong><br />
+            <span id="loc-postal">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>COORDINATES</strong><br />
+            <span id="loc-coords">--</span>
+          </div>
+          <div class="detail-row">
+            <strong>BUILDING / LANDMARK</strong><br />
+            <span id="loc-building">--</span>
+          </div>
+        </div>
+
+        <div class="weather-card">
+          <h3 class="weather-card-title">CURRENT STATUS</h3>
+          <div class="current-weather">
+            <span class="icon-cloud big"></span>
+            <span class="temp" id="weather-temp">--°C</span>
+          </div>
+          <p class="weather-condition" id="weather-desc">--</p>
+          <p class="feels-like" id="weather-feels">Feels like --°C</p>
+          <div class="weather-stats">
+            <div><strong>HUMIDITY</strong><br /><span id="weather-humidity">--%</span></div>
+            <div><strong>WIND</strong><br /><span id="weather-wind">-- m/s</span></div>
+            <div><strong>PRESSURE</strong><br /><span id="weather-pressure">-- hPa</span></div>
+            <div><strong>VISIBILITY</strong><br /><span id="weather-visibility">-- km</span></div>
+          </div>
+        </div>
+
+        <div class="weather-card advice-card">
+          <h3 class="weather-card-title">TRAVEL ADVICE</h3>
+          <div class="advice-grid" id="weather-advice">
+            <div class="advice-tip placeholder-tip">
+              <span class="advice-icon">📍</span>
+              <div class="advice-content">
+                <span class="advice-label">WAITING</span>
+                <span class="advice-text">Enter a location to get personalised travel advice.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <section class="hourly-forecast">
+          <h2 class="subsection-title">HOURLY FORECAST (Next 24 Hours)</h2>
+          <div class="forecast-cards">
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-1">--</span>
+              <span class="forecast-temp" id="forecast-temp-1">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-1">--</span>
+              <span class="forecast-rain" id="forecast-rain-1"></span>
+            </div>
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-2">--</span>
+              <span class="forecast-temp" id="forecast-temp-2">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-2">--</span>
+              <span class="forecast-rain" id="forecast-rain-2"></span>
+            </div>
+            <div class="forecast-card">
+              <span class="time" id="forecast-time-3">--</span>
+              <span class="forecast-temp" id="forecast-temp-3">--°C</span>
+              <span class="forecast-desc" id="forecast-desc-3">--</span>
+              <span class="forecast-rain" id="forecast-rain-3"></span>
+            </div>
+          </div>
+        </section>
+
+        <section class="sun-section">
+          <h2 class="subsection-title">SUNRISE & SUNSET</h2>
+          <div class="sun-row">
+            <div class="sun-card">
+              <span class="sun-icon">🌅</span>
+              <div class="sun-label">SUNRISE</div>
+              <div class="sun-time" id="sun-rise">--:--</div>
+            </div>
+            <div class="sun-divider"></div>
+            <div class="sun-card">
+              <span class="sun-icon">🌇</span>
+              <div class="sun-label">SUNSET</div>
+              <div class="sun-time" id="sun-set">--:--</div>
+            </div>
+            <div class="sun-divider"></div>
+            <div class="sun-card">
+              <span class="sun-icon">☀️</span>
+              <div class="sun-label">DAYLIGHT</div>
+              <div class="sun-time" id="sun-daylight">-- hrs</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="twoday-forecast">
+          <h2 class="subsection-title">2-DAY FORECAST</h2>
+          <div class="twoday-cards">
+            <div class="twoday-card">
+              <div class="twoday-label" id="twoday-label-1">TODAY</div>
+              <div class="twoday-icon" id="twoday-icon-1">--</div>
+              <div class="twoday-desc" id="twoday-desc-1">--</div>
+              <div class="twoday-temps">
+                <span class="twoday-high" id="twoday-high-1">--°</span>
+                <span class="twoday-sep">/</span>
+                <span class="twoday-low" id="twoday-low-1">--°</span>
+              </div>
+              <div class="twoday-rain" id="twoday-rain-1">🌧️ --%</div>
+            </div>
+            <div class="twoday-card">
+              <div class="twoday-label" id="twoday-label-2">TOMORROW</div>
+              <div class="twoday-icon" id="twoday-icon-2">--</div>
+              <div class="twoday-desc" id="twoday-desc-2">--</div>
+              <div class="twoday-temps">
+                <span class="twoday-high" id="twoday-high-2">--°</span>
+                <span class="twoday-sep">/</span>
+                <span class="twoday-low" id="twoday-low-2">--°</span>
+              </div>
+              <div class="twoday-rain" id="twoday-rain-2">🌧️ --%</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <!-- Habit Routes -->
+    <main id="habit-routes" class="page">
+      <section class="habit-routes-page">
+        <div class="habit-routes-head">
+          <div>
+            <h1 class="page-title">Habit Routes</h1>
+            <p class="alerts-sub">Manage saved routes and monitor live traffic conditions.</p>
+          </div>
+          <button type="button" class="btn-dark" id="habit-routes-refresh-btn">REFRESH</button>
+        </div>
+
+        <div class="habit-routes-layout">
+          <aside class="habit-routes-sidebar">
+            <div id="sentinel-stats"></div>
+            <div class="habit-routes-list-card">
+              <h2 class="subsection-title">MY ROUTES</h2>
+              <div id="habit-routes-list"></div>
+            </div>
+          </aside>
+
+          <div class="habit-routes-map-wrap">
+            <div class="habit-routes-map-toolbar">
+              <button type="button" class="btn-dark" id="habit-routes-clear-map-btn">CLEAR MAP</button>
+              <button type="button" class="btn-dark" id="habit-routes-demo-btn">
+                LOAD DEMO SCENARIO
+              </button>
+            </div>
+            <div id="habitRoutesMap"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+
+    <!-- Alerts -->
+    <main id="alerts" class="page">
+      <div class="alerts-layout">
+        <div class="alerts-list">
+          <h1 class="section-head"><span class="icon-warning"></span> ROUTE INCIDENTS</h1>
+          <p class="alerts-sub">Live traffic updates along your typical routes.</p>
+          <section class="pinned-incidents" id="alerts-pinned-section">
+            <h2 class="subsection-title"><span class="icon-pin"></span> PINNED: NEARBY INCIDENTS</h2>
+            <div id="alerts-pinned-list"></div>
+          </section>
+          <section class="all-reports">
+            <h2 class="subsection-title">ALL TRAFFIC REPORTS</h2>
+            <div id="alerts-all-list" class="alerts-all-scroll"></div>
+          </section>
+        </div>
+        <div class="alerts-detail-placeholder" id="alerts-news-panel">
+          <div class="placeholder-box" style="text-align:left;">
+            <h3 style="margin-bottom:8px;">Singapore Traffic News</h3>
+            <div id="alerts-weekly-news-list" class="alerts-news-scroll"></div>
+            <hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb;" />
+            <div id="alerts-latest-rule"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <main id="alert-detail" class="page">
+      <div class="alert-detail-layout">
+        <button id="alert-detail-back-btn" class="alert-back-btn" type="button">← Back to Alerts</button>
+        <h1 class="section-head"><span class="icon-warning"></span> INCIDENT DETAILS</h1>
+        <div id="alert-detail-content" class="alert-detail-content">
+          <p>Select an incident from Alerts.</p>
+        </div>
+      </div>
+    </main>
+    <main id="admin-users" class="page">
+      <section class="admin-users-page hidden" id="admin-users-panel">
+        <div class="admin-users-head">
+          <div>
+            <h1 class="section-head">Admin User Management</h1>
+            <p class="alerts-sub">Manage registered users and review detailed user feedback.</p>
+          </div>
+          <button type="button" class="btn-dark" id="admin-users-refresh-btn">REFRESH</button>
+        </div>
+        <div class="admin-user-stats" id="admin-user-stats"></div>
+        <div class="admin-users-table-wrap">
+          <table class="admin-users-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Verified</th>
+                <th>Created At</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody"></tbody>
+          </table>
+        </div>
+
+        <section class="admin-feedback-panel">
+          <div class="admin-users-head">
+            <div>
+              <h2 class="subsection-title">User Feedback History</h2>
+              <p class="sidebar-sub">Detailed opinions submitted by different users at different times.</p>
+            </div>
+          </div>
+          <div class="admin-feedback-filters">
+            <label>
+              <span>Time</span>
+              <select id="admin-feedback-time-filter">
+                <option value="all">All Time</option>
+                <option value="24h">Last 24 Hours</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
+            </label>
+            <label>
+              <span>Severity</span>
+              <select id="admin-feedback-severity-filter">
+                <option value="all">All Severities</option>
+                <option value="HIGH">High</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="LOW">Low</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-feedback-table-wrap">
+            <table class="admin-users-table admin-feedback-table">
+              <thead>
+                <tr>
+                  <th>Submitted At</th>
+                  <th>User</th>
+                  <th>Email</th>
+                  <th>Location</th>
+                  <th>Type</th>
+                  <th>Severity</th>
+                  <th>Feedback</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admin-feedback-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+  <div class="modal-overlay" id="aboutMemberOverlay">
+    <div class="modal-box about-member-modal" id="aboutMemberModal">
+      <button type="button" class="modal-close about-member-close" id="aboutMemberClose"
+        aria-label="Close member detail">✕</button>
+      <div class="modal-body about-member-modal-body">
+        <div class="about-member-modal-layout">
+          <div class="about-member-modal-media">
+            <div class="about-member-modal-photo" id="aboutMemberPhoto"></div>
+          </div>
+          <div class="about-member-modal-content">
+            <div class="about-member-modal-name" id="aboutMemberName">Member</div>
+            <div class="about-member-modal-role" id="aboutMemberRole">Role / Position</div>
+            <div class="about-member-modal-divider"></div>
+            <div class="about-member-modal-bio" id="aboutMemberBio">Detailed member introduction.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-overlay" id="feedbackOverlay">
+    <div class="modal-box" id="feedbackModal">
+      <div class="modal-header">
+        <div>
+          <p class="modal-eyebrow">Map View Report</p>
+          <h2 class="modal-title">SUBMIT ROAD FEEDBACK</h2>
+        </div>
+        <button type="button" class="modal-close" id="modalClose">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="feedback-form-grid">
+          <div class="feedback-form-main">
+            <div class="modal-field">
+              <label class="modal-label">LOCATION</label>
+              <div class="modal-input-row">
+                <input type="text" class="modal-input" id="fb-location"
+                  placeholder="Enter road, area, postal code, or use current location" />
+                <button type="button" class="btn-locate" id="fbLocateBtn" title="Use current location">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L12 6M12 18L12 22M2 12L6 12M18 12L22 12" />
+                    <circle cx="12" cy="12" r="4" />
+                  </svg>
+                </button>
+              </div>
+              <span class="field-error" id="err-location"></span>
+            </div>
+            <div class="modal-field">
+              <label class="modal-label">COMMENTS</label>
+              <textarea class="modal-textarea" id="fb-comments"
+                placeholder="Describe what you saw, affected lane, direction, or visible delay..."></textarea>
+              <span class="field-error" id="err-comments"></span>
+            </div>
+          </div>
+          <div class="feedback-form-side">
+            <div class="modal-field">
+              <label class="modal-label">CONDITION TYPE</label>
+              <div class="fb-type-group" id="fbTypeGroup">
+                <button type="button" class="fb-type-btn active" data-type="CONGESTION">CONGESTION</button>
+                <button type="button" class="fb-type-btn" data-type="ACCIDENT">ACCIDENT</button>
+                <button type="button" class="fb-type-btn" data-type="ROAD WORK">ROAD WORK</button>
+                <button type="button" class="fb-type-btn" data-type="CLEAR">CLEAR</button>
+              </div>
+              <span class="field-error" id="err-type"></span>
+            </div>
+            <div class="modal-field">
+              <label class="modal-label">SEVERITY</label>
+              <div class="fb-severity-group" id="fbSeverityGroup">
+                <button type="button" class="fb-severity-btn" data-severity="LOW"><span class="sev-dot low"></span>
+                  LOW</button>
+                <button type="button" class="fb-severity-btn active" data-severity="MEDIUM"><span
+                    class="sev-dot medium"></span> MEDIUM</button>
+                <button type="button" class="fb-severity-btn" data-severity="HIGH"><span class="sev-dot high"></span>
+                  HIGH</button>
+              </div>
+              <span class="field-error" id="err-severity"></span>
+            </div>
+            <div class="recent-submissions" id="recentSubmissions" style="display:none">
+              <div class="recent-title">YOUR RECENT REPORTS</div>
+              <div class="recent-list" id="recentList"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-post-feedback" id="fbSubmitBtn">
+          POST FEEDBACK
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="feedback-toast" id="feedbackToast">Feedback submitted. Thank you for helping the community.</div>
+
+  <!-- ML Prediction Simulator Modal for Jia Rong -->
+  <div id="ml-hijack-modal"
+    style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.4); z-index:9999; width:340px; display:none; border: 1px solid #e2e8f0; font-family: sans-serif;">
+
+    <div style="margin-bottom: 15px;">
+      <h3 style="margin:0; color:#1e293b;">Feature Simulator</h3>
+      <p style="font-size:11px; color:#64748b; margin-top:4px;">Link ID: <span id="sim-link-id"></span></p>
+    </div>
+
+    <div style="max-height: 350px; overflow-y: auto; padding-right: 10px; margin-bottom: 15px;">
+
+      <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Speed History (T-15 / T-10 /
+        T-5)</label>
+      <div style="display:flex; gap:5px; margin-bottom:12px;">
+        <input type="number" id="sim-sb15" style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        <input type="number" id="sim-sb10" style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        <input type="number" id="sim-sb5" style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+      </div>
+
+      <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Current Speedband (1-8)</label>
+      <input type="number" id="sim-sb"
+        style="width:100%; padding:8px; border:2px solid #3b82f6; border-radius:4px; margin-bottom:12px;">
+
+      <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Rainfall (mm)</label>
+      <input type="number" id="sim-rain" value="0"
+        style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:12px;">
+
+      <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Nearby Incident (0 or
+        1)</label>
+      <input type="number" id="sim-incident" value="0"
+        style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:10px;">
+
+      <label style="display:block; font-size:11px; font-weight:bold; color:#64748b; margin-bottom:4px;">Specific
+        Categories (0 or 1)</label>
+      <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <input type="number" id="sim-accident" placeholder="Accident" title="Accident"
+          style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        <input type="number" id="sim-roadwork" placeholder="Road" title="Roadwork"
+          style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        <input type="number" id="sim-breakdown" placeholder="Break" title="Breakdown"
+          style="width:33%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+      </div>
+
+      <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Mins Since Start</label>
+      <input type="number" id="sim-mins-since" value="0"
+        style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px; margin-bottom:12px;">
+
+      <div style="display:flex; gap:10px;">
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Is Peak?</label>
+          <input type="number" id="sim-peak" value="0"
+            style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        </div>
+        <div style="flex:1;">
+          <label style="display:block; font-size:12px; font-weight:bold; margin-bottom:4px;">Is Wknd?</label>
+          <input type="number" id="sim-weekend" value="0"
+            style="width:100%; padding:6px; border:1px solid #cbd5e1; border-radius:4px;">
+        </div>
+      </div>
+    </div>
+
+    <button id="btn-run-hijack"
+      style="width:100%; padding:12px; background:#3b82f6; color:white; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">Simulated
+      Prediction</button>
+
+    <div id="sim-hijack-results"
+      style="margin-top:15px; padding:10px; border-radius:8px; display:none; text-align:center;">
+      <div id="sim-hijack-pred" style="font-size:24px; font-weight:900;"></div>
+
+    </div>
+  </div>
+  <!-- End ML Prediction Simulation Modal -->
+
+  <!-- CHAT ASSISTANT LOGIC -->
+  <button type="button" id="ai-chat-launcher" class="ai-chat-launcher">Chat</button>
+  <div id="ai-chat-container" class="ai-chat-container">
+    <div class="ai-chat-header">
+      <span>FASTbot</span>
+      <button type="button" id="ai-chat-close" class="ai-chat-close">×</button>
+    </div>
+    <div class="ai-chat-controls"
+      style="padding: 5px 12px; border-top: 1px solid #eee; display: flex; align-items: center; gap: 8px;">
+      <input type="checkbox" id="tts-toggle" checked style="cursor: pointer;" />
+      <label for="tts-toggle" style="font-size: 11px; color: #64748b; cursor: pointer; user-select: none;">Read
+        responses aloud</label>
+    </div>
+    <div id="chat-messages" class="ai-chat-messages">
+      <div class="ai-chat-system">Good day. I'm here to help!</div>
+    </div>
+    <div class="ai-chat-input-row">
+      <input type="text" id="chat-input" class="ai-chat-input" placeholder="Type a message..." />
+      <button type="button" id="mic-btn" class="ai-chat-mic">🎙️</button>
+      <button type="button" id="ai-chat-send" class="ai-chat-send">Send</button>
+    </div>
+  </div>
+
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="ml-traffic-model.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/pages/weather.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/pages/mapView.js"></script>
+  <script src="js/pages/alerts.js"></script>
+  <script src="js/pages/dashboard.js"></script>
+  <script src="js/pages/adminUsers.js"></script>
+  <script src="js/pages/routePlanner/preferences.js"></script>
+  <script src="js/pages/routePlanner/mapData.js"></script>
+  <script src="js/pages/routePlanner/tripCost.js"></script>
+  <script src="js/pages/routePlanner/routeCards.js"></script>
+  <script src="js/pages/routePlanner/liveNavigation.js"></script>
+  <script src="js/pages/routePlanner/details.js"></script>
+  <script src="js/pages/routePlanner/feedbackModal.js"></script>
+  <script src="js/pages/routePlanner.js"></script>
+  <script src="js/features/reroute.js"></script>
+  <script src="js/features/journey.js"></script>
+  <script src="js/features/incidentImpact.js"></script>
+  <script src="js/features/mobileMenu.js"></script>
+  <script src="js/features/chatbot.js"></script>
+  <script src="js/app.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</body>
+
+</html>
