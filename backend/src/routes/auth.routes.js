@@ -98,8 +98,8 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
     return res.status(400).json({ error: 'Invalid verification code format, it must be 6 digits' });
   }
   try {
-    const existingUser = await getSupabaseAuthUserByEmail(email);
-    if (existingUser) return res.status(409).json({ error: 'Email already registered, delete the account before reusing this email for testing' });
+    // const existingUser = await getSupabaseAuthUserByEmail(email);
+    // if (existingUser) return res.status(409).json({ error: 'Email already registered, delete the account before reusing this email for testing' });
 
     const verResult = await pool.query(
       `
