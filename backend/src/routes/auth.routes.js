@@ -20,6 +20,8 @@ module.exports = function registerAuthUserRoutes(ctx) {
     supabaseAdminCreateUser,
     supabaseAdminDeleteUser,
     supabaseUserUpdate,
+    supabaseSendSignupOtp,
+    supabaseVerifyEmailOtp,
     ensureUserProfile,
     getUserProfileById,
     getSupabaseAuthUserByEmail,
@@ -27,46 +29,51 @@ module.exports = function registerAuthUserRoutes(ctx) {
     requireAuth
   } = ctx;
 
-async function issueSignupCode({ name, email, password }) {
-  if (!name || !email || !password) {
-    return { status: 400, body: { error: 'name/email/password are required' } };
-  }
-  if (!isUsableEmail(email)) {
-    return { status: 400, body: { error: 'Please enter a valid usable email address (for future email notifications)' } };
-  }
-  if (!isStrongPassword(password)) {
-    return { status: 400, body: { error: 'Password must be at least 6 chars and include uppercase, lowercase and number' } };
-  }
+  async function issueSignupCode({ name, email, password }) {
+    if (!name || !email || !password) {
+      return { status: 400, body: { error: 'name/email/password are required' } };
+    }
+    if (!isUsableEmail(email)) {
+      return { status: 400, body: { error: 'Please enter a valid usable email address (for future email notifications)' } };
+    }
+    if (!isStrongPassword(password)) {
+      return { status: 400, body: { error: 'Password must be at least 6 chars and include uppercase, lowercase and number' } };
+    }
 
-  const existingAuthUser = await getSupabaseAuthUserByEmail(email);
-  if (existingAuthUser) return { status: 409, body: { error: 'Email is already registered' } };
+    const existingAuthUser = await getSupabaseAuthUserByEmail(email);
+    if (existingAuthUser) return { status: 409, body: { error: 'Email is already registered' } };
 
-  const code = generateVerificationCode();
-  const codeHash = hashVerificationCode(code);
-  const passwordHash = hashPassword(password);
-  const createdAt = nowIso();
-  const expiresAt = new Date(Date.now() + SIGNUP_CODE_TTL_MIN * 60 * 1000).toISOString();
+    const passwordHash = hashPassword(password);
+    const createdAt = nowIso();
+    const expiresAt = new Date(Date.now() + SIGNUP_CODE_TTL_MIN * 60 * 1000).toISOString();
 
-  await pool.query(
-    `
+    await pool.query(
+      `
     INSERT INTO signup_verifications (email, name, password_hash, code_hash, expires_at, attempts, last_sent_at, created_at)
-    VALUES ($1, $2, $3, $4, $5, 0, $6, $7)
+    VALUES ($1, $2, $3, '', $4, 0, $5, $6)
     ON CONFLICT(email) DO UPDATE SET
       name = EXCLUDED.name,
       password_hash = EXCLUDED.password_hash,
-      code_hash = EXCLUDED.code_hash,
+      code_hash = '',
       expires_at = EXCLUDED.expires_at,
       attempts = 0,
       last_sent_at = EXCLUDED.last_sent_at
     `,
-    [email, name, passwordHash, codeHash, expiresAt, createdAt, createdAt]
-  );
+      [email, name, passwordHash, expiresAt, createdAt, createdAt]
+    );
 
-  const mailResult = await sendVerificationEmail(email, code, name);
-  const body = { ok: true, message: 'Verification code sent, please check your email' };
-  if (mailResult.devCode) body.devCode = mailResult.devCode;
-  return { status: 200, body };
-}
+    await supabaseSendSignupOtp(email, name);
+
+    return {
+      status: 200,
+      body: {
+        ok: true,
+        message: 'Verification code sent, please check your email'
+      }
+    };
+  }
+
+
 
 app.post('/api/auth/signup/request-code', async (req, res) => {
   const name = String(req.body?.name || '').trim();
@@ -110,9 +117,12 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
     if (ver.attempts >= 8) {
       return res.status(429).json({ error: 'Too many code attempts, please resend' });
     }
-    if (hashVerificationCode(code) !== ver.code_hash) {
+    let verified;
+    try {
+      verified = await supabaseVerifyEmailOtp(email, code);
+    } catch (otpError) {
       await pool.query(`UPDATE signup_verifications SET attempts = attempts + 1 WHERE email = $1`, [email]);
-      return res.status(400).json({ error: 'Verification code is incorrect' });
+      return res.status(400).json({ error: 'Verification code is incorrect or expired' });
     }
 
     const password = req.body?.password ? String(req.body.password || '').trim() : null;
@@ -121,19 +131,22 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
       return res.status(400).json({ error: 'Original password is required to complete signup in the new auth system' });
     }
 
-    const created = await supabaseAdminCreateUser({ email, password: plainPassword, name: ver.name, role: 'user' });
-    await ensureUserProfile(created.id, email, ver.name, 'user');
-    await pool.query(`DELETE FROM signup_verifications WHERE email = $1`, [email]);
-
-    const signedIn = await supabasePasswordSignIn(email, plainPassword);
-    res.json({
-      token: signedIn.access_token,
-      user: toPublicUser({
-        id: created.id,
-        email,
+    await supabaseUserUpdate(verified.access_token, {
+      password: plainPassword,
+      data: {
         name: ver.name,
         role: 'user'
-      })
+      }
+    });
+
+    const authUser = verified.user || await supabaseGetUser(verified.access_token);
+    const profile = await ensureUserProfile(authUser.id, email, ver.name, 'user');
+
+    await pool.query(`DELETE FROM signup_verifications WHERE email = $1`, [email]);
+
+    res.json({
+      token: verified.access_token,
+      user: toPublicUser(profile)
     });
   } catch (error) {
     console.error('Verification signup failed:', error.message);

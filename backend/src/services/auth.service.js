@@ -164,6 +164,31 @@ async function supabaseUserUpdate(accessToken, payload) {
   });
 }
 
+async function supabaseSendSignupOtp(email, name) {
+  return supabaseAuthRequest('/otp', {
+    method: 'POST',
+    body: {
+      email,
+      create_user: true,
+      data: {
+        name,
+        role: 'user'
+      }
+    }
+  });
+}
+
+async function supabaseVerifyEmailOtp(email, code) {
+  return supabaseAuthRequest('/verify', {
+    method: 'POST',
+    body: {
+      email,
+      token: code,
+      type: 'email'
+    }
+  });
+}
+
 async function ensureUserProfile(userId, email, name, role = 'user') {
   const safeRole = role === 'admin' ? 'admin' : 'user';
   const safeName = String(name || email || 'FAST User').trim().slice(0, 80) || 'FAST User';
@@ -415,6 +440,8 @@ module.exports = {
   supabaseAdminCreateUser,
   supabaseAdminDeleteUser,
   supabaseUserUpdate,
+  supabaseSendSignupOtp,
+  supabaseVerifyEmailOtp,
   ensureUserProfile,
   getUserProfileById,
   getSupabaseAuthUserByEmail,

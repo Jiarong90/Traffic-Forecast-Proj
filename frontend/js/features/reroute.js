@@ -1,5 +1,5 @@
 function getPin(source, type = "") {
-  let iconUrl = "https://cdn-icons-png.flaticon.com/128/12342/12342528.png"; 
+  let iconUrl = "https://cdn-icons-png.flaticon.com/128/12342/12342528.png";
   let borderColor = "#f59e0b"; // Default Orange
   const s = (source || "").toUpperCase();
   const t = (type || "").toLowerCase();
@@ -11,15 +11,15 @@ function getPin(source, type = "") {
     borderColor = "#7c3aed";
     size = 18;
     imgSize = 14;
-  } 
+  }
   else if (s === 'SYSTEM_JAM') {
     iconUrl = "https://cdn-icons-png.flaticon.com/128/3591/3591262.png";
     borderColor = "#ef4444";
-  } 
+  }
   else if (s === 'COMMUNITY') {
     iconUrl = "https://cdn-icons-png.flaticon.com/128/2546/2546749.png";
     borderColor = "#3b82f6";
-  } 
+  }
   else if (s === 'LTA') {
     if (t.includes('accident')) {
       iconUrl = "https://cdn-icons-png.flaticon.com/128/4201/4201973.png";
@@ -83,6 +83,212 @@ function initHabitPlannerPanel() {
 }
 
 // Helper functions for Habit Routes
+function getRouteConditionBreakdownFromCurrentMatchInfo() {
+  const segmentMatches = state.currMatchInfo?.segment_matches || [];
+
+  const bands = segmentMatches
+    .filter(m => m && m.prediction)
+    .map(m => Number(m.prediction.predicted_val))
+    .filter(Number.isFinite);
+
+  const total = bands.length;
+
+  if (!total) {
+    return {
+      clearPct: 0,
+      moderatePct: 0,
+      congestedPct: 0,
+      clear: 0,
+      moderate: 0,
+      congested: 0,
+      total: 0
+    };
+  }
+
+  const congested = bands.filter(v => v <= 3).length;
+  const moderate = bands.filter(v => v > 3 && v <= 5).length;
+  const clear = bands.filter(v => v > 5).length;
+
+  return {
+    clearPct: Math.round((clear / total) * 100),
+    moderatePct: Math.round((moderate / total) * 100),
+    congestedPct: Math.round((congested / total) * 100),
+    clear,
+    moderate,
+    congested,
+    total
+  };
+}
+
+function renderRouteConditionBar() {
+  const b = getRouteConditionBreakdownFromCurrentMatchInfo();
+
+  if (!b.total) {
+    return `
+      <div class="route-panel-section">
+        <div class="route-panel-section-title">ROUTE CONDITION</div>
+        <div class="route-empty-note">No matched speedband segments available.</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="route-panel-section">
+      <div class="route-panel-section-title">ROUTE CONDITION</div>
+
+      <div class="route-condition-bar">
+        <div class="route-cond-clear" style="width:${b.clearPct}%"></div>
+        <div class="route-cond-moderate" style="width:${b.moderatePct}%"></div>
+        <div class="route-cond-congested" style="width:${b.congestedPct}%"></div>
+      </div>
+
+      <div class="route-condition-legend">
+        <span>Clear <b>${b.clearPct}%</b></span>
+        <span>Moderate <b>${b.moderatePct}%</b></span>
+        <span>Congested <b>${b.congestedPct}%</b></span>
+      </div>
+    </div>
+  `;
+}
+
+function getMainBottleneck(summary) {
+  const segmentMatches = state.currMatchInfo?.segment_matches || [];
+
+  if (summary?.large_changes?.length) {
+    const first = summary.large_changes[0];
+
+    const matchingSegment = segmentMatches.find(m =>
+      m && String(m.link_id) === String(first.link_id)
+    );
+
+    return {
+      roadName: first.road_name || matchingSegment?.road_name || "Affected road",
+      currentBand: first.current_band ?? first.current_val ?? matchingSegment?.prediction?.current_val ?? null,
+      predictedBand: first.predicted_band ?? first.predicted_val ?? matchingSegment?.prediction?.predicted_val ?? null,
+      reason: "Largest predicted slowdown on this route"
+    };
+  }
+
+  const worst = segmentMatches
+    .filter(m => m && m.prediction)
+    .map(m => ({
+      roadName: m.display_name || m.road_name || "LTA Road",
+      currentBand: Number(m.prediction.current_val),
+      predictedBand: Number(m.prediction.predicted_val)
+    }))
+    .filter(m => Number.isFinite(m.predictedBand))
+    .sort((a, b) => a.predictedBand - b.predictedBand)[0];
+
+  if (!worst) return null;
+
+  return {
+    roadName: worst.roadName,
+    currentBand: worst.currentBand,
+    predictedBand: worst.predictedBand,
+    reason: "Lowest predicted speedband on this route"
+  };
+}
+
+function renderMainBottleneckCard(summary) {
+  const b = getMainBottleneck(summary);
+
+  if (!b) {
+    return `
+      <div class="route-panel-section">
+        <div class="route-panel-section-title">MAIN BOTTLENECK</div>
+        <div class="route-empty-note">No major bottleneck detected.</div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="route-panel-section">
+      <div class="route-panel-section-title">MAIN BOTTLENECK</div>
+
+      <div class="route-bottleneck-road">
+        ${escapeHtml(b.roadName)}
+      </div>
+
+      <div class="route-bottleneck-meta">
+        Band ${b.currentBand ?? "-"} → ${b.predictedBand ?? "-"}
+      </div>
+
+      <div class="route-bottleneck-reason">
+        ${escapeHtml(b.reason)}
+      </div>
+    </div>
+  `;
+}
+
+function getEtaTrendText(currEta, predictedEta) {
+  const curr = Number(currEta);
+  const pred = Number(predictedEta);
+
+  if (!Number.isFinite(curr) || !Number.isFinite(pred)) return "Forecast unavailable";
+
+  const diff = pred - curr;
+
+  if (diff >= 3) return `Worsening by ${diff.toFixed(1)} min`;
+  if (diff <= -3) return `Improving by ${Math.abs(diff).toFixed(1)} min`;
+  return "Stable traffic forecast";
+}
+
+function renderEtaForecastCard(summary) {
+  const currEta = Number(summary?.curr_eta);
+  const predEta = Number(summary?.predicted_eta);
+  const trendText = getEtaTrendText(currEta, predEta);
+
+  return `
+    <div class="route-panel-section">
+      <div class="route-panel-section-title">ETA FORECAST</div>
+
+      <div class="route-panel-row">
+        <span>Now</span>
+        <strong>${Number.isFinite(currEta) ? currEta.toFixed(1) : "-"} min</strong>
+      </div>
+
+      <div class="route-panel-row">
+        <span>T+15</span>
+        <strong>${Number.isFinite(predEta) ? predEta.toFixed(1) : "-"} min</strong>
+      </div>
+
+      <div class="route-panel-note">
+        ${escapeHtml(trendText)}
+      </div>
+    </div>
+  `;
+}
+
+function renderRouteSignals(intel, fuelPrice) {
+  const s = intel?.summary || {};
+
+  return `
+    <div class="route-panel-section">
+      <div class="route-panel-section-title">LIVE SIGNALS</div>
+
+      <div class="route-signal-grid">
+        <div>
+          <span>🚧 Incidents</span>
+          <strong>${s.total_incidents ?? 0}</strong>
+        </div>
+        <div>
+          <span>⚠️ Hotspots</span>
+          <strong>${s.total_hotspots ?? 0}</strong>
+        </div>
+        <div>
+          <span>🌤️ Weather</span>
+          <strong>${s.is_raining_anywhere ? "Rainy" : "Clear"}</strong>
+        </div>
+        <div>
+          <span>⛽ Fuel</span>
+          <strong>$${fuelPrice}</strong>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+
 // For loading analysis results into the analysis panel
 function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) {
   const panel = document.getElementById("habit-plan-results");
@@ -128,16 +334,24 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
 
 
   if (mode === "now") {
+    const etaHtml = renderEtaForecastCard(summary);
+    const conditionHtml = renderRouteConditionBar();
+    const signalsHtml = renderRouteSignals(intel, fuelPrice);
+    const bottleneckHtml = renderMainBottleneckCard(summary);
+
     panel.innerHTML = `
-      <div>
-        <b>${name}</b><br><br>
-        Live ETA: ${summary.curr_eta} min<br>
-        T+15 ETA: ${summary.predicted_eta} min<br>
-        ${summary.large_changes?.length ? `Jam: ${summary.large_changes[0].road_name}` : ""}
-        ${healthHtml}
-        ${simButton}
-      </div>
-    `;
+    <div class="route-insight-panel">
+      <div class="route-insight-kicker">FAST ROUTE INSIGHT</div>
+      <div class="route-insight-title">${escapeHtml(name)}</div>
+
+      ${etaHtml}
+      ${conditionHtml}
+      ${signalsHtml}
+      ${bottleneckHtml}
+
+      ${simButton}
+    </div>
+  `;
   }
 
   if (mode === "leave") {
