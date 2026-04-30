@@ -11,7 +11,7 @@ const mlGatekeeper = (req, res, next) => {
   req.mlSubPath = req.params[0];
   req.mlQuery = req.url.includes('?') ? req.url.slice(req.url.indexOf('?')) : '';
 
-  const publicPaths = ['expressway-forecast', 'expressway-geometry', 'map-hotspots', 'hotspots', 'vms-landmarks'];
+  const publicPaths = ['expressway-forecast', 'expressway-geometry', 'map-hotspots', 'hotspots', 'vms-landmarks', 'incident-predict'];
 
   if (publicPaths.includes(req.mlSubPath)) {
     console.log(`Public Access: ${req.mlSubPath}`);

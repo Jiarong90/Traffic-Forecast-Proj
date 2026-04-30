@@ -101,39 +101,39 @@ module.exports = function registerLegacyComputeRoutes(ctx) {
   }
 
   app.post('/api/feedback/list', requireAuth, listIncidentFeedback);
-  app.post('/api/ml/feedback/list', requireAuth, listIncidentFeedback);
+  // app.post('/api/ml/feedback/list', requireAuth, listIncidentFeedback);
   app.post('/api/feedback/save', requireAuth, saveIncidentFeedback);
-  app.post('/api/ml/feedback/save', requireAuth, saveIncidentFeedback);
+  // app.post('/api/ml/feedback/save', requireAuth, saveIncidentFeedback);
 
-  app.post('/api/ml/incident-predict', requireAuth, async (req, res) => {
-    try {
-      const { type, message, hour, day_of_week, lat, lon } = req.body || {};
-      const now = new Date();
-      const numericHour = Number(hour);
-      const numericDow = Number(day_of_week);
-      const payload = {
-        type: String(type || 'Accident'),
-        message: String(message || ''),
-        hour: Number.isFinite(numericHour) ? numericHour : now.getHours(),
-        day_of_week: Number.isFinite(numericDow) ? numericDow : (now.getDay() === 0 ? 6 : now.getDay() - 1),
-        lat,
-        lon
-      };
+//   app.post('/api/ml/incident-predict', requireAuth, async (req, res) => {
+//     try {
+//       const { type, message, hour, day_of_week, lat, lon } = req.body || {};
+//       const now = new Date();
+//       const numericHour = Number(hour);
+//       const numericDow = Number(day_of_week);
+//       const payload = {
+//         type: String(type || 'Accident'),
+//         message: String(message || ''),
+//         hour: Number.isFinite(numericHour) ? numericHour : now.getHours(),
+//         day_of_week: Number.isFinite(numericDow) ? numericDow : (now.getDay() === 0 ? 6 : now.getDay() - 1),
+//         lat,
+//         lon
+//       };
 
-      try {
-        const pyResult = await callFastApiJson('/api/ml/incident-predict', payload, 15000);
-        return res.json(pyResult);
-      } catch (fastApiErr) {
-        console.warn(`FastAPI incident predict fell back to python script: ${fastApiErr.message}`);
-        const pyResult = await runPythonCompute('incident_predict', payload, 15000);
-        return res.json(pyResult);
-      }
-    } catch (e) {
-      console.error('Incident ML prediction failure:', e.message);
-      res.status(500).json({
-        error: 'Incident ML prediction failed',
-        details: e.message
-      });
-    }
-  });
+//       try {
+//         const pyResult = await callFastApiJson('/api/ml/incident-predict', payload, 15000);
+//         return res.json(pyResult);
+//       } catch (fastApiErr) {
+//         console.warn(`FastAPI incident predict fell back to python script: ${fastApiErr.message}`);
+//         const pyResult = await runPythonCompute('incident_predict', payload, 15000);
+//         return res.json(pyResult);
+//       }
+//     } catch (e) {
+//       console.error('Incident ML prediction failure:', e.message);
+//       res.status(500).json({
+//         error: 'Incident ML prediction failed',
+//         details: e.message
+//       });
+//     }
+//   });
 };

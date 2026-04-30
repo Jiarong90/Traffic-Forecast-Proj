@@ -41,7 +41,8 @@ async function refreshExpresswayDashboard() {
             data-sector-panel="${sector.name}">
             <div class="analytics-stat-line">⚠️ Jammed: <strong>${sector.jammed_count}</strong></div>
             <div class="analytics-stat-line">⬆️ Recovering: <strong>${sector.recovering_count}</strong></div>
-            <div class="analytics-stat-line">⚡ T+15 Speed: <strong>${sector.avg_speed}</strong></div>
+            <div class="analytics-stat-line">🚦 Current Band: <strong>${sector.current_avg_speed ?? "-"}</strong></div>
+            <div class="analytics-stat-line">⚡ T+15 Band: <strong>${sector.avg_speed ?? "-"}</strong></div>
             <div class="analytics-stat-line">🚧 Incidents: <strong>${sector.incidents_count}</strong></div>
           </div>
         `;
@@ -100,8 +101,16 @@ document.addEventListener("click", function (e) {
 document.getElementById("map-toggle-hotspots-btn").addEventListener("click", async () => {
   state.mapHotspotsVisible = !state.mapHotspotsVisible;
 
+  if (state.mapHotspotsVisible && !Array.isArray(state.mapHotspotsItems)) {
+    state.mapHotspotsItems = [];
+  }
+
   if (state.mapHotspotsVisible && state.mapHotspotsItems.length === 0) {
-    state.mapHotspotsItems = await fetchHotspotMarkers();
+    const data = await fetchHotspotMarkers();
+
+    state.mapHotspotsItems = Array.isArray(data)
+      ? data
+      : data.hotspots || data.items || data.data || [];
   }
 
   renderMapHotspotsToggleButton();
@@ -115,6 +124,367 @@ function speedBandToColor(sb) {
   if (sb <= 3) return "#ef4444";
   if (sb <= 5) return "#f59e0b";
   return "#22c55e";
+}
+
+function distanceMeters(lat1, lon1, lat2, lon2) {
+  const R = 6371000;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getSegmentMidpoint(seg) {
+  const startLat = Number(seg.start[0]);
+  const startLon = Number(seg.start[1]);
+  const endLat = Number(seg.end[0]);
+  const endLon = Number(seg.end[1]);
+
+  return {
+    lat: (startLat + endLat) / 2,
+    lon: (startLon + endLon) / 2
+  };
+}
+
+function findNearestLandmark(seg, landmarks, maxDistanceMeters = 1200) {
+  if (!Array.isArray(landmarks) || landmarks.length === 0) return null;
+
+  const mid = getSegmentMidpoint(seg);
+
+  let best = null;
+  let bestDistance = Infinity;
+
+  landmarks.forEach(lm => {
+    const lat = Number(lm.lat);
+    const lon = Number(lm.lon);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return;
+
+    const d = distanceMeters(mid.lat, mid.lon, lat, lon);
+
+    if (d < bestDistance) {
+      bestDistance = d;
+      best = lm;
+    }
+  });
+
+  if (!best || bestDistance > maxDistanceMeters) return null;
+
+  return {
+    label: best.label || best.landmark_name || "Nearby landmark",
+    distance_m: Math.round(bestDistance)
+  };
+}
+
+function getSectorSummaries(segments) {
+  const sectors = {};
+
+  segments.forEach(seg => {
+    const sector = seg.sector || "Unknown";
+
+    if (!sectors[sector]) {
+      sectors[sector] = {
+        name: sector,
+        total: 0,
+        currentJammed: 0,
+        predictedJammed: 0,
+        worsening: 0,
+        moderatePredicted: 0,
+        worstPredicted: 8,
+        riskScore: 0
+      };
+    }
+
+    const s = sectors[sector];
+    const now = Number(seg.current_val);
+    const pred = Number(seg.predicted_val);
+
+    s.total += 1;
+
+    if (Number.isFinite(now) && now <= 3) s.currentJammed += 1;
+    if (Number.isFinite(pred) && pred <= 3) s.predictedJammed += 1;
+    if (Number.isFinite(pred) && pred > 3 && pred <= 5) s.moderatePredicted += 1;
+
+    if (Number.isFinite(now) && Number.isFinite(pred) && now - pred >= 2) {
+      s.worsening += 1;
+    }
+
+    if (Number.isFinite(pred)) {
+      s.worstPredicted = Math.min(s.worstPredicted, pred);
+    }
+  });
+
+  return Object.values(sectors).map(s => {
+    s.riskScore =
+      (s.predictedJammed * 3) +
+      (s.currentJammed * 2) +
+      (s.worsening * 2) +
+      s.moderatePredicted;
+
+    if (s.predictedJammed >= 5 || s.worstPredicted <= 2) {
+      s.status = "Congested";
+      s.statusClass = "bad";
+    } else if (s.predictedJammed >= 1 || s.worsening >= 3) {
+      s.status = "Possible Delay";
+      s.statusClass = "moderate";
+    } else {
+      s.status = "Clear";
+      s.statusClass = "clear";
+    }
+
+    return s;
+  });
+}
+
+function getWorstSector(sectors) {
+  if (!sectors.length) return null;
+  return [...sectors].sort((a, b) => b.riskScore - a.riskScore)[0];
+}
+
+function getKeyStretches(segments, landmarks, maxCount = 5) {
+  const grouped = new Map();
+
+  (segments || []).forEach(seg => {
+    const now = Number(seg.current_val);
+    const pred = Number(seg.predicted_val);
+
+    const nearest = findNearestLandmark(seg, landmarks || []);
+    const stretchName = nearest?.label || seg.nearest_landmark || seg.road_name || "Unknown stretch";
+    const sector = seg.sector || "Unknown sector";
+
+    const key = `${stretchName}_${sector}`;
+
+    if (!grouped.has(key)) {
+      grouped.set(key, {
+        stretchName,
+        sector,
+        worstCurrent: null,
+        worstPredicted: null,
+        predictedJammed: 0,
+        currentJammed: 0,
+        worsening: 0,
+        moderatePredicted: 0,
+        riskScore: 0
+      });
+    }
+
+    const g = grouped.get(key);
+
+    if (Number.isFinite(now)) {
+      g.worstCurrent = g.worstCurrent == null ? now : Math.min(g.worstCurrent, now);
+      if (now <= 3) g.currentJammed += 1;
+    }
+
+    if (Number.isFinite(pred)) {
+      g.worstPredicted = g.worstPredicted == null ? pred : Math.min(g.worstPredicted, pred);
+      if (pred <= 3) g.predictedJammed += 1;
+      else if (pred <= 5) g.moderatePredicted += 1;
+    }
+
+    if (Number.isFinite(now) && Number.isFinite(pred) && now - pred >= 2) {
+      g.worsening += 1;
+    }
+  });
+
+  return Array.from(grouped.values())
+    .map(g => {
+      g.riskScore =
+        (g.predictedJammed * 1000) +
+        (g.currentJammed * 300) +
+        (g.worsening * 200) +
+        (g.moderatePredicted * 50);
+
+      return {
+        stretchName: g.stretchName,
+        sector: g.sector,
+        current_val: g.worstCurrent,
+        predicted_val: g.worstPredicted,
+        predictedJammed: g.predictedJammed,
+        currentJammed: g.currentJammed,
+        worsening: g.worsening,
+        riskScore: g.riskScore
+      };
+    })
+    .filter(s => s.riskScore > 0)
+    .sort((a, b) => {
+      if (b.predictedJammed !== a.predictedJammed) return b.predictedJammed - a.predictedJammed;
+      if (b.currentJammed !== a.currentJammed) return b.currentJammed - a.currentJammed;
+      if (b.worsening !== a.worsening) return b.worsening - a.worsening;
+      return b.riskScore - a.riskScore;
+    })
+    .slice(0, maxCount);
+}
+
+function getRepresentativeStretches(segments, landmarks, maxCount = 3) {
+  const seen = new Set();
+  const result = [];
+
+  for (const seg of segments || []) {
+    const nearest = findNearestLandmark(seg, landmarks || []);
+    const name = nearest?.label || seg.road_name;
+
+    if (!name || seen.has(name)) continue;
+
+    seen.add(name);
+    result.push({
+      ...seg,
+      stretchName: name,
+      riskScore: 0
+    });
+
+    if (result.length >= maxCount) break;
+  }
+
+  return result;
+}
+
+function speedBandText(sb) {
+  sb = Number(sb);
+  if (!Number.isFinite(sb)) return "Unknown";
+  if (sb <= 3) return "Congested";
+  if (sb <= 5) return "Moderate";
+  return "Clear";
+}
+
+function renderExpresswayInfoPanel(data) {
+
+  const panel = document.getElementById("expressway-info-panel");
+  const title = document.getElementById("expressway-panel-title");
+  const body = document.getElementById("expressway-panel-body");
+
+  if (!panel || !title || !body) return;
+
+  const segments = data.segments || [];
+  const landmarks = data.landmarks || [];
+
+  const sectorSummaries = getSectorSummaries(segments);
+  const worstSector = getWorstSector(sectorSummaries);
+
+  let keyStretches = getKeyStretches(segments, landmarks, 5);
+  const majorLandmarks = getMajorLandmarks(landmarks, 10);
+
+  const overall =
+    sectorSummaries.some(s => s.status === "Congested") ? "Congested" :
+      sectorSummaries.some(s => s.status === "Possible Delay") ? "Possible Delay" :
+        "Clear";
+
+  const badgeClass =
+    overall === "Congested" ? "impact-severe" :
+      overall === "Possible Delay" ? "impact-moderate" :
+        "impact-low";
+
+  title.textContent = `${data.code} · ${data.full_name || ""}`;
+
+  body.innerHTML = `
+    <div class="incident-ml-card">
+      <div class="incident-ml-card-title">EXPRESSWAY STATUS</div>
+
+      <div class="incident-ml-severity-row">
+        <div class="incident-ml-score-circle">
+          <span class="incident-ml-score-num">${worstSector?.predictedJammed ?? 0}</span>
+          <span class="incident-ml-score-denom">T+15 jams</span>
+        </div>
+
+        <div class="incident-ml-severity-info">
+          <div class="incident-ml-badge ${badgeClass}">
+            ${overall}
+          </div>
+          <div class="incident-ml-summary">
+            ${worstSector
+      ? `${worstSector.name} has ${worstSector.predictedJammed} predicted jammed links and ${worstSector.worsening} worsening links.`
+      : "No expressway sector data available."
+    }
+          </div>
+        </div>
+      </div>
+
+      <div class="incident-ml-stats">
+        <div class="incident-ml-stat">
+          <div class="incident-ml-stat-label">MOST AFFECTED SECTOR</div>
+          <div class="incident-ml-stat-value">${escapeHtml(worstSector?.name || "Unknown")}</div>
+        </div>
+
+        <div class="incident-ml-stat">
+          <div class="incident-ml-stat-label">STATUS</div>
+          <div class="incident-ml-stat-value">${escapeHtml(overall)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="incident-ml-affected-roads">
+      <div class="incident-ml-affected-roads-title">SECTOR SUMMARY</div>
+
+      <div class="expressway-sector-list">
+        ${sectorSummaries.map(s => `
+            <div class="expressway-sector-row ${s.statusClass}">
+              <div class="sector-main">
+                <strong>${escapeHtml(s.name)}</strong>
+                <span>${s.predictedJammed} predicted jam - ${s.worsening} worsening</span>
+              </div>
+              <b>${escapeHtml(s.status)}</b>
+            </div>
+          `).join("")
+    }
+      </div>
+    </div>
+
+    <div class="incident-ml-affected-roads">
+      <div class="incident-ml-affected-roads-title">KEY STRETCHES</div>
+
+      ${keyStretches.length
+      ? `<div class="expressway-stretch-list">
+            ${keyStretches.map(s => `
+              <div class="expressway-stretch-row">
+                <strong>${escapeHtml(s.stretchName || "Unknown stretch")}</strong>
+                <span>
+                  ${escapeHtml(s.sector || "Unknown sector")} - 
+                  ${speedBandText(s.current_val)} → ${speedBandText(s.predicted_val)}
+                </span>
+              </div>
+            `).join("")}
+          </div>`
+      : `<div class="incident-ml-no-roads">No major affected stretches detected.</div>`
+    }
+    </div>
+
+    <div class="incident-ml-affected-roads">
+      <div class="incident-ml-affected-roads-title">MAJOR LANDMARKS</div>
+
+      <div class="incident-ml-road-tags">
+        ${majorLandmarks.length
+      ? majorLandmarks.map(l => `
+                <span class="incident-ml-road-tag">${escapeHtml(l)}</span>
+              `).join("")
+      : `<span class="incident-ml-no-roads">No landmarks available</span>`
+    }
+      </div>
+    </div>
+  `;
+  document.getElementById("incident-ml-panel")?.classList.remove("open");
+  panel.classList.remove("hidden");
+  panel.classList.add("open");
+}
+
+function getMajorLandmarks(landmarks, maxCount = 10) {
+  const seen = new Set();
+  const result = [];
+
+  (landmarks || []).forEach(lm => {
+    const label = lm.label || lm.landmark_name;
+    if (!label || seen.has(label)) return;
+
+    seen.add(label);
+    result.push(label);
+
+    if (result.length >= maxCount) return;
+  });
+
+  return result;
 }
 
 async function loadExpresswayGeometry(code) {
@@ -131,10 +501,19 @@ async function drawExpresswayOnMap(code) {
   const data = await loadExpresswayGeometry(code);
   const bounds = [];
 
+  renderExpresswayInfoPanel(data);
+
+  const landmarks = data.landmarks || [];
+
   (data.segments || []).forEach(seg => {
-    const linkSpeed = seg.predicted_val || 8;
+    const linkSpeed = Number(seg.predicted_val ?? 8);
     const color = speedBandToColor(linkSpeed);
     const latlngs = [seg.start, seg.end];
+
+    const nearest = findNearestLandmark(seg, landmarks);
+    const stretchName = nearest
+      ? nearest.label
+      : (seg.road_name || data.full_name || data.code);
 
     bounds.push(seg.start, seg.end);
 
@@ -145,8 +524,11 @@ async function drawExpresswayOnMap(code) {
     })
       .bindPopup(
         `<strong>${data.code}</strong><br>` +
+        `<b>${stretchName}</b><br>` +
         `Sector: ${seg.sector}<br>` +
-        `Sector Avg SpeedBand: ${linkSpeed}<br>` +
+        `Current SpeedBand: ${seg.current_val ?? "N/A"}<br>` +
+        `T+15 SpeedBand: ${seg.predicted_val ?? "N/A"}<br>` +
+        `${nearest ? `Nearest landmark: ${nearest.distance_m}m away<br>` : ""}` +
         `Link ID: ${seg.link_id}`
       )
       .addTo(state.expresswayLayerGroup);
@@ -164,7 +546,7 @@ async function drawExpresswayOnMap(code) {
 
 
     dot.bindTooltip(vms.label, {
-      permanent: true,
+      permanent: false,
       direction: 'right',
       className: 'vms-clean-label',
       offset: [5, 0]
@@ -186,6 +568,10 @@ document.querySelectorAll(".exp-checkbox").forEach(cb => {
 
     if (!this.checked) {
       state.expresswayLayerGroup.clearLayers();
+      const panel = document.getElementById("expressway-info-panel");
+      panel?.classList.remove("open");
+      panel?.classList.add("hidden");
+
       return;
     }
 
@@ -195,6 +581,12 @@ document.querySelectorAll(".exp-checkbox").forEach(cb => {
       console.error("Failed to draw expressway:", err);
     }
   });
+});
+
+document.getElementById("expressway-panel-close")?.addEventListener("click", () => {
+  const panel = document.getElementById("expressway-info-panel");
+  panel?.classList.remove("open");
+  panel?.classList.add("hidden");
 });
 
 // End Expressways Analysis sector

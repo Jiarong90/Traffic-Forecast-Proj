@@ -665,8 +665,9 @@ Currently studying at University of Wollongong.">
               </div>
             </div>
           </h3>
-          <button onclick="refreshExpresswayDashboard()" class="refresh-btn"
-            style="padding: 5px 12px; font-size: 12px; cursor: pointer;">Update Live</button>
+          <button onclick="refreshExpresswayDashboard()" class="refresh-btn">
+            ↻ Update Live
+          </button>
         </div>
 
         <div id="expressway-forecast-grid"
@@ -752,6 +753,18 @@ Currently studying at University of Wollongong.">
           <div class="incident-ml-panel-body" id="incident-ml-body">
             <div style="color:#9ca3af;font-size:12px;padding:12px 0;">Loading ML assessment…</div>
           </div>
+        </div>
+
+        <div id="expressway-info-panel" class="expressway-info-panel hidden">
+          <div class="expressway-panel-head">
+            <div>
+              <div class="expressway-panel-kicker">SELECTED EXPRESSWAY</div>
+              <div id="expressway-panel-title" class="expressway-panel-title">Expressway</div>
+            </div>
+            <button id="expressway-panel-close" class="expressway-panel-close">×</button>
+          </div>
+
+          <div id="expressway-panel-body"></div>
         </div>
 
         <div class="map-feedback-actions">

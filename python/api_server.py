@@ -2789,7 +2789,16 @@ def get_expressway_forecast():
 
         bins = np.linspace(df_filtered[axis].min(), df_filtered[axis].max(), 4)
 
-        sector_stats = {name: {"jammed": 0, "recovering": 0, "speeds": [], "incidents": []} for name in names}
+        sector_stats = {
+            name: {
+                "jammed": 0,
+                "recovering": 0,
+                "current_speeds": [],
+                "predicted_speeds": [],
+                "incidents": []
+            }
+            for name in names
+        }
         sector_incidents = []
         for _, link in df_filtered.iterrows():
             lid = int(link['link_id'])
@@ -2818,13 +2827,15 @@ def get_expressway_forecast():
             if pred['predicted_val'] > pred['current_val']:
                 sector_stats[sector_name]["recovering"] += 1
 
-            sector_stats[sector_name]["speeds"].append(pred["predicted_val"])
+            sector_stats[sector_name]["current_speeds"].append(pred["current_val"])
+            sector_stats[sector_name]["predicted_speeds"].append(pred["predicted_val"])
 
         formatted_sectors = []
         for name, data in sector_stats.items():
             formatted_sectors.append({
                 "name": name,
-                "avg_speed": int(round(np.mean(data["speeds"]))) if data["speeds"] else None,
+                "current_avg_speed": int(round(np.mean(data["current_speeds"]))) if data["current_speeds"] else None,
+                "avg_speed": int(round(np.mean(data["predicted_speeds"]))) if data["predicted_speeds"] else None,
                 "jammed_count": data["jammed"],
                 "recovering_count": data["recovering"],
                 "incidents": data["incidents"],
@@ -2845,24 +2856,57 @@ def get_expressway_forecast():
 @app.get("/api/expressway-geometry")
 def get_expressway_geometry(code: str):
     exp_mapping = {
-        "PIE": "PAN ISLAND EXPRESSWAY",
-        "AYE": "AYER RAJAH EXPRESSWAY",
-        "CTE": "CENTRAL EXPRESSWAY",
-        "TPE": "TAMPINES EXPRESSWAY",
-        "SLE": "SELETAR EXPRESSWAY",
-        "KPE": "KALLANG.*PAYA LEBAR",
-        "BKE": "BUKIT TIMAH EXPRESSWAY",
-        "ECP": "EAST COAST PARKWAY",
-        "MCE": "MARINA COASTAL",
-        "KJE": "KRANJI EXPRESSWAY"
+        "PIE": {
+            "display": "PAN ISLAND EXPRESSWAY",
+            "pattern": "PAN ISLAND EXPRESSWAY"
+        },
+        "KPE": {
+            "display": "KALLANG-PAYA LEBAR EXPRESSWAY",
+            "pattern": "KALLANG.*PAYA LEBAR"
+        },
+        "AYE": {
+            "display": "AYER RAJAH EXPRESSWAY",
+            "pattern": "AYER RAJAH EXPRESSWAY"
+        },
+        "CTE": {
+            "display": "CENTRAL EXPRESSWAY",
+            "pattern": "CENTRAL EXPRESSWAY"
+        },
+        "TPE": {
+            "display": "TAMPINES EXPRESSWAY",
+            "pattern": "TAMPINES EXPRESSWAY"
+        },
+        "SLE": {
+            "display": "SELETAR EXPRESSWAY",
+            "pattern": "SELETAR EXPRESSWAY"
+        },
+        "BKE": {
+            "display": "BUKIT TIMAH EXPRESSWAY",
+            "pattern": "BUKIT TIMAH EXPRESSWAY"
+        },
+        "ECP": {
+            "display": "EAST COAST PARKWAY",
+            "pattern": "EAST COAST PARKWAY"
+        },
+        "MCE": {
+            "display": "MARINA COASTAL EXPRESSWAY",
+            "pattern": "MARINA COASTAL"
+        },
+        "KJE": {
+            "display": "KRANJI EXPRESSWAY",
+            "pattern": "KRANJI EXPRESSWAY"
+        }
     }
 
-    full_name = exp_mapping.get(code.upper())
-    if not full_name:
+    info = exp_mapping.get(code.upper())
+    if not info:
         raise HTTPException(status_code=400, detail="Invalid expressway code")
 
+    full_name = info["display"]
+    pattern = info["pattern"]
+
     cat1_df = road_links_df[road_links_df["road_category"].astype(str) == "1"]
-    df_filtered = cat1_df[cat1_df["road_name"].str.contains(full_name, na=False)].copy()
+    df_filtered = cat1_df[cat1_df["road_name"].str.contains(pattern, na=False)].copy()
 
     if df_filtered.empty:
         return {"code": code.upper(), "full_name": full_name, "segments": [], "sectors": []}
@@ -2922,8 +2966,10 @@ def get_expressway_geometry(code: str):
         idx = min(max(idx, 1), 3)
         sector_name = names[idx - 1]
 
+        current_val = None
         pred_val = None
         if lid in GLOBAL_T15_CACHE:
+            current_val = GLOBAL_T15_CACHE[lid].get("current_val")
             pred_val = GLOBAL_T15_CACHE[lid]["predicted_val"]
             sector_stats[sector_name]["speeds"].append(pred_val)
 
@@ -2933,6 +2979,7 @@ def get_expressway_geometry(code: str):
             "start": [float(row["start_lat"]), float(row["start_lon"])],
             "end": [float(row["end_lat"]), float(row["end_lon"])],
             "sector": sector_name,
+            "current_val": current_val,
             "predicted_val": pred_val
         })
 
@@ -3266,7 +3313,7 @@ def predict_incident_ml(body: IncidentPredictRequest):
         raise HTTPException(status_code=503, detail=f"Incident model not available: {e}")
 
     try:
-        from .incident_features import extract_message_features, INCIDENT_FEATURE_NAMES
+        # from .incident_features import extract_message_features, INCIDENT_FEATURE_NAMES
 
         now         = datetime.now()
         hour        = body.hour if body.hour is not None else now.hour
