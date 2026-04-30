@@ -866,7 +866,7 @@
         const sent = await requestSignupCode();
         if (!sent) return;
       }
-      if (!/^\d{6}$/.test(payload.code)) {
+      if (!/^\d{6, 8}$/.test(payload.code)) {
         if (signupFeedback) signupFeedback.textContent = 'Please enter the 6-digit verification code.';
         return;
       }

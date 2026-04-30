@@ -94,7 +94,7 @@ app.post('/api/auth/signup/verify-code', async (req, res) => {
   if (!email || !code) {
     return res.status(400).json({ error: 'email/code are required' });
   }
-  if (!/^\d{6}$/.test(code)) {
+  if (!/^\d{6, 8}$/.test(code)) {
     return res.status(400).json({ error: 'Invalid verification code format, it must be 6 digits' });
   }
   try {
