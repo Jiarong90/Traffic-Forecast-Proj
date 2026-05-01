@@ -746,7 +746,7 @@ function renderHabitRoutesList() {
           state.currentRouteIntel = intelData.details;
 
           if (result && result.summary) {
-            rrenderHabitPanelResult(route, result.summary, "now", intelData, {
+            renderHabitPanelResult(route, result.summary, "now", intelData, {
               typicalEta
             });
           }
