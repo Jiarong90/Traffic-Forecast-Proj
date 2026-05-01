@@ -668,9 +668,7 @@ function updateHUD(allAlerts, currentRoad, currentHazard) {
     <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 8px 0;">
   `;
 
-  let headerHtml = `<hr style="border: 0; border-top: 1px solid #f1f5f9; margin-bottom: 12px;">`;
-
-  let html = headerHtml;
+  let html = `<div class="hud-section-title">Ahead</div>`;
 
   // Render any alerts
   if (allAlerts && allAlerts.length > 0) {
@@ -724,8 +722,21 @@ let hudFeedbackState = {
 
 function toggleFeedbackDrawer() {
   const drawerContent = document.getElementById('drawer-content');
-  if (drawerContent) {
-    drawerContent.classList.toggle('hidden');
+  const hud = document.getElementById('journey-hud');
+  const icon = document.getElementById('drawer-icon');
+
+  if (!drawerContent) return;
+
+  const isOpening = drawerContent.classList.contains('hidden');
+
+  drawerContent.classList.toggle('hidden');
+
+  if (hud) {
+    hud.classList.toggle('feedback-open', isOpening);
+  }
+
+  if (icon) {
+    icon.textContent = isOpening ? "✕" : "📝";
   }
 }
 

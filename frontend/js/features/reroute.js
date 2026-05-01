@@ -508,7 +508,7 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
         `;
   }
 
-    const simButton = `
+  const simButton = `
     <div class="route-primary-action">
       <button id="sim-control-btn" onclick="startJourneySimulation()">
       <span class="btn-icon">▶</span>
@@ -1451,7 +1451,7 @@ function createBaseJamMarker(lat, lon, roadName, pinIndex, segmentIndex, isJam, 
             <b style="color: ${color};">Pin ${pinIndex}: ${title}</b><br>
             <small>${roadName}</small><br>
             <hr style="margin: 5px 0; border-top: 1px solid #eee;">
-            <button onclick="simulateReroute(${p.link_id}, ${segmentIndex})" 
+            <button onclick="simulateReroute(${linkId}, ${segmentIndex})" 
                     style="width: 100%; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">
                 Reroute
             </button>
@@ -1880,9 +1880,53 @@ function buildRerouteAvoidanceContext(coords, segmentMatches, segmentIndex, jamm
 }
 
 // SIMULATE REROUTE SECTION - RECALCULATE ROUTE TO AVOID JAM
+
+function highlightRerouteJam(jammedId, segmentIndex) {
+  if (!state.previewDetourLayer) return;
+
+  let selectedJam = state.selectedJamPinID
+    ? state.habitRouteJams?.[state.selectedJamPinID]
+    : null;
+
+  if (!selectedJam && state.habitRouteJams) {
+    selectedJam = Object.values(state.habitRouteJams).find(j =>
+      String(j.link_id) === String(jammedId) ||
+      Number(j.segment_index) === Number(segmentIndex)
+    );
+  }
+
+  if (!selectedJam) {
+    console.warn("No selected jam found for highlight", {
+      jammedId,
+      segmentIndex,
+      selectedJamPinID: state.selectedJamPinID,
+      habitRouteJams: state.habitRouteJams
+    });
+    return;
+  }
+
+  L.circleMarker([selectedJam.lat, selectedJam.lon], {
+    radius: 13,
+    color: "#ef4444",
+    fillColor: "#ef4444",
+    fillOpacity: 0.22,
+    weight: 4,
+    pane: "markerPane"
+  })
+    .bindTooltip("Rerouting from this jam", {
+      permanent: true,
+      direction: "top",
+      offset: [0, -12]
+    })
+    .addTo(state.previewDetourLayer);
+}
+
+
 async function simulateReroute(jammedId, segmentIndex) {
 
   const coords = state.currentRouteCoords;
+
+  
   const segmentMatches = state.currMatchInfo?.segment_matches || [];
   if (!coords || coords.length < 2) {
     console.log("Coords not found")
@@ -1983,6 +2027,7 @@ async function simulateReroute(jammedId, segmentIndex) {
 
       // Call functions to draw the alternate route, + show the decision popup
       renderPreviewRoute(mergedCoords, analysisData.match_info?.segment_matches || [], anchorIdx);
+      highlightRerouteJam(jammedId, segmentIndex);
       showAcceptRejectCard(analysisData.summary?.predicted_eta || best.estMinutes, mergedCoords, analysisData.match_info || { segment_matches: [] });
 
       state.plannerMap.closePopup();
@@ -2074,65 +2119,69 @@ function showAcceptRejectCard(newEta, finalCoords, newMatchInfo) {
   const existing = document.getElementById("altroute-decision-card");
   if (existing) existing.remove();
 
+  const selectedJam = state.selectedJamPinID
+    ? state.habitRouteJams?.[state.selectedJamPinID]
+    : null;
+
+  const jamLabel = selectedJam
+    ? `${selectedJam.road_name || "Selected jam"}`
+    : "Selected congestion point";
+
   const card = document.createElement("div");
   card.id = "altroute-decision-card";
   card.style.cssText = `
-          position: absolute; 
-          bottom: 20px; 
-          left: 20px; 
-          z-index: 2000; 
-          background: white; 
-          padding: 16px; 
-          border-radius: 12px; 
-          box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-          font-family: 'Inter', sans-serif; 
-          min-width: 280px; 
-          border: 2px solid #0ea5e9;
-      `;
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  z-index: 2500;
+  width: 300px;
+  background: rgba(255,255,255,0.96);
+  padding: 14px;
+  border-radius: 14px;
+  box-shadow: 0 14px 32px rgba(15,23,42,0.24);
+  font-family: inherit;
+  border: 1px solid rgba(59,130,246,0.35);
+  box-sizing: border-box;
+`;
 
   card.innerHTML = `
-          <div style="font-weight: 800; color: #0f172a; font-size: 15px; margin-bottom: 4px;">Alternate Route Preview</div>
-          <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
-              Predicted Travel Time: <b style="color: #0ea5e9;">~${Math.round(newEta)} mins</b>
-          </div>
-          <div style="display: flex; gap: 8px;">
-              <button id="btn-accept" onclick="acceptAltRoute()" style="flex: 1; background: #0f172a; color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer;">Accept Route</button>
-              <button id="btn-reject" onclick="rejectAltRoute()" style="flex: 1; background: #f1f5f9; color: #64748b; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer;">Keep Original</button>
-          </div>
-      `;
+    <div style="font-size: 11px; font-weight: 800; color: #2563eb; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px;">
+      Alternate Route Preview
+    </div>
 
-  // Save the new coords to a state 
+    <div style="font-weight: 800; color: #0f172a; font-size: 14px; margin-bottom: 4px;">
+      Avoiding current bottleneck
+    </div>
+
+    <div style="font-size: 12px; color: #64748b; margin-bottom: 10px; line-height: 1.35;">
+      From: <b style="color:#334155;">${escapeHtml(jamLabel)}</b>
+    </div>
+
+    <div style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+      Predicted travel time: <b style="color: #2563eb;">~${Math.round(newEta)} mins</b>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+      <button id="btn-accept" onclick="acceptAltRoute()" 
+        style="background: #0f172a; color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 800; cursor: pointer;">
+        Accept
+      </button>
+
+      <button id="btn-reject" onclick="rejectAltRoute()" 
+        style="background: #f1f5f9; color: #475569; border: none; padding: 10px; border-radius: 8px; font-weight: 800; cursor: pointer;">
+        Keep Original
+      </button>
+    </div>
+  `;
+
   state.alternateRouteContext = {
     coords: finalCoords,
     newEta: newEta,
     newMatchInfo: newMatchInfo
-  }
+  };
 
-  document.body.appendChild(card);
-  // document.getElementById("btn-accept").onclick = async () => {
-  //   const card = document.getElementById("altroute-decision-card");
-  //   if (card)
-  //     card.remove();
-  //   state.previewDetourLayer.clearLayers();
-  //   state.habitRoutesMap.removeLayer(state.previewDetourLayer);
-
-  //   // Update main state and redraw completely!
-  //   state.currentRouteCoords = finalCoords;
-  //   await drawHabitRouteOnMap({ coords: finalCoords });
-  // };
-
-  // document.getElementById("btn-reject").onclick = () => {
-  //   const card = document.getElementById("altroute-decision-card");
-  //   if (card)
-  //     card.remove();
-  //   state.previewDetourLayer.clearLayers();
-
-
-  //   // Optionally zoom back to the original route
-  //   if (state.habitRoutePolylineLayer) {
-  //     state.habitRoutesMap.fitBounds(state.habitRoutePolylineLayer.getBounds(), { padding: [40, 40] });
-  //   }
-  // };
+  const mapEl = document.getElementById("plannerMap");
+  (mapEl || document.body).appendChild(card);
 }
 
 window.acceptAltRoute = async () => {
