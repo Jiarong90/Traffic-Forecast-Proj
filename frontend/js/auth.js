@@ -866,8 +866,9 @@
         const sent = await requestSignupCode();
         if (!sent) return;
       }
-      if (!/^\d{6, 8}$/.test(payload.code)) {
-        if (signupFeedback) signupFeedback.textContent = 'Please enter the 6-digit verification code.';
+      console.log("SIGNUP CODE DEBUG:", JSON.stringify(payload.code), payload.code.length, /^\d{6,8}$/.test(payload.code));
+      if (!/^\d{6,8}$/.test(payload.code)) {
+        if (signupFeedback) signupFeedback.textContent = 'Please enter the 8-digit verification code.';
         return;
       }
       try {

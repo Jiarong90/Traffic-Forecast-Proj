@@ -784,25 +784,27 @@ Currently studying at University of Wollongong.">
         <div class="route-inputs">
           <div class="input-row">
             <span class="icon-pin"></span>
-            <input type="text" id="route-start-postal" placeholder="Enter start (postal/place/MRT station)"
-              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            <input type="text" id="route-start-postal" placeholder="Enter start" autocomplete="off" autocorrect="off"
+              autocapitalize="off" spellcheck="false" />
+
             <span class="icon-plane swap"></span>
-            <input type="text" id="route-end-postal" placeholder="Enter destination (postal/place/MRT station)"
-              autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-            <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
+            <input type="text" id="route-end-postal" placeholder="Enter destination" autocomplete="off"
+              autocorrect="off" autocapitalize="off" spellcheck="false" />
+
+            <button type="button" class="btn-calculate" id="route-calculate-btn">PLAN ROUTE</button>
+
             <div class="route-start-suggestions hidden" id="route-start-suggestions">
               <button type="button" class="route-start-suggestion" id="route-start-current-option">Current
                 Location</button>
             </div>
-
           </div>
           <div class="route-actions">
             <button type="button" class="pref-btn" id="route-preference-btn"><span class="icon-info"></span> PREFERENCE:
               FASTEST ROUTE</button>
-            <button type="button" class="btn-calculate" id="route-calculate-btn">CALCULATE</button>
             <button type="button" class="btn-dark" id="route-toggle-favorites-btn">SHOW COMMON PLACES/ROUTES</button>
+            <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
           </div>
-          <div class="route-planning-hint" id="route-planning-hint">Click CALCULATE to generate route plan.</div>
+          <div class="route-planning-hint" id="route-planning-hint">Enter a start and destination, then click PLAN ROUTE.</div>
           <div class="route-favorites-panel hidden" id="route-favorites-panel">
             <h3>Common Places & Routes</h3>
             <div id="route-favorites-list"></div>
@@ -891,15 +893,22 @@ Currently studying at University of Wollongong.">
             <div id="admin-replay-list">No recordings yet.</div>
           </div>
           <!-- End Admin Toolbar Section -->
+          <section class="route-options">
+            <h2 class="subsection-title" id="route-options-title">ROUTE OPTIONS (0)</h2>
+            <div class="route-cards" id="route-cards"></div>
+          </section>
+
         </div>
+
+
         <!-- FOR Route Planner sidebar panel -->
         <aside class="route-details-panel">
 
           <div style="display: flex; border-bottom: 1px solid #e2e8f0; margin-bottom: 10px;">
             <button type="button" onclick="switchSidebar('planner')" id="btn-tab-planner"
-              style="flex:1; padding:10px; border:none; background:white; font-weight:bold; cursor:pointer; border-bottom: 2px solid #3b82f6;">PLANNER</button>
+              style="flex:1; padding:5px 6px; font-size:12px; border:none; background:white; font-weight:bold; cursor:pointer; border-bottom: 2px solid #3b82f6;">PLANNER</button>
             <button type="button" onclick="switchSidebar('habits')" id="btn-tab-habits"
-              style="flex:1; padding:10px; border:none; background:white; font-weight:bold; cursor:pointer; color:#94a3b8;">SAVED</button>
+              style="flex:1; padding:5px 6px; font-size:12px; border:none; background:white; font-weight:bold; cursor:pointer; color:#94a3b8;">SAVED</button>
           </div>
 
           <div id="planner-tab-content">
@@ -1003,13 +1012,25 @@ Currently studying at University of Wollongong.">
                 <input type="datetime-local" id="habit-plan-datetime" class="form-control form-control-sm">
               </div>
 
+              <div id="habit-current-mode-wrap" class="hidden" style="margin-bottom:10px;">
+                <div class="habit-current-mode-row">
+                  <span>
+                    Current Mode:
+                    <b id="habit-current-mode-label">NOW</b>
+                  </span>
+
+                  <button type="button" id="habit-change-mode-btn">
+                    Change
+                  </button>
+                </div>
+              </div>
+
               <div id="habit-plan-helper" style="font-size:12px; text-align: center;">
                 Using current traffic conditions. <br>
                 <b>No route currently selected.</b>
               </div>
 
               <div id="habit-plan-selected-wrap" style="display: none; padding:10px; background:#f8fafc;">
-                <div style="font-size:12px; font-weight: 700; margin-bottom:4px;">Selected Route:</div>
                 <div id="habit-plan-results" style="font-size:13px; font-weight:700; color:#1e293b;">
                   Please select a route below!
                 </div>
@@ -1037,10 +1058,10 @@ Currently studying at University of Wollongong.">
 
         </aside>
       </div>
-      <section class="route-options">
+      <!-- <section class="route-options">
         <h2 class="subsection-title" id="route-options-title">ROUTE OPTIONS (0)</h2>
         <div class="route-cards" id="route-cards"></div>
-      </section>
+      </section> -->
 
 
     </main>

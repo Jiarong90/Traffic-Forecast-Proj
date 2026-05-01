@@ -49,6 +49,66 @@ function getPin(source, type = "") {
   });
 }
 
+function showHabitModePicker() {
+  document.querySelector(".habit-mode-group")?.classList.remove("hidden");
+
+  const title = document.getElementById("habit-tab-title");
+  if (title) title.style.display = "block";
+
+  const dateWrap = document.getElementById("habit-plan-datetime-wrap");
+  if (dateWrap) {
+    dateWrap.classList.toggle("hidden", state.habitPlanMode === "now");
+  }
+
+  document.getElementById("habit-current-mode-wrap")?.classList.add("hidden");
+
+  const selectedWrap = document.getElementById("habit-plan-selected-wrap");
+  if (selectedWrap) selectedWrap.style.display = "none";
+
+  const routesSection = document.getElementById("habit-routes-section");
+  if (routesSection) routesSection.style.display = "block";
+
+  const divider = document.getElementById("habit-plan-divider");
+  if (divider) divider.style.display = "block";
+
+  const helper = document.getElementById("habit-plan-helper");
+  if (helper) {
+    helper.style.display = "block";
+    helper.innerHTML = "Choose a planning mode, then select a saved route below.";
+  }
+}
+
+function showHabitSelectedMode() {
+  const mode = (state.habitPlanMode || "now").toUpperCase();
+
+  document.querySelector(".habit-mode-group")?.classList.add("hidden");
+
+  const title = document.getElementById("habit-tab-title");
+  if (title) title.style.display = "none";
+
+  document.getElementById("habit-plan-datetime-wrap")?.classList.add("hidden");
+
+  const modeWrap = document.getElementById("habit-current-mode-wrap");
+  const modeLabel = document.getElementById("habit-current-mode-label");
+
+  if (modeLabel) modeLabel.textContent = mode === "BEST" ? "SMART" : mode;
+  if (modeWrap) modeWrap.classList.remove("hidden");
+
+  const helper = document.getElementById("habit-plan-helper");
+  if (helper) helper.style.display = "none";
+
+  const selectedWrap = document.getElementById("habit-plan-selected-wrap");
+  if (selectedWrap) selectedWrap.style.display = "block";
+
+  const routesSection = document.getElementById("habit-routes-section");
+  if (routesSection) routesSection.style.display = "none";
+
+  const divider = document.getElementById("habit-plan-divider");
+  if (divider) divider.style.display = "none";
+}
+
+document.getElementById("habit-change-mode-btn")?.addEventListener("click", showHabitModePicker);
+
 // Activate panel to allow user to switch route viewer mode
 function initHabitPlannerPanel() {
   const modeBtns = document.querySelectorAll(".habit-mode-btn");
@@ -83,6 +143,131 @@ function initHabitPlannerPanel() {
 }
 
 // Helper functions for Habit Routes
+async function fetchCurrentTypicalEta(route, liveResult) {
+  const segmentMatches = liveResult?.match_info?.segment_matches || [];
+
+  const segmentSequence = segmentMatches.map(m =>
+    m ? { link_id: m.link_id, road_name: m.road_name } : null
+  );
+
+  if (!segmentSequence.length) return null;
+
+  const now = new Date();
+  const day = now.getDay();
+  const bucket = Math.floor((now.getHours() * 60 + now.getMinutes()) / 15);
+
+  try {
+    const res = await window.fastAuthFetch("/api/ml/habit-routes/historical", {
+      method: "POST",
+      body: JSON.stringify({
+        segment_sequence: segmentSequence,
+        day,
+        bucket,
+        distance_m: route.distance_m
+      })
+    });
+
+    if (!res.ok) throw new Error("Historical ETA failed");
+
+    const data = await res.json();
+    return data?.summary?.predicted_eta ?? null;
+  } catch (err) {
+    console.warn("Typical ETA unavailable:", err);
+    return null;
+  }
+}
+
+function getDelayComparison(currEta, typicalEta) {
+  const curr = Number(currEta);
+  const typical = Number(typicalEta);
+
+  if (!Number.isFinite(curr) || !Number.isFinite(typical)) {
+    return null;
+  }
+
+  const delta = curr - typical;
+
+  let label = "Normal";
+  let cssClass = "Normal";
+
+  if (delta >= 8) {
+    label = "Much slower than usual";
+    cssClass = "bad";
+  } else if (delta >= 3) {
+    label = "Slightly slower than usual";
+    cssClass = "warning";
+  } else if (delta <= -3) {
+    label = "Faster than usual";
+    cssClass = "good";
+  }
+
+  return {
+    delta,
+    label,
+    cssClass
+  };
+}
+
+function renderTypicalEtaGauge(summary, typicalEta) {
+  const currEta = Number(summary?.curr_eta);
+  const typical = Number(typicalEta);
+
+  if (!Number.isFinite(currEta) || !Number.isFinite(typical)) {
+    return `
+      <div class="route-typical-gauge-wrap unavailable">
+        <div class="route-typical-gauge">
+          <div class="route-gauge-main">--</div>
+        </div>
+        <div class="route-gauge-text">
+          <div class="route-gauge-title">Typical comparison unavailable</div>
+          <div class="route-gauge-note">Historical route pattern could not be loaded.</div>
+        </div>
+      </div>
+    `;
+  }
+
+  const delta = currEta - typical;
+  const delayMin = Math.max(0, delta);
+
+  const delayPct = Math.min(100, Math.round((delayMin / 30) * 100));
+  const healthyPct = 100 - delayPct;
+
+  let delayColor = "#22c55e";
+  let label = "Normal traffic";
+
+  if (delayMin >= 15) {
+    delayColor = "#ef4444";
+    label = "Heavy delay vs usual";
+  } else if (delayMin >= 5) {
+    delayColor = "#f59e0b";
+    label = "Slower than usual";
+  } else if (delayMin > 0) {
+    delayColor = "#f59e0b";
+    label = "Slight delay vs usual";
+  }
+
+  const delayDisplay = delayMin < 10
+    ? delayMin.toFixed(1)
+    : String(Math.round(delayMin));
+
+  const note = delayMin > 0
+    ? `${delayDisplay} min slower than typical for this time`
+    : `No extra delay vs typical for this time`;
+
+  return `
+    <div class="route-typical-gauge-wrap">
+      <div class="route-typical-gauge" style="--healthy:${healthyPct}%; --delay-color:${delayColor};">
+        <div class="route-gauge-main">+${delayMin.toFixed(1)}</div>
+      </div>
+
+      <div class="route-gauge-text">
+        <div class="route-gauge-title">${escapeHtml(label)}</div>
+        <div class="route-gauge-note">${escapeHtml(note)}</div>
+      </div>
+    </div>
+  `;
+}
+
 function getRouteConditionBreakdownFromCurrentMatchInfo() {
   const segmentMatches = state.currMatchInfo?.segment_matches || [];
 
@@ -195,7 +380,7 @@ function renderMainBottleneckCard(summary) {
   if (!b) {
     return `
       <div class="route-panel-section">
-        <div class="route-panel-section-title">MAIN BOTTLENECK</div>
+        <div class="route-panel-section-title">Most Affected:</div>
         <div class="route-empty-note">No major bottleneck detected.</div>
       </div>
     `;
@@ -213,9 +398,7 @@ function renderMainBottleneckCard(summary) {
         Band ${b.currentBand ?? "-"} → ${b.predictedBand ?? "-"}
       </div>
 
-      <div class="route-bottleneck-reason">
-        ${escapeHtml(b.reason)}
-      </div>
+  
     </div>
   `;
 }
@@ -233,14 +416,17 @@ function getEtaTrendText(currEta, predictedEta) {
   return "Stable traffic forecast";
 }
 
-function renderEtaForecastCard(summary) {
+function renderEtaForecastCard(summary, typicalEta = null) {
   const currEta = Number(summary?.curr_eta);
   const predEta = Number(summary?.predicted_eta);
+  const typical = Number(typicalEta);
   const trendText = getEtaTrendText(currEta, predEta);
 
   return `
     <div class="route-panel-section">
-      <div class="route-panel-section-title">ETA FORECAST</div>
+      <div class="route-panel-section-title">
+        ETA FORECAST: <span class="route-panel-section-text">${escapeHtml(trendText)}</span>
+      </div>
 
       <div class="route-panel-row">
         <span>Now</span>
@@ -252,8 +438,9 @@ function renderEtaForecastCard(summary) {
         <strong>${Number.isFinite(predEta) ? predEta.toFixed(1) : "-"} min</strong>
       </div>
 
-      <div class="route-panel-note">
-        ${escapeHtml(trendText)}
+      <div class="route-panel-row">
+        <span>Typical</span>
+        <strong>${Number.isFinite(typical) ? typical.toFixed(1) : "-"} min</strong>
       </div>
     </div>
   `;
@@ -261,6 +448,7 @@ function renderEtaForecastCard(summary) {
 
 function renderRouteSignals(intel, fuelPrice) {
   const s = intel?.summary || {};
+  const weatherIcon = s.is_raining_anywhere ? "🌧️" : "🌤️";
 
   return `
     <div class="route-panel-section">
@@ -276,7 +464,7 @@ function renderRouteSignals(intel, fuelPrice) {
           <strong>${s.total_hotspots ?? 0}</strong>
         </div>
         <div>
-          <span>🌤️ Weather</span>
+          <span> ${weatherIcon} Weather</span>
           <strong>${s.is_raining_anywhere ? "Rainy" : "Clear"}</strong>
         </div>
         <div>
@@ -320,38 +508,44 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
         `;
   }
 
-  const simButton = `
-    <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
-      <button id="sim-control-btn" onclick="startJourneySimulation()" 
-              style="width: 100%; padding: 12px; background: #2563eb; color: white; border: none; border-radius: 8px; font-weight: 800; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
-        START JOURNEY
+    const simButton = `
+    <div class="route-primary-action">
+      <button id="sim-control-btn" onclick="startJourneySimulation()">
+      <span class="btn-icon">▶</span>
+        Start Journey
       </button>
-      <div id="sim-status-clock" style="display: none; margin-top: 8px; font-family: monospace; font-size: 10px; color: #64748b; text-align: center;">
+      <div id="sim-status-clock" style="display:none;">
         SIM TIME: <span id="sim-clock-val">00:00</span>
       </div>
     </div>
-    `;
+  `;
 
 
   if (mode === "now") {
-    const etaHtml = renderEtaForecastCard(summary);
+    const typicalEta = extra.typicalEta ?? null;
+    const gaugeHtml = renderTypicalEtaGauge(summary, typicalEta);
+    const etaHtml = renderEtaForecastCard(summary, typicalEta);
     const conditionHtml = renderRouteConditionBar();
     const signalsHtml = renderRouteSignals(intel, fuelPrice);
     const bottleneckHtml = renderMainBottleneckCard(summary);
 
     panel.innerHTML = `
-    <div class="route-insight-panel">
-      <div class="route-insight-kicker">FAST ROUTE INSIGHT</div>
-      <div class="route-insight-title">${escapeHtml(name)}</div>
+  <div class="route-insight-panel">
+    <div class="route-insight-kicker">FAST ROUTE INSIGHT</div>
+    <div class="route-insight-title">${escapeHtml(name)}</div>
 
-      ${etaHtml}
-      ${conditionHtml}
-      ${signalsHtml}
-      ${bottleneckHtml}
+    ${gaugeHtml}
+    ${simButton}
 
-      ${simButton}
-    </div>
-  `;
+    ${etaHtml}
+
+    
+
+    ${conditionHtml}
+    ${signalsHtml}
+    ${bottleneckHtml}
+  </div>
+`;
   }
 
   if (mode === "leave") {
@@ -530,7 +724,6 @@ function renderHabitRoutesList() {
       // Once a route is loaded, show the analysis panel
       document.getElementById('habit-plan-selected-wrap').style.display = 'block';
 
-
       const mode = state.habitPlanMode || "now";
 
       if (mode === "now") {
@@ -538,6 +731,9 @@ function renderHabitRoutesList() {
         panel.innerHTML = "Loading...";
 
         const result = await drawHabitRouteOnMap(route);
+        const typicalEta = await fetchCurrentTypicalEta(route, result);
+
+        showHabitSelectedMode();
 
         try {
           const intelRes = await window.fastAuthFetch(`/api/ml/route-intel`, {
@@ -550,12 +746,16 @@ function renderHabitRoutesList() {
           state.currentRouteIntel = intelData.details;
 
           if (result && result.summary) {
-            renderHabitPanelResult(route, result.summary, "now", intelData);
+            rrenderHabitPanelResult(route, result.summary, "now", intelData, {
+              typicalEta
+            });
           }
         } catch (err) {
           console.error("Failed to retrieve intel", err);
           if (result && result.summary) {
-            renderHabitPanelResult(route, result.summary, "now");
+            renderHabitPanelResult(route, result.summary, "now", null, {
+              typicalEta
+            });
           }
         }
       }

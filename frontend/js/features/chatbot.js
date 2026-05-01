@@ -253,18 +253,20 @@ function getKeyStretches(segments, landmarks, maxCount = 5) {
     const now = Number(seg.current_val);
     const pred = Number(seg.predicted_val);
 
-    const nearest = findNearestLandmark(seg, landmarks || []);
-    const stretchName = nearest?.label || seg.nearest_landmark || seg.road_name || "Unknown stretch";
-    const sector = seg.sector || "Unknown sector";
+    const stretchName =
+      seg.nearest_landmark ||
+      findNearestLandmark(seg, landmarks || [])?.label ||
+      seg.road_name ||
+      "Unknown stretch";
 
-    const key = `${stretchName}_${sector}`;
+    const key = `${stretchName}_${seg.sector || ""}`;
 
     if (!grouped.has(key)) {
       grouped.set(key, {
         stretchName,
-        sector,
-        worstCurrent: null,
-        worstPredicted: null,
+        sector: seg.sector || "Unknown sector",
+        worstCurrent: 8,
+        worstPredicted: 8,
         predictedJammed: 0,
         currentJammed: 0,
         worsening: 0,
@@ -276,14 +278,14 @@ function getKeyStretches(segments, landmarks, maxCount = 5) {
     const g = grouped.get(key);
 
     if (Number.isFinite(now)) {
-      g.worstCurrent = g.worstCurrent == null ? now : Math.min(g.worstCurrent, now);
+      g.worstCurrent = Math.min(g.worstCurrent, now);
       if (now <= 3) g.currentJammed += 1;
     }
 
     if (Number.isFinite(pred)) {
-      g.worstPredicted = g.worstPredicted == null ? pred : Math.min(g.worstPredicted, pred);
+      g.worstPredicted = Math.min(g.worstPredicted, pred);
       if (pred <= 3) g.predictedJammed += 1;
-      else if (pred <= 5) g.moderatePredicted += 1;
+      if (pred > 3 && pred <= 5) g.moderatePredicted += 1;
     }
 
     if (Number.isFinite(now) && Number.isFinite(pred) && now - pred >= 2) {
@@ -294,29 +296,21 @@ function getKeyStretches(segments, landmarks, maxCount = 5) {
   return Array.from(grouped.values())
     .map(g => {
       g.riskScore =
-        (g.predictedJammed * 1000) +
-        (g.currentJammed * 300) +
-        (g.worsening * 200) +
-        (g.moderatePredicted * 50);
+        (g.predictedJammed * 100) +
+        (g.currentJammed * 60) +
+        (g.worsening * 80) +
+        (g.moderatePredicted * 20);
 
       return {
         stretchName: g.stretchName,
         sector: g.sector,
-        current_val: g.worstCurrent,
+        current_val: g.worstCurrent === 8 && g.currentJammed === 0 ? g.worstCurrent : g.worstCurrent,
         predicted_val: g.worstPredicted,
-        predictedJammed: g.predictedJammed,
-        currentJammed: g.currentJammed,
-        worsening: g.worsening,
         riskScore: g.riskScore
       };
     })
     .filter(s => s.riskScore > 0)
-    .sort((a, b) => {
-      if (b.predictedJammed !== a.predictedJammed) return b.predictedJammed - a.predictedJammed;
-      if (b.currentJammed !== a.currentJammed) return b.currentJammed - a.currentJammed;
-      if (b.worsening !== a.worsening) return b.worsening - a.worsening;
-      return b.riskScore - a.riskScore;
-    })
+    .sort((a, b) => b.riskScore - a.riskScore)
     .slice(0, maxCount);
 }
 
