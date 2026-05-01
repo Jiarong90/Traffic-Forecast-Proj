@@ -305,13 +305,13 @@ function getRouteConditionBreakdownFromCurrentMatchInfo() {
   };
 }
 
-function renderRouteConditionBar() {
+function renderRouteConditionBar(title = "ROUTE CONDITION") {
   const b = getRouteConditionBreakdownFromCurrentMatchInfo();
 
   if (!b.total) {
     return `
       <div class="route-panel-section">
-        <div class="route-panel-section-title">ROUTE CONDITION</div>
+        <div class="route-panel-section-title">${escapeHtml(title)}</div>
         <div class="route-empty-note">No matched speedband segments available.</div>
       </div>
     `;
@@ -336,72 +336,97 @@ function renderRouteConditionBar() {
   `;
 }
 
-function getMainBottleneck(summary) {
+function getMostAffectedRoads(limit = 3) {
   const segmentMatches = state.currMatchInfo?.segment_matches || [];
 
-  if (summary?.large_changes?.length) {
-    const first = summary.large_changes[0];
-
-    const matchingSegment = segmentMatches.find(m =>
-      m && String(m.link_id) === String(first.link_id)
-    );
-
-    return {
-      roadName: first.road_name || matchingSegment?.road_name || "Affected road",
-      currentBand: first.current_band ?? first.current_val ?? matchingSegment?.prediction?.current_val ?? null,
-      predictedBand: first.predicted_band ?? first.predicted_val ?? matchingSegment?.prediction?.predicted_val ?? null,
-      reason: "Largest predicted slowdown on this route"
-    };
-  }
-
-  const worst = segmentMatches
+  const rows = segmentMatches
     .filter(m => m && m.prediction)
-    .map(m => ({
-      roadName: m.display_name || m.road_name || "LTA Road",
-      currentBand: Number(m.prediction.current_val),
-      predictedBand: Number(m.prediction.predicted_val)
-    }))
-    .filter(m => Number.isFinite(m.predictedBand))
-    .sort((a, b) => a.predictedBand - b.predictedBand)[0];
+    .map(m => {
+      const currentBand = Number(m.prediction.current_val);
+      const predictedBand = Number(m.prediction.predicted_val);
+      const drop = Number.isFinite(currentBand) && Number.isFinite(predictedBand)
+        ? currentBand - predictedBand : 0;
 
-  if (!worst) return null;
 
-  return {
-    roadName: worst.roadName,
-    currentBand: worst.currentBand,
-    predictedBand: worst.predictedBand,
-    reason: "Lowest predicted speedband on this route"
-  };
+      return {
+        roadName: m.display_name || m.road_name || "LTA Road",
+        currentBand,
+        predictedBand,
+        drop
+      };
+    })
+    .filter(r => Number.isFinite(r.predictedBand));
+
+  const bestByRoad = new Map();
+
+  rows.forEach(r => {
+    const key = r.roadName.toUpperCase();
+    const existing = bestByRoad.get(key);
+
+    if (
+      !existing ||
+      r.predictedBand < existing.predictedBand ||
+      (r.predictedBand === existing.predictedBand && r.drop > existing.drop)
+    ) {
+      bestByRoad.set(key, r);
+    }
+  });
+
+  return Array.from(bestByRoad.values())
+    .sort((a, b) => {
+      if (a.predictedBand !== b.predictedBand) {
+        return a.predictedBand - b.predictedBand;
+      }
+      return b.drop - a.drop;
+    })
+    .slice(0, limit);
 }
 
-function renderMainBottleneckCard(summary) {
-  const b = getMainBottleneck(summary);
+function getBandStatusText(band) {
+  const b = Number(band);
+  if (!Number.isFinite(b)) return "-";
+  if (b <= 3) return "Congested";
+  if (b <= 5) return "Moderate";
+  return "Clear";
+}
 
-  if (!b) {
+function renderMostAffectedRoadsCard(title = "MOST AFFECTED ROADS", mode = "now") {
+  const roads = getMostAffectedRoads(3);
+
+  if (!roads.length) {
     return `
       <div class="route-panel-section">
-        <div class="route-panel-section-title">Most Affected:</div>
-        <div class="route-empty-note">No major bottleneck detected.</div>
+        <div class="route-panel-section-title">${escapeHtml(title)}</div>
+        <div class="route-empty-note">No affected roads detected.</div>
       </div>
     `;
   }
 
   return `
     <div class="route-panel-section">
-      <div class="route-panel-section-title">MAIN BOTTLENECK</div>
+      <div class="route-panel-section-title">${escapeHtml(title)}</div>
 
-      <div class="route-bottleneck-road">
-        ${escapeHtml(b.roadName)}
+      <div class="route-affected-list">
+        ${roads.map(r => {
+    const bandLine = mode === "leave"
+      ? `Typical Band ${Number.isFinite(r.predictedBand) ? r.predictedBand : "-"}`
+      : `Band ${Number.isFinite(r.currentBand) ? r.currentBand : "-"} → ${Number.isFinite(r.predictedBand) ? r.predictedBand : "-"}`;
+
+    return `
+            <div class="route-affected-row">
+              <div>
+                <strong>${escapeHtml(r.roadName)}</strong>
+                <span>${bandLine}</span>
+              </div>
+              <b>${getBandStatusText(r.predictedBand)}</b>
+            </div>
+          `;
+  }).join("")}
       </div>
-
-      <div class="route-bottleneck-meta">
-        Band ${b.currentBand ?? "-"} → ${b.predictedBand ?? "-"}
-      </div>
-
-  
     </div>
   `;
 }
+
 
 function getEtaTrendText(currEta, predictedEta) {
   const curr = Number(currEta);
@@ -527,7 +552,7 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
     const etaHtml = renderEtaForecastCard(summary, typicalEta);
     const conditionHtml = renderRouteConditionBar();
     const signalsHtml = renderRouteSignals(intel, fuelPrice);
-    const bottleneckHtml = renderMainBottleneckCard(summary);
+    const bottleneckHtml = renderMostAffectedRoadsCard("MOST AFFECTED ROADS", "now");
 
     panel.innerHTML = `
   <div class="route-insight-panel">
@@ -549,27 +574,123 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
   }
 
   if (mode === "leave") {
+    const conditionHtml = renderRouteConditionBar("EXPECTED ROUTE CONDITION");
+    const affectedHtml = renderMostAffectedRoadsCard("EXPECTED AFFECTED ROADS", "leave");
+    const advice = getLeaveAtAdvice(summary);
+
     panel.innerHTML = `
-      <div>
-        <b>${name}</b><br><br>
-        Typical ETA: ${summary.predicted_eta} min<br>
-        Status: ${summary.status}
+    <div class="route-insight-panel">
+      <div class="route-insight-kicker">FAST ROUTE INSIGHT</div>
+      <div class="route-insight-title">${escapeHtml(name)}</div>
+
+      <div class="route-panel-section">
+        <div class="route-panel-section-title">PLANNED DEPARTURE</div>
+
+        <div class="route-panel-row">
+          <span>Leave at</span>
+          <strong>${escapeHtml(getSelectedDepartureText())}</strong>
+        </div>
+
+        <div class="route-panel-row">
+          <span>Typical ETA</span>
+          <strong>${Number(summary?.predicted_eta || 0).toFixed(1)} min</strong>
+        </div>
+
+        <div class="route-panel-row">
+          <span>Expected traffic</span>
+          <strong>${escapeHtml(summary?.status || "-")}</strong>
+        </div>
       </div>
-    `;
+
+      ${conditionHtml}
+      ${affectedHtml}
+
+      <div class="route-panel-section">
+        <div class="route-panel-section-title">PLANNING ADVICE</div>
+        <div class="route-empty-note">${escapeHtml(advice)}</div>
+      </div>
+    </div>
+  `;
   }
 
   if (mode === "best") {
+    const conditionHtml = renderRouteConditionBar("EXPECTED ROUTE CONDITION");
+    const affectedHtml = renderMostAffectedRoadsCard("EXPECTED AFFECTED ROADS", "leave");
+
+    const eta = Number(summary?.predicted_eta);
+    const etaText = Number.isFinite(eta) ? eta.toFixed(1) : "-";
+
+    const holiday = extra?.holidayName
+      ? `<div class="route-empty-note">Holiday profile: ${escapeHtml(extra.holidayName)}</div>`
+      : "";
+
     panel.innerHTML = `
-      <div>
-        <b>${name}</b><br><br>
+    <div class="route-insight-panel">
+      <div class="route-insight-kicker">FAST ROUTE INSIGHT</div>
+      <div class="route-insight-title">${escapeHtml(name)}</div>
+
+      <div class="route-panel-section">
+        <div class="route-panel-section-title">RECOMMENDED DEPARTURE</div>
+
         ${holiday}
-        Leave at: ${extra.departureTime}<br>
-        Arrive by: ${extra.arrivalTime}<br>
-        ⏱️ ETA: ${summary.predicted_eta} min
+
+        <div class="route-panel-row">
+          <span>Leave at</span>
+          <strong>${escapeHtml(extra?.departureTime || "-")}</strong>
+        </div>
+
+        <div class="route-panel-row">
+          <span>Arrive by</span>
+          <strong>${escapeHtml(extra?.arrivalTime || "-")}</strong>
+        </div>
+
+        <div class="route-panel-row">
+          <span>Best ETA</span>
+          <strong>${etaText} min</strong>
+        </div>
       </div>
-    `;
+
+      ${extra?.trendHtml || ""}
+
+      ${conditionHtml}
+      ${affectedHtml}
+
+    
+    </div>
+  `;
   }
   helper.innerHTML = "";
+}
+
+function getSelectedDepartureText() {
+  const value = document.getElementById("habit-plan-datetime")?.value;
+  if (!value) return "Selected time";
+
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+
+  return d.toLocaleString([], {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
+}
+
+function getLeaveAtAdvice(summary) {
+  const status = String(summary?.status || "").toLowerCase();
+  const eta = Number(summary?.predicted_eta);
+
+  if (status.includes("congest") || eta >= 45) {
+    return "Allocate extra travel time for this departure.";
+  }
+
+  if (status.includes("moderate") || status.includes("delay")) {
+    return "Some delays are possible around this time.";
+  }
+
+  return "Normal travel time should be sufficient.";
 }
 
 
@@ -1019,7 +1140,6 @@ async function runHabitRouteBestTime(route, card) {
     const arriveDate = new Date(targetTime);
     arriveDate.setHours(leaveTimeHours, leaveTimeMins + Math.round(best.eta), 0);
     const formattedArriveTime = `${String(arriveDate.getHours()).padStart(2, '0')}:${String(arriveDate.getMinutes()).padStart(2, '0')}`;
-
     renderHabitPanelResult(
       route,
       { predicted_eta: best.eta },
@@ -1028,11 +1148,11 @@ async function runHabitRouteBestTime(route, card) {
       {
         arrivalTime: formattedArriveTime,
         departureTime: formattedLeaveTime,
-        holidayName: holidayName
+        holidayName: holidayName,
+        trendHtml: graphHtml
       }
     );
 
-    panel.innerHTML += graphHtml;
 
   } catch (error) {
     console.error("Best Time calculation failed:", error);
@@ -1406,7 +1526,7 @@ async function drawHabitRouteOnMap(route) {
     num_jams: num_jams,
     route_jam_pins: route_jam_pins,
     intelligence: {
-      total_incidents: state.currentRouteIntelSummary.total_incidents || 0,
+      total_incidents: state.currentRouteIntelSummary?.total_incidents || 0,
       weather: state.currentRouteIntelSummary?.is_raining_anywhere ? "Rainy" : "Clear",
       hotspot_count: state.currentRouteIntelSummary?.total_hotspots || 0,
       risk_level: (state.currentRouteIntelSummary?.total_hotspots > 20) ? "High" : "Normal"
@@ -1926,7 +2046,7 @@ async function simulateReroute(jammedId, segmentIndex) {
 
   const coords = state.currentRouteCoords;
 
-  
+
   const segmentMatches = state.currMatchInfo?.segment_matches || [];
   if (!coords || coords.length < 2) {
     console.log("Coords not found")

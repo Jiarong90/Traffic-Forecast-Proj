@@ -804,7 +804,8 @@ Currently studying at University of Wollongong.">
             <button type="button" class="btn-dark" id="route-toggle-favorites-btn">SHOW COMMON PLACES/ROUTES</button>
             <button type="button" class="btn-dark" id="route-cancel-btn">CANCEL CURRENT ROUTE</button>
           </div>
-          <div class="route-planning-hint" id="route-planning-hint">Enter a start and destination, then click PLAN ROUTE.</div>
+          <div class="route-planning-hint" id="route-planning-hint">Enter a start and destination, then click PLAN
+            ROUTE.</div>
           <div class="route-favorites-panel hidden" id="route-favorites-panel">
             <h3>Common Places & Routes</h3>
             <div id="route-favorites-list"></div>
@@ -821,6 +822,10 @@ Currently studying at University of Wollongong.">
                 <span id="hud-dot" class="dot-green"></span>
                 <span class="hud-title">FAST Sentinel (T+15)</span>
               </div>
+
+              <button type="button" class="hud-stop-btn" onclick="stopJourneySimulation()">
+                Stop
+              </button>
             </div>
 
             <div id="hud-road-info-container" class="hud-road-info">
