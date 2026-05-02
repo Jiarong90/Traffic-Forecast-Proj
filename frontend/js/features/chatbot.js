@@ -674,6 +674,8 @@ if (Recognition) {
   let cancelAutoSend = false;
 
   micBtn.addEventListener('click', () => {
+    // Stop voice
+    window.speechSynthesis.cancel();
     if (isListening) {
       cancelAutoSend = true;
       recognition.stop();
@@ -788,6 +790,12 @@ function playBeep(type = 'start') {
   osc.start();
   osc.stop(ctx.currentTime + 0.1);
 }
+
+ttsToggle.addEventListener('change', () => {
+  if (!ttsToggle.checked) {
+    window.speechSynthesis.cancel();
+  }
+});
 // CHATBOT END VOICE FUNCTION
 
 let chatHistory = []
@@ -819,6 +827,8 @@ function appendChatMessage(container, speaker, text) {
 
 
 async function sendChatMessage() {
+  // Stop speech
+  window.speechSynthesis.cancel();
   const input = document.getElementById('chat-input');
   const msgContainer = document.getElementById('chat-messages');
   const text = input.value.trim();
