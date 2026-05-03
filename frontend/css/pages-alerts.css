@@ -442,57 +442,6 @@
 }
 /* END ADMIN TOOLBAR SECTION */
 
-/* START PLAN JOURNEY SECTION */
-.journey-hud {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    z-index: 1000; /* Must be higher than Leaflet layers */
-    height: 500px;
-    width: 260px;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-    padding: 14px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    font-family: 'Inter', sans-serif;
-}
-
-.hud-header {
-    margin-bottom: 8px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-    padding-bottom: 6px;
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.hud-title {
-    font-size: 10px;
-    font-weight: 800;
-    color: #64748b;
-    letter-spacing: 0.05em;
-}
-
-.hud-main-text {
-    font-size: 14px;
-    font-weight: 700;
-    color: #1e293b;
-    line-height: 1.4;
-}
-
-.hud-sub-text {
-    font-size: 11px;
-    color: #94a3b8;
-    margin-top: 2px;
-}
-
 
 
 

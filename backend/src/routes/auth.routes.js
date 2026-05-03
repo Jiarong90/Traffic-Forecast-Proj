@@ -491,7 +491,12 @@ module.exports = function registerAuthUserRoutes(ctx) {
         const role = String(authUser?.user_metadata?.role || '').trim().toLowerCase() === 'admin' ? 'admin' : (email === 'admin@fast.local' ? 'admin' : 'user');
         profile = await ensureUserProfile(authUser.id, authUser.email, pickProfileName(authUser, authUser.email), role);
       }
-      res.json({ token: signedIn.access_token, user: toPublicUser(profile) });
+      res.json({
+        token: signedIn.access_token,
+        refreshToken: signedIn.refresh_token,
+        expiresIn: signedIn.expires_in,
+        user: toPublicUser(profile)
+      });
     } catch (error) {
       console.error('Login failed:', error.message);
       res.status(500).json({ error: 'Login failed' });

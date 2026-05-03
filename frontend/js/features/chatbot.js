@@ -565,14 +565,16 @@ document.querySelectorAll(".exp-checkbox").forEach(cb => {
       const panel = document.getElementById("expressway-info-panel");
       panel?.classList.remove("open");
       panel?.classList.add("hidden");
-
       return;
     }
 
     try {
+      showMapLoading(`Loading ${this.value} expressway analytics...`);
       await drawExpresswayOnMap(this.value);
     } catch (err) {
       console.error("Failed to draw expressway:", err);
+    } finally {
+      hideMapLoading();
     }
   });
 });
@@ -690,6 +692,7 @@ if (Recognition) {
   recognition.onstart = () => {
     isListening = true;
     micBtn.style.backgroundColor = '#ef4444';
+    showListeningOverlay();
   };
 
   recognition.onresult = (event) => {
@@ -711,6 +714,7 @@ if (Recognition) {
   recognition.onend = () => {
     isListening = false;
     micBtn.style.backgroundColor = '';
+    hideListeningOverlay();
 
     const text = chatInput.value.trim();
 
@@ -725,6 +729,8 @@ if (Recognition) {
 
   recognition.onerror = (e) => {
     console.error("Speech error:", e);
+    hideListeningOverlay();
+    micBtn.style.backgroundColor = '';
   };
 }
 
@@ -796,6 +802,14 @@ ttsToggle.addEventListener('change', () => {
     window.speechSynthesis.cancel();
   }
 });
+
+function showListeningOverlay() {
+  document.getElementById("ai-listening-overlay")?.classList.remove("hidden");
+}
+
+function hideListeningOverlay() {
+  document.getElementById("ai-listening-overlay")?.classList.add("hidden");
+}
 // CHATBOT END VOICE FUNCTION
 
 let chatHistory = []
@@ -1425,3 +1439,19 @@ document.getElementById("admin-stop-recording-btn").addEventListener("click", as
 // End Handle Stop Recording
 
 // END ADMIN TOOL SECTION
+
+
+function showMapLoading(message = "Loading map analytics...") {
+  const overlay = document.getElementById("map-loading-overlay");
+  const text = document.getElementById("map-loading-text");
+
+  if (text) text.textContent = message;
+  if (overlay) overlay.classList.remove("hidden");
+}
+
+function hideMapLoading() {
+  document.getElementById("map-loading-overlay")?.classList.add("hidden");
+}
+
+window.showMapLoading = showMapLoading;
+window.hideMapLoading = hideMapLoading;

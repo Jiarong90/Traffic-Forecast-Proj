@@ -265,6 +265,112 @@ body {
 .nav-dropdown:hover .dropdown-content {
   display: block;
 }
+
+.nav-dropdown {
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.nav-dropbtn {
+  color: #64748b;
+  font-weight: 600;
+  font-size: 14px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0 4px;
+  height: 48px;
+}
+
+.nav-dropdown:hover .nav-dropbtn,
+.nav-dropdown.open .nav-dropbtn {
+  color: #0f172a;
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #ffffff;
+  min-width: 180px;
+  box-shadow: 0 14px 28px rgba(15, 23, 42, 0.14);
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  z-index: 5000;
+  overflow: hidden;
+  padding: 6px;
+}
+
+.dropdown-content a {
+  color: #475569;
+  padding: 10px 12px;
+  text-decoration: none;
+  display: block;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: background 0.1s;
+}
+
+.dropdown-content a:hover {
+  background-color: #f8fafc;
+  color: #2563eb;
+}
+
+.nav-dropdown:hover .dropdown-content,
+.nav-dropdown.open .dropdown-content {
+  display: block;
+}
+
+.home-pricing-actions {
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.home-plan-btn {
+  width: 100%;
+  min-height: 40px;
+  border: 1px solid rgba(94, 234, 212, 0.45);
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.72);
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: 
+    background 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.home-plan-btn.featured {
+  background: #5eead4;
+  color: #0f172a;
+}
+
+.home-plan-btn:hover {
+  background: rgba(94, 234, 212, 0.18);
+  border-color: rgba(94, 234, 212, 0.9);
+  color: #ffffff;
+  box-shadow: 0 0 18px rgba(94, 234, 212, 0.35);
+  transform: translateY(-1px);
+}
+
+.home-plan-btn.featured:hover {
+  background: #7ff7e8;
+  color: #07111f;
+  box-shadow: 0 0 22px rgba(94, 234, 212, 0.55);
+  transform: translateY(-1px);
+}
 /* 页面容器 */
 .page {
   display: none;

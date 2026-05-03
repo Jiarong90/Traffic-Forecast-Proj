@@ -43,7 +43,7 @@
           <div class="dropdown-content">
             <a href="#home" id="header-home-link">Home</a>
             <a href="#about" id="header-about-link">About FAST</a>
-            <a href="#home" id="header-business-link">Business Model</a>
+            <a href="#home" id="header-business-link">Membership Plans</a>
           </div>
         </div>
         <a href="#admin-users" class="nav-tab hidden" data-page="admin-users" id="admin-users-tab">Admin Users</a>
@@ -129,9 +129,11 @@
         <section class="home-slide home-slide-4" data-home-slide="3">
           <div class="home-slide-overlay home-slide-overlay-footer">
             <div class="home-business-lead">
-              <p class="home-kicker">Business Model</p>
-              <p class="home-desc"><strong>Membership plans for public users and premium service access</strong></p>
+              <p class="home-kicker">Membership Plans</p>
+              <p class="home-desc"><strong>Flexible access tiers for public users, regular commuters, and power
+                  users.</strong></p>
             </div>
+
             <div class="home-pricing-grid">
               <article class="home-pricing-card">
                 <div class="home-pricing-head">
@@ -139,50 +141,87 @@
                   <strong class="home-pricing-price">S$0 / month</strong>
                 </div>
                 <ul class="home-pricing-list">
+                  <li>Access road analytics and predictions</li>
+                  <li>Analytics during Journeys</li>
                   <li>Traffic incident dashboard</li>
                   <li>Traffic camera viewing</li>
                   <li>Route planning</li>
                   <li>Weather search</li>
-                  <li>Personalized definition</li>
-                  <li>Alert viewing</li>
-                  <li>Personal profile information</li>
-                  <li>Habit route saving</li>
+                  <li>Basic alert viewing</li>
                 </ul>
               </article>
+
               <article class="home-pricing-card home-pricing-card-featured">
                 <div class="home-pricing-head">
                   <span class="home-pricing-tier">PREMIUM USER</span>
-                  <strong class="home-pricing-price">S$30 / month</strong>
+                  <strong class="home-pricing-price">S$7.99 / month</strong>
                 </div>
                 <ul class="home-pricing-list">
-                  <li>Save your favorite routes</li>
-                  <li>Get personalized alerts for your routes</li>
-                  <li>Access your personal AI assistant</li>
-                  <li>More service access to be added </li>
-                  <li>Additional business-side access to be added later</li>
+                  <li>Save 1 Habit Route</li>
+                  <li>Personalized route alerts</li>
+                  <li>View estimated journey costs</li>
+                  <li>Plan future trips</li>
+                  <li>Best time to leave recommendation</li>
+                  <li>Limited access to AI assistant</li>
                 </ul>
+                <div class="home-pricing-actions">
+                  <button type="button" class="home-plan-btn" onclick="openPremiumUpgradeModal()">
+                    View Premium Plan
+                  </button>
+                </div>
+              </article>
+
+              <article class="home-pricing-card">
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">PRO USER</span>
+                  <strong class="home-pricing-price">S$19.99 / month</strong>
+                </div>
+                <ul class="home-pricing-list">
+                  <li>Save up to 5 Habit Routes</li>
+                  <li>Expanded access to AI assistant</li>
+                  <li>Priority access to future features</li>
+
+                </ul>
+                <div class="home-pricing-actions">
+                  <button type="button" class="home-plan-btn" onclick="openProUpgradeModal()">
+                    View Pro Plan
+                  </button>
+                </div>
               </article>
             </div>
+
+          </div>
+        </section>
+        <section class="home-slide home-slide-5" data-home-slide="4">
+          <div class="home-slide-overlay home-slide-overlay-footer">
+            <div class="home-kicker">Contact & Resources</div>
+            <h2 class="home-title">Get in touch and explore useful transport links</h2>
+
             <div class="home-footer-grid">
               <div class="home-footer-block">
-                <p class="home-footer-title">CONTACT US</p>
+                <div class="home-footer-title">CONTACT US</div>
+
                 <div class="home-footer-placeholder">
-                  <a class="home-footer-template-box home-footer-link-box"
-                    href="mailto:trafficforecastfyp@gmail.com">trafficforecastfyp@gmail.com</a>
-                  <a class="home-footer-template-box home-footer-link-box"
-                    href="mailto:yangyuhao76@gmail.com">yangyuhao76@gmail.com</a>
+                  <div class="home-footer-template-box">trafficforecastfyp@gmail.com</div>
+                </div>
+
+                <div class="home-footer-placeholder">
+                  <div class="home-footer-template-box">yangyuhao76@gmail.com</div>
                 </div>
               </div>
+
               <div class="home-footer-block">
-                <p class="home-footer-title">FRIENDLY LINKS</p>
-                <div class="home-footer-placeholder">
-                  <a class="home-footer-template-box home-footer-link-box"
-                    href="https://onemotoring.lta.gov.sg/content/onemotoring/home.html" target="_blank"
-                    rel="noopener noreferrer">https://onemotoring.lta.gov.sg/content/onemotoring/home.html</a>
-                  <a class="home-footer-template-box home-footer-link-box"
-                    href="https://www.lta.gov.sg/content/ltagov/en.html" target="_blank"
-                    rel="noopener noreferrer">https://www.lta.gov.sg/content/ltagov/en.html</a>
-                </div>
+                <div class="home-footer-title">FRIENDLY LINKS</div>
+
+                <a class="home-footer-template-box home-footer-link-box"
+                  href="https://onemotoring.lta.gov.sg/content/onemotoring/home.html" target="_blank">
+                  https://onemotoring.lta.gov.sg/content/onemotoring/home.html
+                </a>
+
+                <a class="home-footer-template-box home-footer-link-box"
+                  href="https://www.lta.gov.sg/content/ltagov/en.html" target="_blank">
+                  https://www.lta.gov.sg/content/ltagov/en.html
+                </a>
               </div>
             </div>
           </div>
@@ -193,6 +232,8 @@
         <button type="button" class="home-slide-dot" data-home-dot="1" aria-label="Slide 2"></button>
         <button type="button" class="home-slide-dot" data-home-dot="2" aria-label="Slide 3"></button>
         <button type="button" class="home-slide-dot" data-home-dot="3" aria-label="Slide 4"></button>
+        <button type="button" class="home-slide-dot" data-home-dot="4" aria-label="Slide 5"></button>
+
       </div>
     </main>
 
@@ -707,6 +748,7 @@ Currently studying at University of Wollongong.">
     <!-- Map View -->
     <main id="map-view" class="page">
       <div class="map-area">
+
         <div class="map-toolbar">
           <button type="button" class="btn-dark" id="map-toggle-cameras-btn"><span class="dot red"></span> HIDE LIVE
             MONITORING</button>
@@ -740,6 +782,13 @@ Currently studying at University of Wollongong.">
           </button>
         </div>
         <div id="liveMap"></div>
+
+        <div id="map-loading-overlay" class="map-loading-overlay hidden">
+          <div class="map-loading-minimal">
+            <div class="map-loading-spinner"></div>
+            <div id="map-loading-text" class="map-loading-text">Loading analytics...</div>
+          </div>
+        </div>
 
         <!-- Incident Clearance Panel -->
         <div id="incident-ml-panel" class="incident-ml-panel">
@@ -824,7 +873,7 @@ Currently studying at University of Wollongong.">
               </div>
 
               <span class="hud-stop-link" onclick="stopJourneySimulation()">Stop</span>
-            
+
             </div>
 
             <div id="hud-road-info-container" class="hud-road-info">
@@ -1539,7 +1588,10 @@ Currently studying at University of Wollongong.">
   <!-- End ML Prediction Simulation Modal -->
 
   <!-- CHAT ASSISTANT LOGIC -->
-  <button type="button" id="ai-chat-launcher" class="ai-chat-launcher">Chat</button>
+  <button type="button" id="ai-chat-launcher" class="ai-chat-launcher">
+    <span class="ai-chat-launcher-icon">💬</span>
+    <span class="ai-chat-launcher-text">Ask FAST</span>
+  </button>
   <div id="ai-chat-container" class="ai-chat-container">
     <div class="ai-chat-header">
       <span>FASTbot</span>
@@ -1551,6 +1603,18 @@ Currently studying at University of Wollongong.">
       <label for="tts-toggle" style="font-size: 11px; color: #64748b; cursor: pointer; user-select: none;">Read
         responses aloud</label>
     </div>
+
+    <!-- Overlay -->
+    <div id="ai-listening-overlay" class="ai-listening-overlay hidden">
+      <div class="ai-listening-center">
+        <div class="ai-listening-pulse">
+          <div class="ai-listening-mic">🎙️</div>
+        </div>
+        <div class="ai-listening-text">Listening...</div>
+        <div class="ai-listening-subtext">Speak now</div>
+      </div>
+    </div>
+    
     <div id="chat-messages" class="ai-chat-messages">
       <div class="ai-chat-system">Good day. I'm here to help!</div>
     </div>
