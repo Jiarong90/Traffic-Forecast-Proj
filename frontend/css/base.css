@@ -41,7 +41,7 @@ body {
   padding: 12px 24px;
   border-bottom: 1px solid rgba(191, 219, 254, 0.58);
   gap: 16px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* changed */
   background: #ffffff;
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
@@ -145,6 +145,9 @@ body {
   background-color: #ffffff;
   border-bottom: 1px solid #e2e8f0;
   gap: 48px;
+
+  flex-wrap: nowrap;
+  overflow: visible;
 }
 
 .modern-navbar .nav-tab, 
@@ -168,14 +171,26 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
-  
+
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .modern-navbar .header-right {
   display: flex !important;
   align-items: center !important;
   height: 100% !important;
-  margin: 0 0 0 auto !important; 
+  margin: 0 0 0 auto !important;
+
+  flex: 0 0 auto;
+  white-space: nowrap;
+  flex-wrap: nowrap;
+}
+
+.user-menu-wrap,
+.guest-auth-actions {
+  flex-shrink: 0;
 }
 
 
@@ -324,6 +339,52 @@ body {
 .nav-dropdown.open .dropdown-content {
   display: block;
 }
+
+@media (max-width: 1050px) {
+  .modern-navbar {
+    gap: 24px;
+    padding: 0 18px;
+  }
+
+  .nav-center {
+    gap: 14px;
+  }
+
+  .nav-tab,
+  .nav-dropbtn {
+    font-size: 13px;
+    padding: 0 2px;
+  }
+
+  .modern-navbar .brand-logo-img {
+    height: 46px !important;
+  }
+
+  .modern-navbar .header-right {
+    gap: 10px;
+  }
+}
+
+
+@media (max-width: 900px) {
+  .modern-navbar {
+    gap: 16px;
+  }
+
+  .nav-center {
+    gap: 10px;
+  }
+
+  .nav-tab,
+  .nav-dropbtn {
+    font-size: 12px;
+  }
+
+  .modern-navbar .brand-logo-img {
+    height: 40px !important;
+  }
+}
+
 
 .home-pricing-actions {
   margin-top: auto;
