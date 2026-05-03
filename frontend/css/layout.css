@@ -325,6 +325,114 @@
 .business-feature-card h3 { font-size: 18px; margin-bottom: 10px; }
 .business-feature-card p { color: #475569; font-size: 14px; }
 
+.home-referral-btn {
+  margin-top: 8px;
+  width: auto;
+  align-self: center;
+  border: 1px solid rgba(94, 234, 212, 0.45);
+  background: rgba(94, 234, 212, 0.1);
+  color: #ccfbf1;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 0.76rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.home-referral-btn:hover {
+  background: rgba(94, 234, 212, 0.18);
+}
+
+.referral-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.referral-modal-overlay.hidden {
+  display: none;
+}
+
+.referral-modal {
+  position: relative;
+  width: min(460px, 100%);
+  background: #0f172a;
+  color: #e5e7eb;
+  border: 1px solid rgba(94, 234, 212, 0.35);
+  border-radius: 22px;
+  padding: 26px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.referral-modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.referral-modal-kicker {
+  color: #5eead4;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  margin-bottom: 10px;
+}
+
+.referral-modal h2 {
+  margin: 0 0 10px;
+  font-size: 1.45rem;
+}
+
+.referral-modal p {
+  margin: 0 0 18px;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.referral-link-box {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: #020617;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.referral-link-box span {
+  flex: 1;
+  font-size: 0.78rem;
+  color: #e2e8f0;
+  overflow-wrap: anywhere;
+}
+
+.referral-link-box button {
+  border: none;
+  border-radius: 10px;
+  padding: 9px 12px;
+  background: #5eead4;
+  color: #0f172a;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.referral-modal-note {
+  margin-top: 14px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+
 .about-anchor-nav {
   display: flex;
   gap: 12px;

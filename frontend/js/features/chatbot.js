@@ -360,7 +360,7 @@ function renderExpresswayInfoPanel(data) {
   const worstSector = getWorstSector(sectorSummaries);
 
   let keyStretches = getKeyStretches(segments, landmarks, 5);
-  const majorLandmarks = getMajorLandmarks(landmarks, 10);
+  const referencePoints = getReferencePointsFromKeyStretches(landmarks, keyStretches, 16);
 
   const overall =
     sectorSummaries.some(s => s.status === "Congested") ? "Congested" :
@@ -447,15 +447,20 @@ function renderExpresswayInfoPanel(data) {
     </div>
 
     <div class="incident-ml-affected-roads">
-      <div class="incident-ml-affected-roads-title">MAJOR LANDMARKS</div>
+      <div class="incident-ml-affected-roads-title">REFERENCE POINTS</div>
+      <div class="expressway-reference-note">
+      </div>
 
       <div class="incident-ml-road-tags">
-        ${majorLandmarks.length
-      ? majorLandmarks.map(l => `
-                <span class="incident-ml-road-tag">${escapeHtml(l)}</span>
-              `).join("")
-      : `<span class="incident-ml-no-roads">No landmarks available</span>`
-    }
+        ${referencePoints.length
+          ? referencePoints.map(l => `
+              <span class="incident-ml-road-tag expressway-ref-chip ${l.statusClass}">
+                ${escapeHtml(l.label)}
+                ${l.status ? `<small>${escapeHtml(l.status)}</small>` : ""}
+              </span>
+            `).join("")
+          : `<span class="incident-ml-no-roads">No reference points available</span>`
+        }
       </div>
     </div>
   `;
@@ -479,6 +484,57 @@ function getMajorLandmarks(landmarks, maxCount = 10) {
   });
 
   return result;
+}
+
+function getReferencePointsFromKeyStretches(landmarks, keyStretches, maxCount = 16) {
+  const statusByName = new Map();
+
+  (keyStretches || []).forEach(s => {
+    const pred = Number(s.predicted_val);
+
+    let status = "";
+    let statusClass = "neutral";
+    let priority = 0;
+
+    if (Number.isFinite(pred) && pred <= 3) {
+      status = "Jam";
+      statusClass = "bad";
+      priority = 2;
+    } else if (Number.isFinite(pred) && pred <= 5) {
+      status = "Delay";
+      statusClass = "moderate";
+      priority = 1;
+    }
+
+    statusByName.set(String(s.stretchName || "").toUpperCase(), {
+      status,
+      statusClass,
+      priority
+    });
+  });
+
+  const seen = new Set();
+  const result = [];
+
+  (landmarks || []).forEach(lm => {
+    const label = lm.label || lm.landmark_name;
+    if (!label || seen.has(label)) return;
+
+    seen.add(label);
+
+    const match = statusByName.get(String(label).toUpperCase());
+
+    result.push({
+      label,
+      status: match?.status || "",
+      statusClass: match?.statusClass || "neutral",
+      priority: match?.priority || 0
+    });
+  });
+
+  return result
+    .sort((a, b) => b.priority - a.priority)
+    .slice(0, maxCount);
 }
 
 async function loadExpresswayGeometry(code) {
@@ -539,11 +595,20 @@ async function drawExpresswayOnMap(code) {
     });
 
 
-    dot.bindTooltip(vms.label, {
+    const label = vms.label || vms.landmark_name || "Reference point";
+
+    dot.bindTooltip(`
+      <div class="expressway-landmark-card">
+        <div class="expressway-landmark-name"><img src="https://cdn-icons-png.flaticon.com/128/149/149060.png" class="landmark-pin-icon" alt=""> ${escapeHtml(label)}</div>
+        <div class="expressway-landmark-meta">${escapeHtml(data.code)} reference point</div>
+      </div>
+    `, {
       permanent: false,
-      direction: 'right',
-      className: 'vms-clean-label',
-      offset: [5, 0]
+      direction: "top",
+      className: "expressway-landmark-tooltip",
+      offset: [0, -10],
+      opacity: 1,
+      sticky: true
     });
 
     dot.addTo(state.expresswayLayerGroup);
@@ -1455,3 +1520,27 @@ function hideMapLoading() {
 
 window.showMapLoading = showMapLoading;
 window.hideMapLoading = hideMapLoading;
+
+
+
+function openReferralModal() {
+  document.getElementById("referral-modal-overlay")?.classList.remove("hidden");
+}
+
+function closeReferralModal() {
+  document.getElementById("referral-modal-overlay")?.classList.add("hidden");
+}
+
+function copyReferralLink() {
+  const text = document.getElementById("referral-link-text")?.textContent || "";
+
+  navigator.clipboard?.writeText(text).then(() => {
+    alert("Referral link copied.");
+  }).catch(() => {
+    alert("Copy failed. Please copy the link manually.");
+  });
+}
+
+window.openReferralModal = openReferralModal;
+window.closeReferralModal = closeReferralModal;
+window.copyReferralLink = copyReferralLink;

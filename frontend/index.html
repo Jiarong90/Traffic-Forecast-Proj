@@ -154,7 +154,8 @@
               <article class="home-pricing-card home-pricing-card-featured">
                 <div class="home-pricing-head">
                   <span class="home-pricing-tier">PREMIUM USER</span>
-                  <strong class="home-pricing-price">S$7.99 / month</strong>
+                  <strong class="home-pricing-price">S$12.99 / month</strong>
+
                 </div>
                 <ul class="home-pricing-list">
                   <li>Save 1 Habit Route</li>
@@ -168,23 +169,33 @@
                   <button type="button" class="home-plan-btn" onclick="openPremiumUpgradeModal()">
                     View Premium Plan
                   </button>
+                  <button type="button" class="home-referral-btn" onclick="openReferralModal()">
+                    🎁 Get 1 Month Free
+                  </button>
                 </div>
               </article>
 
-              <article class="home-pricing-card">
-                <div class="home-pricing-head">
-                  <span class="home-pricing-tier">PRO USER</span>
-                  <strong class="home-pricing-price">S$19.99 / month</strong>
-                </div>
-                <ul class="home-pricing-list">
-                  <li>Save up to 5 Habit Routes</li>
-                  <li>Expanded access to AI assistant</li>
-                  <li>Priority access to future features</li>
+              <article class="home-pricing-card home-pricing-card-annual">
+                <div class="home-pricing-save-badge">BEST VALUE</div>
 
+                <div class="home-pricing-head">
+                  <span class="home-pricing-tier">PREMIUM ANNUAL</span>
+                  <strong class="home-pricing-price">S$119.99 / year</strong>
+                  <div class="home-pricing-subprice">Save more compared to monthly billing</div>
+                </div>
+
+                <ul class="home-pricing-list">
+                  <li>All Premium User features</li>
+                  <li>Save 1 Habit Route</li>
+                  <li>Personalized route alerts</li>
+                  <li>Best time to leave recommendation</li>
+                  <li>Plan future trips</li>
+                  <li>12-month premium access</li>
                 </ul>
+
                 <div class="home-pricing-actions">
-                  <button type="button" class="home-plan-btn" onclick="openProUpgradeModal()">
-                    View Pro Plan
+                  <button type="button" class="home-plan-btn home-plan-btn-annual" onclick="openProUpgradeModal()">
+                    View Annual Plan
                   </button>
                 </div>
               </article>
@@ -1514,6 +1525,28 @@ Currently studying at University of Wollongong.">
   </div>
   <div class="feedback-toast" id="feedbackToast">Feedback submitted. Thank you for helping the community.</div>
 
+
+  <!-- Membership Modals -->
+  <div class="referral-modal-overlay hidden" id="referral-modal-overlay">
+    <div class="referral-modal">
+      <button type="button" class="referral-modal-close" onclick="closeReferralModal()">×</button>
+
+      <div class="referral-modal-kicker">REFERRAL TRIAL</div>
+      <h2>Invite a friend, get 1 month free</h2>
+      <p>
+        Share your referral link with a friend. When they create an account, your Premium access can be extended by 1
+        month.
+      </p>
+
+      <div class="referral-link-box">
+        <span id="referral-link-text">https://fast-demo.app/signup?ref=FAST-DEMO-001</span>
+        <button type="button" onclick="copyReferralLink()">COPY</button>
+      </div>
+
+      <div class="referral-modal-note">
+      </div>
+    </div>
+  </div>
   <!-- ML Prediction Simulator Modal for Jia Rong -->
   <div id="ml-hijack-modal"
     style="position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:white; padding:20px; border-radius:12px; box-shadow:0 20px 50px rgba(0,0,0,0.4); z-index:9999; width:340px; display:none; border: 1px solid #e2e8f0; font-family: sans-serif;">
@@ -1614,7 +1647,7 @@ Currently studying at University of Wollongong.">
         <div class="ai-listening-subtext">Speak now</div>
       </div>
     </div>
-    
+
     <div id="chat-messages" class="ai-chat-messages">
       <div class="ai-chat-system">Good day. I'm here to help!</div>
     </div>
