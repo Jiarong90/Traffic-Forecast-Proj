@@ -27,6 +27,7 @@ const RATE_LIMIT_MAX = Math.max(10, parseInt(process.env.RATE_LIMIT_MAX || '180'
 const AUTH_RATE_LIMIT_MAX = Math.max(3, parseInt(process.env.AUTH_RATE_LIMIT_MAX || '40', 10) || 40);
 const LTA_ACCOUNT_KEY = process.env.LTA_ACCOUNT_KEY || '';
 const PYTHON_BIN = process.env.PYTHON_BIN || path.join(__dirname, '.venv', 'bin', 'python');
+const NEWS_API_KEY = process.env.NEWS_API_KEY || ""; 
 
 const TRAFFIC_IMAGES_API = 'https://api.data.gov.sg/v1/transport/traffic-images';
 const TRAFFIC_INCIDENTS_API = 'https://api.data.gov.sg/v1/transport/traffic-incidents';
@@ -83,6 +84,7 @@ module.exports = {
   AUTH_RATE_LIMIT_MAX,
   LTA_ACCOUNT_KEY,
   PYTHON_BIN,
+  NEWS_API_KEY,
   TRAFFIC_IMAGES_API,
   TRAFFIC_INCIDENTS_API,
   LTA_TRAFFIC_INCIDENTS_API,

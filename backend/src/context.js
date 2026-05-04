@@ -24,6 +24,7 @@ function createApiRouteContext(app) {
     OPENWEATHER_API_KEY: config.OPENWEATHER_API_KEY,
     OPENWEATHER_CURRENT_API: config.OPENWEATHER_CURRENT_API,
     OPENWEATHER_FORECAST_API: config.OPENWEATHER_FORECAST_API,
+    NEWS_API_KEY: config.NEWS_API_KEY,
     PY_ML_ENGINE_PATH: config.PY_ML_ENGINE_PATH,
     ...common,
     ...auth,

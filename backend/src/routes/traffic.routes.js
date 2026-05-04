@@ -195,38 +195,48 @@ module.exports = function registerPublicTrafficRoutes(ctx) {
     return date ? date.getTime() : NaN;
   }
 
+  // --- NEW PROXY FUNCTION TO BYPASS RENDER BLOCK ---
+  async function fetchNewsViaProxy(rssUrl) {
+    if (!rssUrl) return [];
+    
+    const proxyUrl = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
+    const resp = await fetch(proxyUrl);
+    const data = await resp.json().catch(() => ({}));
+
+    if (!resp.ok || data.status !== 'ok') return [];
+
+    return (data.items || []).map((a) => ({
+      title: a.title,
+      description: a.description || "",
+      link: a.link || "#",
+      publishedAt: a.pubDate || nowIso(), 
+      source: "Google News"
+    }));
+  }
 
   // Alerts 右侧资讯流：近 7 天事故新闻 + 最新交通规则更新
   app.get('/api/traffic-info-feed', async (req, res) => {
     try {
-      /**
-       * 新闻专栏数据聚合（Alerts 右栏）
-       *
-       * “交通相关”判断方式：
-       * - 不是对全文做机器学习分类，而是通过 RSS 查询词先做主题过滤
-       *   NEWS_ACCIDENT_RSS: Singapore traffic accident when:7d
-       *   NEWS_RULE_RSS:     Singapore LTA traffic rule update
-       *
-       * “最近一周”判断方式：
-       * - 对每条新闻 publishedAt 转时间戳
-       * - 满足 ts >= now-7天 且 ts <= now+10分钟（容忍源站时区微偏差）
-       *
-       * 返回结构：
-       * - weeklyNews: 最近7天事故新闻（最多20条，按时间倒序）
-       * - latestRule: 最新一条规则更新新闻
-       * - warnings:   某一上游源失败时的告警信息
-       */
       const feed = await withCache('traffic-info-feed', 15 * 60 * 1000, async () => {
         const nowMs = Date.now();
         const weekAgoMs = nowMs - 7 * 24 * 60 * 60 * 1000;
+
+        // --- UPDATED FETCH BLOCK USING GOOGLE NEWS + PROXY ---
+        const accidentQuery = encodeURIComponent('Singapore traffic accident when:7d');
+        const ruleQuery = encodeURIComponent('Singapore LTA traffic rules update');
+
+        const fallbackAccidentRss = `https://news.google.com/rss/search?q=${accidentQuery}&hl=en-SG&gl=SG&ceid=SG:en`;
+        const fallbackRuleRss = `https://news.google.com/rss/search?q=${ruleQuery}&hl=en-SG&gl=SG&ceid=SG:en`;
+
         const settled = await Promise.allSettled([
-          fetchRss(NEWS_ACCIDENT_RSS),
-          fetchRss(NEWS_RULE_RSS)
+          fetchNewsViaProxy(NEWS_ACCIDENT_RSS || fallbackAccidentRss),
+          fetchNewsViaProxy(NEWS_RULE_RSS || fallbackRuleRss)
         ]);
 
         const warnings = [];
         const accidentItems = settled[0].status === 'fulfilled' ? settled[0].value : [];
         const ruleItems = settled[1].status === 'fulfilled' ? settled[1].value : [];
+        
         if (settled[0].status !== 'fulfilled') {
           warnings.push({ source: 'weeklyNews', error: settled[0].reason?.message || 'Incident news source unavailable' });
         }
@@ -267,18 +277,6 @@ module.exports = function registerPublicTrafficRoutes(ctx) {
 
   // 地点转坐标（支持邮编或地名；优先 OneMap，邮编时补充 postcode.dabase.com）
   app.get('/api/geocode', async (req, res) => {
-    /**
-     * 地理编码入口（起点/终点文本 -> 坐标）
-     *
-     * 设计目标：
-     * - 同时支持邮编、地名、MRT 站名
-     * - 与天气模块统一 OneMap 优先策略
-     *
-     * 数据源优先顺序：
-     * 1) OneMap（主源）
-     * 2) postcode.dabase.com（仅邮编）
-     * 3) Nominatim（兜底）
-     */
     const query = (req.query.q || req.query.location || req.query.postal || '').trim();
     if (!query) {
       return res.status(400).json({ error: 'Please enter start/destination (postal code or place)' });
