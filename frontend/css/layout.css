@@ -327,6 +327,7 @@
 
 .home-referral-btn {
   margin-top: 8px;
+  margin-bottom: 10px;
   width: auto;
   align-self: center;
   border: 1px solid rgba(94, 234, 212, 0.45);
@@ -979,3 +980,34 @@
   }
 }
 
+
+.profile-plan-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 0.95rem;
+}
+
+.profile-plan-row span {
+  color: #64748b;
+  font-weight: 700;
+}
+
+.profile-plan-row strong {
+  color: #0f172a;
+  text-align: right;
+}
+
+.profile-cancel-plan-btn {
+  margin-top: 18px;
+  width: 100%;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #991b1b;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}

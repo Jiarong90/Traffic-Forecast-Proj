@@ -321,8 +321,25 @@ module.exports = function registerAuthUserRoutes(ctx) {
     if (req.session.user.role === 'admin') {
       return res.status(400).json({ error: 'Admin account does not use public membership plans' });
     }
+
     try {
-      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+      const plan = String(req.body?.plan || 'premium').toLowerCase();
+
+      const daysToAdd = plan === 'annual' ? 365 : 30;
+
+      const currentUser = await getUserProfileById(req.session.user.id);
+      if (!currentUser) return res.status(404).json({ error: 'User does not exist' });
+
+      const currentExpiry = currentUser.member_expires_at
+        ? new Date(currentUser.member_expires_at).getTime()
+        : 0;
+
+      const baseTime = Number.isFinite(currentExpiry) && currentExpiry > Date.now()
+        ? currentExpiry
+        : Date.now();
+
+      const expiresAt = new Date(baseTime + daysToAdd * 24 * 60 * 60 * 1000).toISOString();
+
       const updated = await pool.query(
         `
       UPDATE app_user_profiles
@@ -341,7 +358,7 @@ module.exports = function registerAuthUserRoutes(ctx) {
       `,
         [req.session.user.id, expiresAt, nowIso()]
       );
-      if (!updated.rows[0]) return res.status(404).json({ error: 'User does not exist' });
+
       res.json({
         ok: true,
         user: toPublicUser(updated.rows[0]),

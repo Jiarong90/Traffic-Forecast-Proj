@@ -188,30 +188,46 @@ function openPlanUpgradeModal(plan) {
   const list = document.getElementById("profile-membership-list");
   const upgrade = document.getElementById("profile-membership-upgrade");
   const paynote = document.querySelector(".profile-membership-paynote");
+  const confirmBtn = document.getElementById("profile-membership-confirm-btn");
 
   const selectedPlan = String(plan || "premium").toLowerCase();
 
-  if (selectedPlan === "pro") {
-    if (title) title.textContent = "PRO USER";
-    if (sub) sub.textContent = "Upgrade to Pro User for 30 days.";
-    if (paynote) paynote.textContent = "Scan the PayNow QR code below to upgrade to Pro User for 30 days.";
+  if (selectedPlan === "annual") {
+    if (title) title.textContent = "PREMIUM ANNUAL";
+    if (sub) sub.textContent = "Upgrade to Premium Annual for 12 months.";
+    if (paynote) paynote.textContent = "Scan the PayNow QR code below to upgrade to Premium Annual for 12 months.";
+
     if (list) {
       list.innerHTML = `
-        <div class="profile-membership-item">Save up to 5 Habit Routes</div>
-        <div class="profile-membership-item">Expanded access to AI assistant</div>
-        <div class="profile-membership-item">Priority access to future features</div>
+        <div class="profile-membership-item">All Premium Monthly features</div>
+        <div class="profile-membership-item">12-month Premium access</div>
+        <div class="profile-membership-item">Lower effective monthly cost</div>
+        <div class="profile-membership-item">Ideal for regular commuters</div>
       `;
     }
+
+    if (confirmBtn) {
+      confirmBtn.dataset.plan = "annual";
+      confirmBtn.textContent = "I HAVE COMPLETED ANNUAL PAYMENT";
+    }
+
   } else {
-    if (title) title.textContent = "PREMIUM USER";
-    if (sub) sub.textContent = "Upgrade to Premium User for 30 days.";
-    if (paynote) paynote.textContent = "Scan the PayNow QR code below to upgrade to Premium User for 30 days.";
+    if (title) title.textContent = "PREMIUM MONTHLY";
+    if (sub) sub.textContent = "Upgrade to Premium Monthly for 30 days.";
+    if (paynote) paynote.textContent = "Scan the PayNow QR code below to upgrade to Premium Monthly for 30 days.";
+
     if (list) {
       list.innerHTML = `
         <div class="profile-membership-item">Save 1 Habit Route</div>
         <div class="profile-membership-item">Personalized route alerts</div>
-        <div class="profile-membership-item">Future trip planning and best-time recommendation</div>
+        <div class="profile-membership-item">Future trip planning</div>
+        <div class="profile-membership-item">Best-time recommendation</div>
       `;
+    }
+
+    if (confirmBtn) {
+      confirmBtn.dataset.plan = "premium";
+      confirmBtn.textContent = "I HAVE COMPLETED MONTHLY PAYMENT";
     }
   }
 
@@ -224,9 +240,10 @@ function openPremiumUpgradeModal() {
 }
 
 function openProUpgradeModal() {
-  openPlanUpgradeModal("pro");
+  openPlanUpgradeModal("annual");
 }
 
 window.openPlanUpgradeModal = openPlanUpgradeModal;
 window.openPremiumUpgradeModal = openPremiumUpgradeModal;
 window.openProUpgradeModal = openProUpgradeModal;
+

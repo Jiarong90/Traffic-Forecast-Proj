@@ -400,21 +400,79 @@
 
   function formatMembershipLabel(user) {
     if (!user || user.role === "admin") return "";
-    return String(user.memberTier || "free").toLowerCase() === "advanced" ? "ADVANCED USER" : "FREE USER";
+    return String(user.memberTier || "free").toLowerCase() === "advanced" ? "PREMIUM USER" : "FREE USER";
+  }
+
+  function formatMemberDate(value) {
+    if (!value) return "No expiry";
+
+    var d = new Date(value);
+    if (!Number.isFinite(d.getTime())) return "No expiry";
+
+    return d.toLocaleDateString("en-SG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
   }
 
   function openMembershipModal() {
     var auth = getStoredAuth();
     var user = auth && auth.user;
     if (!user || user.role === "admin") return;
-    var isAdvanced = String(user.memberTier || "free").toLowerCase() === "advanced";
-    if (profileMembershipTitle) profileMembershipTitle.textContent = formatMembershipLabel(user);
-    if (profileMembershipSub) profileMembershipSub.textContent = "";
-    if (profileMembershipList) profileMembershipList.innerHTML = "";
-    if (profileMembershipUpgrade) {
-      profileMembershipUpgrade.classList.toggle("hidden", isAdvanced);
+
+    var tier = String(user.memberTier || userProfileCache.memberTier || "free").toLowerCase();
+    var expiresAt = user.memberExpiresAt || userProfileCache.memberExpiresAt || "";
+    var isAdvanced = tier === "advanced";
+
+    if (profileMembershipTitle) {
+      profileMembershipTitle.textContent = isAdvanced ? "PREMIUM USER" : "FREE USER";
     }
-    if (profileMembershipOverlay) profileMembershipOverlay.classList.remove("hidden");
+
+    if (profileMembershipSub) {
+      profileMembershipSub.textContent = "Current membership details";
+    }
+
+    if (profileMembershipList) {
+      profileMembershipList.innerHTML = `
+      <div class="profile-plan-row">
+        <span>Plan</span>
+        <strong>${isAdvanced ? "Premium Access" : "Free Access"}</strong>
+      </div>
+
+      <div class="profile-plan-row">
+        <span>Status</span>
+        <strong>${isAdvanced ? "Active" : "Basic"}</strong>
+      </div>
+
+      <div class="profile-plan-row">
+        <span>Expires On</span>
+        <strong>${isAdvanced ? formatMemberDate(expiresAt) : "No expiry"}</strong>
+      </div>
+
+      ${isAdvanced
+          ? `<button type="button" class="profile-cancel-plan-btn" id="profile-cancel-plan-btn">
+               Cancel Membership
+             </button>`
+          : ""
+        }
+    `;
+    }
+
+    if (profileMembershipUpgrade) {
+      profileMembershipUpgrade.classList.add("hidden");
+    }
+
+    if (profileMembershipOverlay) {
+      profileMembershipOverlay.classList.remove("hidden");
+    }
+
+    var cancelBtn = document.getElementById("profile-cancel-plan-btn");
+    if (cancelBtn) {
+      cancelBtn.onclick = function () {
+        alert("Membership cancellation is disabled in this demo.");
+      };
+    }
   }
 
   function closeMembershipModal() {
@@ -1117,22 +1175,52 @@
       try {
         var auth = getStoredAuth();
         if (!auth || !auth.user) return;
-        var resp = await window.fastAuthFetch("/api/user/membership/upgrade", { method: "POST" });
+
+        var plan = profileMembershipConfirmBtn.dataset.plan || "premium";
+
+        profileMembershipConfirmBtn.disabled = true;
+        profileMembershipConfirmBtn.textContent = "UPGRADING...";
+
+        var resp = await window.fastAuthFetch("/api/user/membership/upgrade", {
+          method: "POST",
+          body: JSON.stringify({ plan: plan })
+        });
+
         var data = await resp.json();
         if (!resp.ok) throw new Error(data.error || "Membership upgrade failed");
+
         setStoredAuth({ token: auth.token, user: data.user || auth.user });
         updateHeaderAuth();
+
         if (data.user) renderProfile(data.user);
+
         if (data.membership) {
           setUserProfile(Object.assign({}, userProfileCache, {
             memberTier: data.membership.tier,
             memberExpiresAt: data.membership.expiresAt
           }));
         }
-        openMembershipModal();
-        setProfileFeedback("Membership upgraded to Advanced User for 30 days.", false);
+
+        closeMembershipModal();
+
+        setProfileFeedback(
+          plan === "annual"
+            ? "Membership upgraded to Premium Annual."
+            : "Membership upgraded to Premium Monthly.",
+          false
+        );
+
+        await loadUserProfileFromServer();
+
       } catch (err) {
         setProfileFeedback("Membership upgrade failed: " + err.message, true);
+        alert("Membership upgrade failed: " + err.message);
+      } finally {
+        profileMembershipConfirmBtn.disabled = false;
+        profileMembershipConfirmBtn.textContent =
+          profileMembershipConfirmBtn.dataset.plan === "annual"
+            ? "I HAVE COMPLETED ANNUAL PAYMENT"
+            : "I HAVE COMPLETED MONTHLY PAYMENT";
       }
     });
   }
