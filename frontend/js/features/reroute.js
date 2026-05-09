@@ -1372,18 +1372,10 @@ async function drawHabitRouteOnMap(route) {
                     </div>
                     <div style="font-size: 11px; color: ${getBandColor(p.predicted_val)}; margin-top: 2px;">${p.tier}</div>
                     
-                    <div style="margin-top: 10px; font-size: 10px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 8px;">
-                        Prediction Confidence: <b style="color: ${p.conf === 'High' ? '#059669' : '#d97706'}; text-transform: uppercase;">${p.conf}</b>
-                        <div style="font-size: 9px; margin-top: 2px; opacity: 0.8;">*Based on known traffic patterns</div>
-                    </div>
+                
                 </div>
 
-               <button onclick="openSimulator(${matchData.link_id}, ${p.current_val})"
-                    style="background:none; border:1px solid #e2e8f0; color:#94a3b8; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:700; cursor:pointer; margin-top:8px; transition:all 0.2s; text-transform:uppercase; letter-spacing:0.03em;"
-                    onmouseover="this.style.color='#3b82f6'; this.style.borderColor='#3b82f6'; this.style.background='#eff6ff';"
-                    onmouseout="this.style.color='#94a3b8'; this.style.borderColor='#e2e8f0'; this.style.background='none';">
-                    Simulate
-              </button>
+            
         
             `);
 
