@@ -621,7 +621,7 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
     const etaText = Number.isFinite(eta) ? eta.toFixed(1) : "-";
 
     const holiday = extra?.holidayName
-      ? `<div class="route-empty-note">Holiday profile: ${escapeHtml(extra.holidayName)}</div>`
+      ? `<div class="route-empty-note">Holiday: ${escapeHtml(extra.holidayName)}</div>`
       : "";
 
     panel.innerHTML = `
