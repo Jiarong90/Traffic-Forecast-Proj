@@ -766,8 +766,10 @@ function renderHabitRoutesList() {
 
         <div class="habit-rename-group hidden mb-3 p-2 bg-light rounded" id="rename-group-${route.id}">
             <input type="text" class="form-control form-control-sm mb-2 habit-new-name-input" value="${escapeHtml(route.route_name || "")}">
-            <button class="btn btn-sm btn-primary habit-confirm-rename">Save</button>
-            <button class="btn btn-sm btn-link habit-cancel-rename text-muted">Cancel</button>
+            <div class="habit-rename-actions">
+              <button type="button" class="habit-rename-save habit-confirm-rename">Save</button>
+              <button type="button" class="habit-rename-cancel habit-cancel-rename">Cancel</button>
+            </div>
         </div>
 
         <div style="font-size: 12px; color: #94a3b8; margin-bottom: 12px;">${(Number(route.distance_m || 0) / 1000).toFixed(1)} km</div>

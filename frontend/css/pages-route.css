@@ -1352,6 +1352,63 @@
   display: none;
 }
 
+.habit-rename-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.habit-rename-save,
+.habit-rename-cancel {
+  flex: 1;
+  height: 36px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.habit-rename-save {
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: white;
+}
+
+.habit-rename-save:hover {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.habit-rename-cancel {
+  border: 1px solid #e2e8f0;
+  background: white;
+  color: #64748b;
+}
+
+.habit-rename-cancel:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.habit-new-name-input {
+  width: 100%;
+  height: 42px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 14px;
+  color: #1e293b;
+  background: white;
+  box-sizing: border-box;
+}
+
+.habit-new-name-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
 /* mobile view */
 @media (max-width: 768px) {
   .journey-hud {
