@@ -192,7 +192,7 @@ module.exports = function registerChatbotRoutes(ctx) {
       const conversation = [...chatHistory, newUserMessage];
 
       const response = await FASTbot.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-2.5-flash-lite",
         contents: conversation,
         config: {
           systemInstruction: `
