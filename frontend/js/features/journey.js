@@ -16,6 +16,155 @@ function getDistanceKm(coord1, coord2) {
 }
 
 
+// START LIVE JOURNEY
+let liveJourneyWatchId = null;
+let liveJourneyMarker = null;
+let lastLiveRouteIndex = -1;
+
+function findNearestRouteIndex(userLatLng, coords) {
+  let bestIndex = 0;
+  let bestDist = Infinity;
+
+  for (let i = 0; i < coords.length; i++) {
+    const d = getDistanceKm([userLatLng.lat, userLatLng.lng], coords[i]);
+    if (d < bestDist) {
+      bestDist = d;
+      bestIndex = i;
+    }
+  }
+
+  return {
+    index: bestIndex,
+    distanceM: bestDist * 1000
+  };
+}
+
+function startLiveJourney() {
+  const route = state.currSelectedRoute;
+  const coords = state.currentRouteCoords || route?.coords;
+  const segmentMatches = state.currMatchInfo?.segment_matches || [];
+
+  if (!route || !coords || coords.length < 2 || !segmentMatches.length) {
+    alert("Load a route first.");
+    return;
+  }
+
+  if (!navigator.geolocation || !navigator.geolocation.watchPosition) {
+    alert("Live location is not supported on this browser.");
+    return;
+  }
+
+  state.journeyActive = true;
+
+  const liveBtn = document.getElementById("live-journey-btn");
+  if (liveBtn) {
+    liveBtn.style.background = "#ef4444";
+    liveBtn.textContent = "STOP LIVE";
+    liveBtn.setAttribute("onclick", "stopLiveJourney()");
+  }
+
+  const simBtn = document.getElementById("sim-control-btn");
+  if (simBtn) {
+    simBtn.disabled = true;
+    simBtn.style.opacity = "0.55";
+  }
+
+  const hud = document.getElementById("journey-hud");
+  if (hud) hud.classList.remove("hidden");
+
+  if (liveJourneyWatchId !== null) {
+    navigator.geolocation.clearWatch(liveJourneyWatchId);
+    liveJourneyWatchId = null;
+  }
+
+  liveJourneyWatchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      const userLatLng = {
+        lat: Number(pos.coords.latitude),
+        lng: Number(pos.coords.longitude)
+      };
+
+      const nearest = findNearestRouteIndex(userLatLng, coords);
+
+      if (!liveJourneyMarker) {
+        liveJourneyMarker = L.circleMarker([userLatLng.lat, userLatLng.lng], {
+          radius: 7,
+          color: "#ffffff",
+          weight: 2,
+          fillColor: "#ef4444",
+          fillOpacity: 1
+        }).bindPopup("Live Location").addTo(state.habitRoutePolylineLayer);
+      } else {
+        liveJourneyMarker.setLatLng([userLatLng.lat, userLatLng.lng]);
+      }
+
+      if (nearest.distanceM > 120) {
+        updateHUD([], "Off route", {
+          label: "OFF ROUTE",
+          type: "orange"
+        });
+        return;
+      }
+
+      if (Math.abs(nearest.index - lastLiveRouteIndex) < 3) {
+        return;
+      }
+
+      lastLiveRouteIndex = nearest.index;
+      updateColorsAhead(coords, segmentMatches, nearest.index);
+    },
+    (err) => {
+      console.error("Live journey GPS failed:", err);
+      alert("Unable to access live location.");
+    },
+    {
+      enableHighAccuracy: true,
+      maximumAge: 5000,
+      timeout: 10000
+    }
+  );
+}
+
+function stopLiveJourney() {
+  if (liveJourneyWatchId !== null && navigator.geolocation) {
+    navigator.geolocation.clearWatch(liveJourneyWatchId);
+    liveJourneyWatchId = null;
+  }
+
+  if (liveJourneyMarker && state.plannerMap) {
+    state.plannerMap.removeLayer(liveJourneyMarker);
+    liveJourneyMarker = null;
+  }
+
+  state.journeyActive = false;
+  lastLiveRouteIndex = -1;
+
+  const hud = document.getElementById("journey-hud");
+  if (hud) hud.classList.add("hidden");
+
+  if (state.currSelectedRoute) {
+    drawHabitRouteOnMap(state.currSelectedRoute);
+  }
+
+  const liveBtn = document.getElementById("live-journey-btn");
+  if (liveBtn) {
+    liveBtn.style.background = "#0f172a";
+    liveBtn.textContent = "Start Journey";
+    liveBtn.setAttribute("onclick", "startLiveJourney()");
+  }
+
+  const simBtn = document.getElementById("sim-control-btn");
+  if (simBtn) {
+    simBtn.disabled = false;
+    simBtn.style.opacity = "1";
+  }
+}
+
+window.startLiveJourney = startLiveJourney;
+window.stopLiveJourney = stopLiveJourney;
+// END LIVE JOURNEY
+
+
 window.simInterval = null;
 let simMarker = null;
 let lastRedrawIndex = -1;

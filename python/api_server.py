@@ -101,12 +101,14 @@ def load_xgb_models() -> dict[str, xgb.Booster]:
         "router": xgb.Booster(),
         "ascent": xgb.Booster(),
         "descent": xgb.Booster(),
+        "t15_persistence": xgb.Booster(),
     }
 
     loaded_models["gatekeeper"].load_model(str(MODEL_DIR / "gatekeeper.json"))
     loaded_models["router"].load_model(str(MODEL_DIR / "router.json"))
     loaded_models["ascent"].load_model(str(MODEL_DIR / "asc_specialist.json"))
     loaded_models["descent"].load_model(str(MODEL_DIR / "descent_specialist.json"))
+    loaded_models["t15_persistence"].load_model(str(MODEL_DIR / "t15_persistence.json"))
 
     ram_after = process.memory_info().rss / (1024 * 1024)
 
@@ -247,6 +249,18 @@ road_category_dict = road_links_df.set_index("link_id")["road_category"].to_dict
 GATEKEEPER_FEATURES = [
     "sb", "sb_tm5", "sb_tm10", "sb_tm15",
     "delta_0_5", "delta_5_10", "delta_10_15",
+    "mid_lat", "mid_lon",
+    "acceleration", "link_dist_proxy",
+    "rain_mm", "is_raining",
+    "road_category", "is_weekend", "is_peak",
+    "incident_nearby", "mins_since_nearby_start",
+    "nearby_accident", "nearby_roadwork", "nearby_breakdown"
+]
+
+PERSISTENCE_FEATURES = [
+    "sb", "sb_tm5", "sb_tm10", "sb_tm15",
+    "delta_0_5", "delta_5_10", "delta_10_15",
+    "was_jammed_tm5", "was_jammed_tm10", "was_jammed_tm15", "jam_streak_15m",
     "mid_lat", "mid_lon",
     "acceleration", "link_dist_proxy",
     "rain_mm", "is_raining",
@@ -739,6 +753,63 @@ def find_nearest_link_id(inc_lat, inc_lon, message=""):
 
     best = top[0]
     return best[1], (best[2] or "LTA Road")
+
+def add_persistence_features(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+
+    df["was_jammed_tm5"] = (df["sb_tm5"] <= 2).astype(int)
+    df["was_jammed_tm10"] = (df["sb_tm10"] <= 2).astype(int)
+    df["was_jammed_tm15"] = (df["sb_tm15"] <= 2).astype(int)
+
+    df["jam_streak_15m"] = (
+        (df["sb"] <= 2).astype(int)
+        + df["was_jammed_tm5"]
+        + df["was_jammed_tm10"]
+        + df["was_jammed_tm15"]
+    )
+
+    for col in PERSISTENCE_FEATURES:
+        if col not in df.columns:
+            df[col] = 0
+
+    df["mins_since_nearby_start"] = df["mins_since_nearby_start"].fillna(-1)
+
+    return df[PERSISTENCE_FEATURES]
+
+
+def predict_t15_persistence_from_features(features_df: pd.DataFrame, predicted_val: int) -> dict:
+    if predicted_val > 2:
+        return {
+            "persistence_prob": None,
+            "persistence_risk": None,
+            "persistence_label": None,
+        }
+
+    try:
+        persist_input = add_persistence_features(features_df)
+        dm = xgb.DMatrix(persist_input)
+        prob = float(models["t15_persistence"].predict(dm)[0])
+
+        if prob >= 0.60:
+            risk = "HIGH"
+            label = "Likely to remain congested beyond T+30"
+        else:
+            risk = "LOW"
+            label = None
+
+        return {
+            "persistence_prob": round(prob, 4),
+            "persistence_risk": risk,
+            "persistence_label": label,
+        }
+
+    except Exception as e:
+        print(f"T+15 persistence prediction failed: {e}")
+        return {
+            "persistence_prob": None,
+            "persistence_risk": None,
+            "persistence_label": None,
+        }
 
 def assemble_features(link_id, rain_mm, active_incidents):
 
@@ -2226,7 +2297,22 @@ road_spatial_dict = road_links_df.set_index("link_id")[["mid_lat", "mid_lon"]].t
 def predict_for_link(link_id: int):
 
     if link_id in GLOBAL_T15_CACHE:
-        return GLOBAL_T15_CACHE[link_id]
+        cached = GLOBAL_T15_CACHE[link_id]
+
+        if isinstance(cached, dict) and "persistence_prob" not in cached:
+            try:
+                input_df = assemble_features(link_id, current_rain_mm, active_incidents)
+                predicted_val = int(cached.get("predicted_val", 8))
+                cached.update(predict_t15_persistence_from_features(input_df, predicted_val))
+            except Exception as e:
+                print(f"Could not enrich cached prediction with persistence: {e}")
+                cached.update({
+                    "persistence_prob": None,
+                    "persistence_risk": None,
+                    "persistence_label": None,
+                })
+
+        return cached
     
     vals = live_speedbands.get(link_id, [8, 8, 8, 8])
     if not vals: 
@@ -2273,13 +2359,16 @@ def predict_for_link(link_id: int):
     final_val = int(np.clip(final_val, 1, 8))
     
     print(f"DEBUG [{link_id}]: GK Prob: {gk_prob:.2f} | Mag: {mag:.2f} | Trend: {trend_label}")
+
+    persistence = predict_t15_persistence_from_features(input_df, final_val)
     return {
         "current_val": current_sb,
         "predicted_val": final_val,
         "tier": "Free Flow" if final_val > 5 else "Congested",
         "trend": trend_label,
         "conf": conf_label,
-        "mag": float(mag)
+        "mag": float(mag),
+        **persistence
     }
 
 

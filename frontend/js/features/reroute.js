@@ -533,17 +533,22 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
         `;
   }
 
-  const simButton = `
-    <div class="route-primary-action">
-      <button id="sim-control-btn" onclick="startJourneySimulation()">
+const simButton = `
+  <div class="route-primary-action" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+    <button id="live-journey-btn" onclick="startLiveJourney()" style="background:#0f172a;">
+      Start Journey
+    </button>
+
+    <button id="sim-control-btn" onclick="startJourneySimulation()">
       <span class="btn-icon">▶</span>
-        Start Journey
-      </button>
-      <div id="sim-status-clock" style="display:none;">
-        SIM TIME: <span id="sim-clock-val">00:00</span>
-      </div>
+      Simulate
+    </button>
+
+    <div id="sim-status-clock" style="display:none; grid-column:1 / -1;">
+      SIM TIME: <span id="sim-clock-val">00:00</span>
     </div>
-  `;
+  </div>
+`;
 
 
   if (mode === "now") {
@@ -1543,6 +1548,12 @@ function createBaseJamMarker(lat, lon, roadName, pinIndex, segmentIndex, isJam, 
   const title = isJam ? "Jam" : "Slowdown";
   const color = "#ef4444";
 
+  const persistenceProb = Number(p?.persistence_prob);
+  const showPersistence =
+    isJam &&
+    Number.isFinite(persistenceProb) &&
+    persistenceProb >= 0.60;
+
   const icon = L.divIcon({
     html: `
             <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
@@ -1561,16 +1572,30 @@ function createBaseJamMarker(lat, lon, roadName, pinIndex, segmentIndex, isJam, 
   marker.link_id = linkId;
 
   marker.bindPopup(`
-        <div style="font-family: sans-serif; padding: 5px; min-width: 150px;">
+        <div style="font-family: sans-serif; padding: 5px; min-width: 180px;">
             <b style="color: ${color};">Pin ${pinIndex}: ${title}</b><br>
-            <small>${roadName}</small><br>
-            <hr style="margin: 5px 0; border-top: 1px solid #eee;">
+            <small>${escapeHtml(roadName || "LTA Road")}</small><br>
+
+            ${showPersistence ? `
+              <div style="
+                margin-top: 8px;
+                color: #991b1b;
+                font-size: 12px;
+                line-height: 1.35;
+              ">
+                <b>⚠️ High persistence risk</b><br>
+                <span>Likely congested beyond T+30.</span>
+              </div>
+            ` : ""}
+
+            <hr style="margin: 8px 0; border-top: 1px solid #eee;">
+
             <button onclick="simulateReroute(${linkId}, ${segmentIndex})" 
                     style="width: 100%; background: #3b82f6; color: white; border: none; border-radius: 3px; cursor: pointer;">
                 Reroute
             </button>
         </div>
-    `);
+  `);
 
   const systemPinID = `jam-pin-${linkId}`;
   marker.on("click", () => {
