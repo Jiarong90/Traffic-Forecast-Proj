@@ -611,7 +611,7 @@ function updateColorsAhead(coords, segmentMatches, currentIndex) {
             state.habitRouteJams[systemPinID] = {
               index: pinIndex,
               pin: simPin,
-              segmentIndex: j,
+              segment_index: j,
               link_id: matchData.link_id,
               road_name: matchData.road_name,
               lat: midLat,

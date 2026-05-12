@@ -453,14 +453,14 @@ function renderExpresswayInfoPanel(data) {
 
       <div class="incident-ml-road-tags">
         ${referencePoints.length
-          ? referencePoints.map(l => `
+      ? referencePoints.map(l => `
               <span class="incident-ml-road-tag expressway-ref-chip ${l.statusClass}">
                 ${escapeHtml(l.label)}
                 ${l.status ? `<small>${escapeHtml(l.status)}</small>` : ""}
               </span>
             `).join("")
-          : `<span class="incident-ml-no-roads">No reference points available</span>`
-        }
+      : `<span class="incident-ml-no-roads">No reference points available</span>`
+    }
       </div>
     </div>
   `;
@@ -809,11 +809,30 @@ window.speechSynthesis.onvoiceschanged = () => {
   console.log("Voices loaded:", voices.length);
 };
 
+function sanitizeSpeechText(text) {
+  return String(text || "")
+    .replace(/→/g, " to ")
+    .replace(/\bT\+15\b/g, "T plus 15")
+    .replace(/\bPIE\b/g, "P I E")
+    .replace(/\bCTE\b/g, "C T E")
+    .replace(/\bTPE\b/g, "T P E")
+    .replace(/\bSLE\b/g, "S L E")
+    .replace(/\bKPE\b/g, "K P E")
+    .replace(/\bBKE\b/g, "B K E")
+    .replace(/\bECP\b/g, "E C P")
+    .replace(/\bAYE\b/g, "A Y E")
+    .replace(/\bMCE\b/g, "M C E")
+    .replace(/\bKJE\b/g, "K J E");
+}
+
 function speak(text) {
+
   const ttsEnabled = document.getElementById('tts-toggle')?.checked;
   if (!ttsEnabled || !text) return;
 
   playBeep('end');
+
+  text = sanitizeSpeechText(text);
 
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
@@ -910,7 +929,34 @@ async function sendChatMessage() {
   window.speechSynthesis.cancel();
   const input = document.getElementById('chat-input');
   const msgContainer = document.getElementById('chat-messages');
-  const text = input.value.trim();
+  let text = input.value.trim();
+
+  text = text
+    .replace(/\bwon\b/gi, "one")
+    .replace(/\bto\b/gi, "two")
+    .replace(/\btoo\b/gi, "two")
+    .replace(/\btree\b/gi, "three")
+    .replace(/\bfree\b/gi, "three")
+    .replace(/\bjim\b/gi, "jam")
+    .replace(/\bjem\b/gi, "jam")
+    .replace(/\bgem\b/gi, "jam")
+    .replace(/\bjump\b/gi, "jam")
+    .replace(/\bselect jim\b/gi, "select jam")
+    .replace(/\bselect gem\b/gi, "select jam")
+    .replace(/\bselect jump\b/gi, "select jam")
+    .replace(/\bview jim\b/gi, "select jam")
+    .replace(/\bview gem\b/gi, "select jam")
+    .replace(/\bview jump\b/gi, "select jam")
+    .replace(/\btree\b/gi, "three")
+    .replace(/\bfree\b/gi, "three")
+    .replace(/\bre route\b/gi, "reroute")
+    .replace(/\bre-route\b/gi, "reroute")
+    .replace(/\bexcept\b/gi, "accept")
+    .replace(/\basset\b/gi, "accept")
+    .replace(/\baccess\b/gi, "accept")
+    .replace(/\baccepts\b/gi, "accept")
+    .replace(/\brejects\b/gi, "reject")
+    .replace(/\bproject\b/gi, "reject");
   if (!text) return;
 
 
@@ -1150,12 +1196,36 @@ async function dispatchBotAction(data) {
         return { followUpText: "No jam selected! Please click on a jam pin first.", chatContext: null };
       }
 
-      // Get the jam object based on jam index
-      jam_context = state.habitRouteJams[`${jam_index}`];
       // Retrieve link_id and segment
-      jam_link_id = jam_context.link_id;
-      jam_segment = jam_context.segment_index;
-      reroute_res = await simulateReroute(jam_link_id, jam_segment);
+      // Get the jam object based on jam index
+      const jam_context = state.habitRouteJams[`${jam_index}`];
+
+      if (!jam_context) {
+        return {
+          followUpText: "Selected jam no longer exists. Please select the jam again.",
+          chatContext: null
+        };
+      }
+
+      // Retrieve link_id and segment
+      const jam_link_id = jam_context.link_id;
+      const jam_segment = jam_context.segment_index ?? jam_context.segmentIndex;
+
+      console.log("BOT REROUTE DEBUG", {
+        jam_index,
+        jam_context,
+        jam_link_id,
+        jam_segment
+      });
+
+      if (!jam_link_id || jam_segment == null) {
+        return {
+          followUpText: "Selected jam data is incomplete. Please select the jam again.",
+          chatContext: null
+        };
+      }
+
+      const reroute_res = await simulateReroute(jam_link_id, jam_segment);
 
       if (reroute_res.success) {
         reroute_context = {
@@ -1208,7 +1278,7 @@ async function dispatchBotAction(data) {
         return {
           followUpText: data.text || "Understood. I have rejected the alternate route!",
           chatContext: JSON.stringify({
-            mode: "accepted_alternate_route",
+            mode: "rejected_alternate_route",
             description: "The alternate route was rejected and cleared from the UI. The user is back on their original route."
           })
         }
