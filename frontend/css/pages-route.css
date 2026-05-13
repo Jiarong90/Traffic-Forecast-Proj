@@ -1410,27 +1410,32 @@
 }
 
 /* mobile view */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .journey-hud {
     position: fixed !important;
-    left: 10px !important;
-    right: 10px !important;
-    bottom: 10px !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 14px !important;
     top: auto !important;
 
     width: auto !important;
     max-width: none !important;
-    height: 28vh !important;
-    max-height: 260px !important;
-    min-height: 190px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 38vh !important;
 
-    border-radius: 18px !important;
-    padding: 12px 14px !important;
-    z-index: 9000 !important;
+    border-radius: 22px !important;
+    padding: 14px 16px !important;
+    z-index: 9500 !important;
 
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+
+    background: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 -10px 38px rgba(15, 23, 42, 0.24) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
   }
 
   .journey-hud .hud-header {
@@ -1469,7 +1474,7 @@
     flex-shrink: 0 !important;
     height: auto !important;
     min-height: 0 !important;
-    max-height: 54px !important;
+    max-height: 72px !important;
     margin-bottom: 6px !important;
     overflow: hidden !important;
   }
@@ -1477,9 +1482,9 @@
   .journey-hud .hud-body {
     flex: 1 1 auto !important;
     min-height: 0 !important;
-    max-height: none !important;
+    max-height: 120px !important;
     overflow-y: auto !important;
-    padding-right: 2px !important;
+    padding-right: 4px !important;
   }
 
   .journey-hud .hud-footer {
@@ -1489,8 +1494,8 @@
   }
 
   .journey-hud.feedback-open {
-    height: 50vh !important;
-    max-height: 430px !important;
+    height: auto !important;
+    max-height: 58vh !important;
   }
 
   .journey-hud.feedback-open .hud-body {
@@ -1671,4 +1676,161 @@
     cursor: pointer !important;
     white-space: nowrap !important;
   }
+
+
 }
+
+
+/* Mobile for saved habit route list inside Route Planner */
+@media (max-width: 768px) {
+  #habit-routes-list {
+    display: grid !important;
+    gap: 14px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    max-height: none !important;
+  }
+
+  .habit-route-card {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    border-radius: 18px !important;
+  }
+
+  .habit-route-card>div:first-child {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    align-items: start !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .habit-route-card [id^="title-"] {
+    display: block !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: break-word !important;
+    font-size: 18px !important;
+    line-height: 1.25 !important;
+  }
+
+  .habit-route-card .btn-rename-edit {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .habit-route-card>div:nth-child(2) {
+    display: block !important;
+    margin: 8px 0 12px !important;
+    font-size: 13px !important;
+    line-height: 1.45 !important;
+  }
+
+  .habit-route-card>div:nth-child(2) * {
+    white-space: normal !important;
+  }
+
+  .habit-route-card>div:nth-child(3) {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr 1fr !important;
+    gap: 8px !important;
+    margin-top: 12px !important;
+  }
+
+  .habit-route-card .habit-load-btn,
+  .habit-route-card .habit-alerts-btn,
+  .habit-route-card .habit-delete-btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 44px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+  }
+
+  .habit-route-card .btn-rename-edit {
+    position: absolute !important;
+    top: 42px !important;
+    right: 18px !important;
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 26px !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    z-index: 2 !important;
+    opacity: 0.65 !important;
+  }
+
+  #habit-routes-list .btn-rename-edit,
+  .habit-route-card .btn-rename-edit {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: none !important;
+  }
+}
+
+
+@media (max-width: 900px) {
+  body > #journey-hud {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 86px !important;
+    top: auto !important;
+
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: 42vh !important;
+
+    z-index: 99999 !important;
+    border-radius: 22px !important;
+    padding: 14px 16px !important;
+
+    background: rgba(255, 255, 255, 0.97) !important;
+    box-shadow: 0 -10px 38px rgba(15, 23, 42, 0.24) !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  body > #journey-hud.hidden {
+    display: none !important;
+  }
+
+  body > #journey-hud .hud-body {
+    max-height: 130px !important;
+    overflow-y: auto !important;
+  }
+
+  body > #journey-hud .hud-road-info {
+    max-height: 76px !important;
+    overflow: hidden !important;
+  }
+
+  body > #journey-hud .hud-footer {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+    background: transparent !important;
+  }
+}
+
+

@@ -21,6 +21,28 @@ let liveJourneyWatchId = null;
 let liveJourneyMarker = null;
 let lastLiveRouteIndex = -1;
 
+function moveJourneyHudForMobile() {
+  const hud = document.getElementById("journey-hud");
+  const routeMapArea = document.querySelector(".route-map-area");
+
+  if (!hud || !routeMapArea) return;
+
+  if (window.innerWidth <= 900) {
+    if (hud.parentElement !== document.body) {
+      document.body.appendChild(hud);
+    }
+  } else {
+    if (hud.parentElement === document.body) {
+      routeMapArea.prepend(hud);
+    }
+  }
+}
+
+window.moveJourneyHudForMobile = moveJourneyHudForMobile;
+
+window.addEventListener("resize", moveJourneyHudForMobile);
+window.addEventListener("orientationchange", moveJourneyHudForMobile);
+
 function findNearestRouteIndex(userLatLng, coords) {
   let bestIndex = 0;
   let bestDist = Infinity;
@@ -181,10 +203,14 @@ async function startJourneySimulation() {
   // Set journey state to active so the system knows user is in journey phase
   state.journeyActive = true;
   // Show the FAST LookAhead journey analysis panel
+  moveJourneyHudForMobile();
+
   const hud = document.getElementById("journey-hud");
-  if (hud) {
-    hud.classList.remove("hidden");
-  }
+  if (hud) hud.classList.remove("hidden");
+  // const hud = document.getElementById("journey-hud");
+  // if (hud) {
+  //   hud.classList.remove("hidden");
+  // }
 
   // Set a poller to repeatedly poll fresh intel data, as the user moves through the route
   journeyPollingTimer = setInterval(async () => {

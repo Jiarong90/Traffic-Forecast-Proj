@@ -429,6 +429,7 @@ function bindActions() {
 async function bootstrapDemo() {
   if (!window.L) return;
   ensureMaps();
+  refreshLeafletMaps();
   bindActions();
   bindTripCostControls();
 

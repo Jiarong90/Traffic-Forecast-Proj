@@ -172,7 +172,7 @@
                   <button type="button" class="home-plan-btn" onclick="openPremiumUpgradeModal()">
                     View Premium Plan
                   </button>
-                  
+
                 </div>
               </article>
 
@@ -760,6 +760,19 @@ Currently studying at University of Wollongong.">
     <!-- Map View -->
     <main id="map-view" class="page">
       <div class="map-area">
+
+        <div class="map-search-box collapsed" id="map-search-box">
+          <button id="map-search-toggle-btn" type="button">🔍 Search</button>
+
+          <div class="map-search-fields">
+            <div class="map-search-input-wrap">
+              <input id="map-area-search-input" type="text" placeholder="Search area, road, MRT or postal code" />
+              <div id="map-area-suggestions" class="map-area-suggestions hidden"></div>
+            </div>
+            <button id="map-area-search-btn" type="button">Search</button>
+            <button id="map-area-clear-btn" type="button">Clear</button>
+          </div>
+        </div>
 
         <div class="map-toolbar">
           <button type="button" class="btn-dark" id="map-toggle-cameras-btn"><span class="dot red"></span> HIDE LIVE

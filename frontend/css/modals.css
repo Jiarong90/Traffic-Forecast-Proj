@@ -406,3 +406,80 @@
 
   #feedbackModal .btn-post-feedback { width: 100% !important; }
 }
+
+
+@media (max-width: 900px) {
+  #ai-chat-container.is-open {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    bottom: 76px !important;
+    top: auto !important;
+
+    width: auto !important;
+    max-width: none !important;
+    height: 360px !important;
+    max-height: 45vh !important;
+    min-height: 0 !important;
+
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    z-index: 99998 !important;
+  }
+
+  #ai-chat-container.is-open #chat-messages {
+    height: 190px !important;
+    max-height: 190px !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    padding: 14px 18px !important;
+  }
+
+  #ai-chat-container.is-open .chat-header,
+  #ai-chat-container.is-open .ai-chat-header {
+    height: 54px !important;
+    min-height: 54px !important;
+  }
+
+  #ai-chat-container.is-open .chat-footer,
+  #ai-chat-container.is-open .ai-chat-footer,
+  #ai-chat-container.is-open .chat-input-row,
+  #ai-chat-container.is-open .ai-chat-input-row {
+    height: 74px !important;
+    min-height: 74px !important;
+    padding: 9px 12px !important;
+  }
+
+  #ai-chat-container.is-open #chat-input {
+    height: 44px !important;
+    min-height: 44px !important;
+  }
+
+  #ai-chat-container.is-open #mic-btn {
+    width: 44px !important;
+    height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  #ai-chat-container.is-open #ai-chat-send {
+    height: 44px !important;
+    min-width: 68px !important;
+  }
+}
+
+#ai-chat-container,
+#ai-chat-container.is-open {
+  z-index: 2147483000 !important;
+}
+
+#ai-chat-launcher {
+  z-index: 2147482999 !important;
+}
+
+#ai-chat-container * {
+  z-index: auto;
+}
+
+#ai-listening-overlay {
+  z-index: 2147483001 !important;
+}

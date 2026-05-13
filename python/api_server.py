@@ -3681,3 +3681,166 @@ async def get_route_intel(data: RouteIntelRequest):
         "details": details
     }
 
+
+
+@app.get("/api/map-area-analysis")
+def map_area_analysis(
+    lat: float,
+    lon: float,
+    radius_m: float = 800,
+    authorization: str | None = Header(default=None)
+):
+    require_user(authorization)
+
+    if road_links_df is None or road_links_df.empty:
+        return {
+            "center": {"lat": lat, "lon": lon},
+            "radius_m": radius_m,
+            "bounds": None,
+            "summary": {
+                "total_links": 0,
+                "jammed": 0,
+                "slow": 0,
+                "clear": 0,
+                "unknown": 0
+            },
+            "match_info": {
+                "matched_links": [],
+                "segment_matches": []
+            }
+        }
+
+    # Convert radius to approximate degree padding.
+    lat_pad = radius_m / 110540.0
+    lon_pad = radius_m / (111320.0 * math.cos(math.radians(lat)))
+
+    south = lat - lat_pad
+    north = lat + lat_pad
+    west = lon - lon_pad
+    east = lon + lon_pad
+
+    candidates = road_links_df[
+        (road_links_df["mid_lat"].between(south, north)) &
+        (road_links_df["mid_lon"].between(west, east))
+    ].copy()
+
+    matched_links = []
+    segment_matches = []
+
+    jammed = 0
+    slow = 0
+    clear = 0
+    unknown = 0
+
+    for _, row in candidates.iterrows():
+        try:
+            link_id = int(row["link_id"])
+            mid_lat = float(row["mid_lat"])
+            mid_lon = float(row["mid_lon"])
+
+            dist_m = approx_meters(lat, lon, mid_lat, mid_lon)
+            if dist_m > radius_m:
+                continue
+
+            prediction = predict_for_link(link_id)
+
+            current_val = None
+            predicted_val = None
+
+            if isinstance(prediction, dict):
+                current_val = prediction.get("current_val")
+                predicted_val = prediction.get("predicted_val")
+
+            # fallback to live speedband if prediction missing
+            if current_val is None:
+                hist = live_speedbands.get(link_id, [])
+                current_val = int(hist[0]) if hist else None
+
+            display_band = predicted_val if predicted_val is not None else current_val
+
+            if display_band is None:
+                status = "unknown"
+                unknown += 1
+            elif int(display_band) <= 3:
+                status = "jammed"
+                jammed += 1
+            elif int(display_band) <= 5:
+                status = "slow"
+                slow += 1
+            else:
+                status = "clear"
+                clear += 1
+
+            item = {
+                "link_id": link_id,
+                "road_name": str(row.get("road_name") or "LTA Road"),
+                "display_name": str(row.get("road_name") or "LTA Road"),
+                "road_category": int(row.get("road_category") or 0),
+                "start": [float(row["start_lat"]), float(row["start_lon"])],
+                "end": [float(row["end_lat"]), float(row["end_lon"])],
+                "mid": [mid_lat, mid_lon],
+                "distance_m": round(dist_m, 1),
+                "status": status,
+                "prediction": prediction or {
+                    "current_val": current_val,
+                    "predicted_val": predicted_val,
+                    "trend": "Unavailable",
+                    "tier": "Unknown",
+                    "conf": "Low",
+                    "mag": 0
+                }
+            }
+
+            matched_links.append(item)
+            segment_matches.append(item)
+
+        except Exception as e:
+            print(f"Area link skipped: {e}")
+            continue
+
+    matched_links = sorted(matched_links, key=lambda x: x["distance_m"])[:250]
+    segment_matches = matched_links
+
+    jammed = sum(1 for x in matched_links if x.get("status") == "jammed")
+    slow = sum(1 for x in matched_links if x.get("status") == "slow")
+    clear = sum(1 for x in matched_links if x.get("status") == "clear")
+    unknown = sum(1 for x in matched_links if x.get("status") == "unknown")
+
+    total = max(1, len(matched_links))
+
+    jammed_pct = round((jammed / total) * 100)
+    slow_pct = round((slow / total) * 100)
+    clear_pct = round((clear / total) * 100)
+
+    if jammed_pct >= 45:
+        area_status = "Heavy congestion detected"
+    elif jammed_pct + slow_pct >= 50:
+        area_status = "Moderate traffic delays"
+    else:
+        area_status = "Mostly clear traffic"
+
+    return {
+        "center": {"lat": lat, "lon": lon},
+        "radius_m": radius_m,
+        "bounds": {
+            "south": south,
+            "north": north,
+            "west": west,
+            "east": east
+        },
+        "summary": {
+            "total_links": len(matched_links),
+            "jammed": jammed,
+            "slow": slow,
+            "clear": clear,
+            "unknown": unknown,
+            "jammed_pct": jammed_pct,
+            "slow_pct": slow_pct,
+            "clear_pct": clear_pct,
+            "area_status": area_status
+        },
+        "match_info": {
+            "matched_links": matched_links,
+            "segment_matches": segment_matches
+        }
+    }

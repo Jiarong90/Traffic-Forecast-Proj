@@ -77,6 +77,8 @@
   var profileSchoolInput = document.getElementById("profile-school");
   var profileSaveBtn = document.getElementById("profile-save-btn");
   var profileFeedback = document.getElementById("profile-feedback");
+  var aiChatLauncher = document.getElementById("ai-chat-launcher");
+  var aiChatContainer = document.getElementById("ai-chat-container");
   var profileAutoSaveTimer = null;
   var profileMutationSeq = 0;
   var homeWheelLocked = false;
@@ -594,6 +596,11 @@
     if (loginBtn) loginBtn.classList.toggle('hidden', !!user);
     if (signupBtn) signupBtn.classList.toggle('hidden', !!user);
     if (userMenuWrap) userMenuWrap.classList.toggle('hidden', !user);
+    if (aiChatLauncher) aiChatLauncher.classList.toggle("hidden", !user);
+
+    if (!user && aiChatContainer) {
+      aiChatContainer.classList.remove("is-open");
+    }
     if (userDisplayName && user && user.name) {
       userDisplayName.textContent = user.name + (user.role === 'admin' ? ' (Admin)' : '');
     }
@@ -762,6 +769,12 @@
     if (pageId === "home") {
       updateTopChromeHeight();
       scrollHomeToSlide(homeCurrentSlide || 0);
+    }
+    if (["route-planner", "map-view", "habit-routes"].includes(pageId)) {
+      setTimeout(function () {
+        if (window.ensureMaps) window.ensureMaps();
+        if (window.refreshLeafletMaps) window.refreshLeafletMaps();
+      }, 80);
     }
   }
   window.showFastPage = showPage;
