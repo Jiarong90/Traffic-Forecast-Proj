@@ -533,7 +533,7 @@ function renderHabitPanelResult(route, summary, mode, intel = null, extra = {}) 
         `;
   }
 
-const simButton = `
+  const simButton = `
   <div class="route-primary-action" style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
     <button id="live-journey-btn" onclick="startLiveJourney()" style="background:#0f172a;">
       Start Journey
@@ -549,6 +549,31 @@ const simButton = `
     </div>
   </div>
 `;
+
+  const adminRecordingTools = `
+    <div class="route-panel-section admin-recording-tools">
+      <div class="admin-recording-label">Admin Action</div>
+
+      <div class="admin-recording-actions">
+        <button type="button" class="admin-record-btn" title="Start recording" onclick="startDemoRecording()">
+          <span class="admin-record-icon">●</span>
+          <span>Record</span>
+        </button>
+
+        <button type="button" class="admin-record-btn" title="Stop recording" onclick="stopDemoRecording()">
+          <span class="admin-stop-icon">■</span>
+          <span>Stop</span>
+        </button>
+
+        <button type="button" class="admin-record-btn" title="Load latest replay" onclick="loadDemoRecording()">
+          <span class="admin-load-icon">↺</span>
+          <span>Load</span>
+        </button>
+      </div>
+
+      <div id="replay-frame-list" class="replay-frame-list"></div>
+    </div>
+  `;
 
 
   if (mode === "now") {
@@ -574,6 +599,7 @@ const simButton = `
     ${conditionHtml}
     ${signalsHtml}
     ${bottleneckHtml}
+    ${adminRecordingTools}
   </div>
 `;
   }
@@ -2383,3 +2409,317 @@ window.rejectAltRoute = () => {
   window.playSimulationLoop();
 }
 
+function getCurrentRouteRecording() {
+  if (!state.currSelectedRoute || !state.currMatchInfo) {
+    alert("Load a route first.");
+    return null;
+  }
+
+  const route = state.currSelectedRoute;
+  const matches = state.currMatchInfo.segment_matches || [];
+
+  const slimMatches = matches
+    .filter(m => m && m.link_id)
+    .map(m => ({
+      link_id: Number(m.link_id),
+      road_name: m.road_name || m.display_name || "LTA Road",
+      display_name: m.display_name || m.road_name || "LTA Road",
+      segment_len_m: m.segment_len_m || 500,
+
+      // keep only if your draw/replay needs it
+      start_lat: m.start_lat,
+      start_lon: m.start_lon,
+      end_lat: m.end_lat,
+      end_lon: m.end_lon
+    }));
+
+  const linkIds = [...new Set(
+    slimMatches
+      .map(m => Number(m.link_id))
+      .filter(Number.isFinite)
+  )];
+
+  if (!linkIds.length) {
+    alert("No matched route links found.");
+    return null;
+  }
+
+  // Optional: simplify coords if it is huge
+  const rawCoords = route.coords || state.currentRouteCoords || [];
+  const coords = rawCoords.length > 500
+    ? rawCoords.filter((_, i) => i % Math.ceil(rawCoords.length / 500) === 0)
+    : rawCoords;
+
+  return {
+    route_id: route.id || null,
+    route_name:
+      route.route_name ||
+      `${route.from || route.from_label || "Start"} to ${route.to || route.to_label || "Destination"}`,
+    coords,
+    link_ids: linkIds,
+    match_info: {
+      segment_matches: slimMatches,
+      matched_links: slimMatches
+    }
+  };
+}
+
+async function safeReadJson(res) {
+  const text = await res.text();
+
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {
+      error: text.slice(0, 300) || `HTTP ${res.status}`
+    };
+  }
+}
+
+async function startDemoRecording() {
+  const payload = getCurrentRouteRecording();
+  if (!payload) return;
+
+  console.log("Replay start payload size:", JSON.stringify(payload).length);
+
+  const res = await window.fastAuthFetch("/api/ml/replay/start", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await safeReadJson(res);
+
+  if (!res.ok) {
+    console.error("Replay start failed:", res.status, data);
+    alert(data.detail || data.error || `Replay start failed: ${res.status}`);
+    return;
+  }
+
+  state.adminRecordingActive = true;
+  state.selectedReplayId = data.recording_id || null;
+
+
+}
+
+async function stopDemoRecording() {
+  const route = state.currSelectedRoute;
+
+  const res = await window.fastAuthFetch("/api/ml/replay/stop", {
+    method: "POST",
+    body: JSON.stringify({
+      recording_id: state.selectedReplayId || null,
+      route_name: route?.route_name || "Recorded route"
+    })
+  });
+
+  const data = await res.json();
+
+  if (!res.ok) {
+    return;
+  }
+  console.log("Stopped recording");
+
+  state.adminRecordingActive = false;
+  state.selectedReplayId = null;
+}
+
+async function loadDemoRecording() {
+  const res = await window.fastAuthFetch("/api/ml/replay/latest");
+
+  const data = await res.json().catch(() => ({}));
+
+  if (!res.ok) {
+    console.error("Replay load failed:", data);
+    alert(data.detail || data.error || "No recording found.");
+    return;
+  }
+
+  state.adminReplayList = [data];
+
+  console.log(`Loaded replay: ${data.route_name || "Recorded route"} (${data.frames?.length || 0} frames)`);
+
+  renderReplayFrameButtons(data);
+}
+
+window.startDemoRecording = startDemoRecording;
+window.stopDemoRecording = stopDemoRecording;
+window.loadDemoRecording = loadDemoRecording;
+
+
+function buildReplayPayload(recording, frameIndex) {
+  const frame = recording.frames?.[frameIndex];
+
+  if (!frame) {
+    return null;
+  }
+
+  return {
+    coords: recording.coords || [],
+    summary: frame.summary || {
+      curr_eta: null,
+      predicted_eta: null,
+      status: "Recorded replay"
+    },
+    match_info: {
+      ...(recording.base_match_info || {}),
+      matched_links: frame.segments || [],
+      segment_matches: frame.segments || []
+    }
+  };
+}
+
+async function playReplayFrame(frameIndex = 0) {
+  const recording = state.adminReplayList?.[0];
+
+  if (!recording) {
+    alert("Load a replay first.");
+    return;
+  }
+
+  const replayPayload = buildReplayPayload(recording, frameIndex);
+
+  if (!replayPayload) {
+    alert("Replay frame not found.");
+    return;
+  }
+
+  // Important: keep this as now so jam pins still draw.
+  state.habitPlanMode = "now";
+
+  await drawHabitRouteOnMap({
+    id: recording.route_id || null,
+    route_name: recording.route_name || "Recorded route",
+    from: "Replay start",
+    to: "Replay destination",
+    coords: recording.coords || [],
+    distance_m: state.currSelectedRoute?.distance_m || 0,
+    is_historical: true,
+    historical_payload: replayPayload
+  });
+
+  document.querySelectorAll(".replay-frame-btn").forEach(btn => {
+    btn.classList.toggle("active", Number(btn.dataset.frameIndex) === frameIndex);
+  });
+}
+
+function renderReplayFrameButtons(recording) {
+  const box = document.getElementById("replay-frame-list");
+  if (!box) return;
+
+  const frames = recording.frames || [];
+
+  if (!frames.length) {
+    box.innerHTML = `<div class="replay-empty">No replay frames found.</div>`;
+    return;
+  }
+
+  box.innerHTML = frames.map((frame, index) => {
+    const label = `T+${index * 5}`;
+
+    return `
+      <button type="button" class="replay-frame-btn" data-frame-index="${index}">
+        ${label}
+      </button>
+    `;
+  }).join("");
+
+  box.querySelectorAll(".replay-frame-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      playReplayFrame(Number(btn.dataset.frameIndex));
+    });
+  });
+
+  renderReplayAccuracyCard(recording);
+}
+
+
+/* show statistics */
+function calculateReplayOverallAccuracy(recording) {
+  const frames = recording.frames || [];
+
+  // Need T+0, T+5, T+10, T+15
+  if (frames.length < 4) {
+    return null;
+  }
+
+  let total = 0;
+  let exact = 0;
+  let withinOne = 0;
+
+  // Compare every frame i against i+3
+  // Example: T+0 prediction vs T+15 actual, T+5 prediction vs T+20 actual
+  for (let i = 0; i + 3 < frames.length; i++) {
+    const predictedFrame = frames[i];
+    const actualFrame = frames[i + 3];
+
+    const actualByLink = new Map();
+
+    (actualFrame.segments || []).forEach(seg => {
+      const linkId = Number(seg.link_id);
+      const actualBand = Number(seg.prediction?.current_val);
+
+      if (Number.isFinite(linkId) && Number.isFinite(actualBand)) {
+        actualByLink.set(linkId, actualBand);
+      }
+    });
+
+    (predictedFrame.segments || []).forEach(seg => {
+      const linkId = Number(seg.link_id);
+      const predictedBand = Number(seg.prediction?.predicted_val);
+      const actualBand = actualByLink.get(linkId);
+
+      if (
+        !Number.isFinite(linkId) ||
+        !Number.isFinite(predictedBand) ||
+        !Number.isFinite(actualBand)
+      ) {
+        return;
+      }
+
+      const error = Math.abs(predictedBand - actualBand);
+
+      total += 1;
+      if (error === 0) exact += 1;
+      if (error <= 1) withinOne += 1;
+    });
+  }
+
+  if (!total) return null;
+
+  return {
+    total,
+    exact,
+    withinOne,
+    exactPct: (exact / total) * 100,
+    withinOnePct: (withinOne / total) * 100
+  };
+}
+
+function renderReplayAccuracyCard(recording) {
+  const box = document.getElementById("replay-frame-list");
+  if (!box) return;
+
+  const acc = calculateReplayOverallAccuracy(recording);
+
+  if (!acc) {
+    box.insertAdjacentHTML("beforeend", `
+      <div class="replay-accuracy-card">
+        <b>T+15 Accuracy</b><br>
+        Record at least 15 minutes to calculate replay accuracy.
+      </div>
+    `);
+    return;
+  }
+
+  box.insertAdjacentHTML("beforeend", `
+    <div class="replay-accuracy-card">
+      <b>T+15 Replay Accuracy</b><br>
+      Exact match: ${acc.exactPct.toFixed(1)}%<br>
+      Within ±1 band: ${acc.withinOnePct.toFixed(1)}%<br>
+      Compared segment predictions: ${acc.total}
+    </div>
+  `);
+}

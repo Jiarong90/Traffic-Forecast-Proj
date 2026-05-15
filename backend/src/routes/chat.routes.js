@@ -275,9 +275,9 @@
 
 
 module.exports = function registerChatbotRoutes(ctx) {
-  const { app } = ctx;
+  const { app, requireAuth } = ctx;
 
-  app.post("/api/chat", async (req, res) => {
+  app.post("/api/chat", requireAuth, async (req, res) => {
     try {
       const proxyRes = await fetch(process.env.FASTBOT_PROXY_URL, {
         method: "POST",

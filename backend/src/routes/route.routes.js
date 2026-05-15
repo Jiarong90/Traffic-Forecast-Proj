@@ -9,22 +9,23 @@ module.exports = function registerRoutePlanningRoutes(ctx) {
     toNumber,
     buildRoutePlanFriendlyError
   } = ctx;
-
+// Python backend route planning using A*, returning three route options: fastest, fewer traffic lights, and balanced.
 // Python 后端路线规划（A*），返回 3 条路线：时间优先/少红绿灯/均衡
 app.post('/api/route-plan', async (req, res) => {
   try {
-    /**
-     * Python 路线规划总入口
-     *
-     * 流程：
-     * 1) 校验前端传入起终点坐标
-     * 2) 拉取 bbox 路网 + 信号点
-     * 3) 调用 Python plan_routes 产出 3 条候选路线
-     * 4) 返回 routes + 元信息（引擎、信号点数、生成时间）
-     *
-     * 注意：
-     * - 这里只负责“基础路线生成”，事件评估在 /api/route-events/* 完成
-     */
+      /**
+   * Main Python route planning entry point.
+   *
+   * Flow:
+   * 1) Validate start and end coordinates from the frontend.
+   * 2) Fetch the road network within the bounding box and traffic signal points.
+   * 3) Call the Python route planner to generate three candidate routes.
+   * 4) Return the routes with metadata such as engine, signal count, and generation time.
+   *
+   * Note:
+   * - This endpoint only handles basic route generation.
+   * - Event evaluation is handled by /api/route-events/* endpoints.
+   */
     const start = req.body?.start || {};
     const end = req.body?.end || {};
     const startLat = toNumber(start.lat);

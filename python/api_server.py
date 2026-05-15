@@ -66,6 +66,11 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 MODEL_DIR = BASE_DIR / "models"
 
+REPLAY_DIR = DATA_DIR / "demo_replays"
+REPLAY_DIR.mkdir(exist_ok=True)
+
+active_replay_tasks = {}
+
 load_dotenv(BASE_DIR / ".env")
 
 LTA_API_KEY = os.getenv("LTA_API_KEY")
@@ -369,13 +374,17 @@ class ReplayStartRequest(BaseModel):
     route_id: Optional[int] = None
     route_name: str
     link_ids: List[int]
+    coords: list = []
+    match_info: dict = {}
 
 class ReplayStopRequest(BaseModel):
-    route_name: str
+    recording_id: Optional[str] = None
+    route_name: Optional[str] = None
 
 class RouteIntelRequest(BaseModel):
     link_ids: List[int]
 
+# Feedback Class
 class FeedbackIn(BaseModel):
     location: Optional[str] = None
     condition_type: Optional[str] = None
@@ -3610,30 +3619,7 @@ def calculate_live_impact_zone(start_link_id, live_speedbands, road_meta_dict, u
     return {"segments": impact_segments}
 
 
-# ADMIN RECORD and REPLAY endpoints for routes
-@app.post("/api/replay/start")
-def start_replay_recording(req: ReplayStartRequest):
-    recording_id = f"rec_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{uuid.uuid4().hex[:6]}"
 
-    active_replay_recordings[recording_id] = {
-        "recording_id": recording_id,
-        "route_id": req.route_id,
-        "route_name": req.route_name,
-        "link_ids": req.link_ids,
-        "started_at": datetime.now(),
-        "snapshots": []
-    }
-
-    return {
-        "ok": True,
-        "recording_id": recording_id,
-        "route_name": req.route_name
-    }
-
-@app.post("/api/replay/stop")
-def stop_replay_recording(req: ReplayStopRequest):
-    active_replay_recordings.pop(req.route_name, None)
-    return {"ok": True, "message": f"Recording stopped for {req.route_name}"}
 
 @app.post("/api/route-intel")
 async def get_route_intel(data: RouteIntelRequest):
@@ -3844,3 +3830,282 @@ def map_area_analysis(
             "segment_matches": segment_matches
         }
     }
+
+
+# Admin replay functions
+
+def replay_file_path(recording_id: str) -> Path:
+    safe_id = str(recording_id).replace("/", "_").replace("\\", "_")
+    return REPLAY_DIR / f"{safe_id}.json"
+
+
+def save_replay_recording(recording: dict):
+    path = replay_file_path(recording["recording_id"])
+    path.write_text(json.dumps(recording, indent=2), encoding="utf-8")
+
+    latest_path = REPLAY_DIR / "latest_replay.json"
+    latest_path.write_text(json.dumps(recording, indent=2), encoding="utf-8")
+
+
+def capture_replay_frame(recording: dict) -> dict:
+    segments = []
+
+    base_matches = (
+        recording
+        .get("base_match_info", {})
+        .get("segment_matches", [])
+    )
+
+    for m in base_matches:
+        if not m or not m.get("link_id"):
+            segments.append(None)
+            continue
+
+        try:
+            link_id = int(m["link_id"])
+            meta = road_meta_dict.get(link_id, {})
+
+            hist = live_speedbands.get(link_id, [])
+            current_val = int(hist[0]) if hist else None
+
+            pred = GLOBAL_T15_CACHE.get(link_id)
+            if not pred:
+                pred = predict_for_link(link_id)
+
+            if not isinstance(pred, dict):
+                pred = {}
+
+            incident = active_incidents.get(link_id)
+            rain_mm = None
+
+            try:
+                rain_mm = get_link_rainfall(link_id)
+            except Exception:
+                rain_mm = None
+
+            segment = dict(m)
+
+            segment["road_name"] = (
+                segment.get("road_name")
+                or segment.get("display_name")
+                or meta.get("road_name")
+                or "LTA Road"
+            )
+
+            segment["display_name"] = (
+                segment.get("display_name")
+                or segment.get("road_name")
+                or "LTA Road"
+            )
+
+            segment["prediction"] = {
+                "current_val": current_val,
+                "predicted_val": pred.get("predicted_val"),
+                "trend": pred.get("trend", "Stable traffic forecast"),
+                "tier": pred.get("tier", "Recorded forecast"),
+                "conf": pred.get("conf", "-"),
+                "mag": pred.get("mag", 0),
+                "persistence_prob": pred.get("persistence_prob"),
+                "persistence_risk": pred.get("persistence_risk"),
+                "persistence_label": pred.get("persistence_label"),
+            }
+
+            segment["recorded_context"] = {
+                "rain_mm": rain_mm,
+                "incident_nearby": 1 if incident else 0,
+                "incident_type": incident.get("type") if incident else None,
+            }
+
+            segments.append(segment)
+
+        except Exception as e:
+            print(f"Replay capture skipped segment: {e}")
+            segments.append(m)
+
+    valid_segments = [
+        s for s in segments
+        if s and s.get("prediction")
+    ]
+
+    predicted_bands = [
+        int(s["prediction"]["predicted_val"])
+        for s in valid_segments
+        if s["prediction"].get("predicted_val") is not None
+    ]
+
+    current_bands = [
+        int(s["prediction"]["current_val"])
+        for s in valid_segments
+        if s["prediction"].get("current_val") is not None
+    ]
+
+    def eta_from_bands(bands):
+        if not bands:
+            return None
+        avg_band = sum(bands) / len(bands)
+        if avg_band <= 3:
+            return 35
+        if avg_band <= 5:
+            return 25
+        return 18
+
+    congested = sum(1 for b in predicted_bands if b <= 3)
+    moderate = sum(1 for b in predicted_bands if 3 < b <= 5)
+    clear = sum(1 for b in predicted_bands if b > 5)
+    total = len(predicted_bands)
+
+    if total == 0:
+        status = "Recorded replay"
+    elif congested / total >= 0.35:
+        status = "Heavy congestion"
+    elif (congested + moderate) / total >= 0.45:
+        status = "Moderate traffic"
+    else:
+        status = "Mostly clear"
+
+    return {
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "summary": {
+            "curr_eta": eta_from_bands(current_bands),
+            "predicted_eta": eta_from_bands(predicted_bands),
+            "status": status,
+            "total_segments": total,
+            "congested": congested,
+            "moderate": moderate,
+            "clear": clear
+        },
+        "segments": segments
+    }
+
+async def replay_recording_loop(recording_id: str):
+    while True:
+        recording = active_replay_recordings.get(recording_id)
+
+        if not recording:
+            break
+
+        if recording.get("status") != "recording":
+            break
+
+        try:
+            await asyncio.sleep(300)
+
+            recording = active_replay_recordings.get(recording_id)
+            if not recording or recording.get("status") != "recording":
+                break
+
+            frame = capture_replay_frame(recording)
+            recording["frames"].append(frame)
+            recording["last_frame_at"] = frame["timestamp"]
+
+            save_replay_recording(recording)
+
+            print(
+                f"[Replay] Saved frame {len(recording['frames'])} "
+                f"for {recording.get('route_name')}"
+            )
+
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            print(f"[Replay] Recording loop error: {e}")
+
+
+@app.post("/api/replay/start")
+async def start_replay_recording(
+    payload: ReplayStartRequest,
+    authorization: str | None = Header(default=None)
+):
+    require_user(authorization)
+
+    if not payload.link_ids:
+        raise HTTPException(status_code=400, detail="No link IDs provided.")
+
+    if not payload.match_info:
+        raise HTTPException(status_code=400, detail="No route match_info provided.")
+
+    recording_id = str(uuid.uuid4())
+
+    recording = {
+        "recording_id": recording_id,
+        "route_id": payload.route_id,
+        "route_name": payload.route_name,
+        "coords": payload.coords,
+        "link_ids": payload.link_ids,
+        "base_match_info": payload.match_info,
+        "started_at": datetime.now(timezone.utc).isoformat(),
+        "status": "recording",
+        "frame_interval_seconds": 300,
+        "frames": []
+    }
+
+    # Capture frame 
+    first_frame = capture_replay_frame(recording)
+    recording["frames"].append(first_frame)
+    recording["last_frame_at"] = first_frame["timestamp"]
+
+    active_replay_recordings[recording_id] = recording
+    save_replay_recording(recording)
+
+    task = asyncio.create_task(replay_recording_loop(recording_id))
+    active_replay_tasks[recording_id] = task
+
+    return {
+        "ok": True,
+        "recording_id": recording_id,
+        "route_name": payload.route_name,
+        "frames": len(recording["frames"]),
+        "status": "recording"
+    }
+
+
+@app.post("/api/replay/stop")
+def stop_replay_recording(
+    payload: ReplayStopRequest,
+    authorization: str | None = Header(default=None)
+):
+    require_user(authorization)
+
+    recording_id = payload.recording_id
+
+    if not recording_id:
+        active_ids = [
+            rid for rid, rec in active_replay_recordings.items()
+            if rec.get("status") == "recording"
+        ]
+        recording_id = active_ids[-1] if active_ids else None
+
+    if not recording_id or recording_id not in active_replay_recordings:
+        raise HTTPException(status_code=404, detail="No active recording found.")
+
+    recording = active_replay_recordings[recording_id]
+    recording["status"] = "stopped"
+    recording["stopped_at"] = datetime.now(timezone.utc).isoformat()
+
+    task = active_replay_tasks.pop(recording_id, None)
+    if task:
+        task.cancel()
+
+    save_replay_recording(recording)
+
+    return {
+        "ok": True,
+        "recording_id": recording_id,
+        "route_name": recording.get("route_name"),
+        "frames": len(recording.get("frames", [])),
+        "status": "stopped"
+    }
+
+
+@app.get("/api/replay/latest")
+def get_latest_replay_recording(
+    authorization: str | None = Header(default=None)
+):
+    require_user(authorization)
+
+    latest_path = REPLAY_DIR / "latest_replay.json"
+
+    if not latest_path.exists():
+        raise HTTPException(status_code=404, detail="No replay recording found.")
+
+    return json.loads(latest_path.read_text(encoding="utf-8"))

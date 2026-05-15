@@ -2,6 +2,7 @@ module.exports = function registerMlProxyRoutes(ctx) {
   const {
     app,
     requireAuth,
+    requireAdmin,
     getFastApiBaseUrl
   } = ctx;
 
@@ -13,9 +14,20 @@ const mlGatekeeper = (req, res, next) => {
 
   const publicPaths = ['expressway-forecast', 'expressway-geometry', 'map-hotspots', 'hotspots', 'vms-landmarks', 'incident-predict'];
 
+  const adminPaths = [
+    'replay/start',
+    'replay/stop',
+    'replay/latest'
+  ];
+
   if (publicPaths.includes(req.mlSubPath)) {
     console.log(`Public Access: ${req.mlSubPath}`);
     return next();
+  }
+
+  if (adminPaths.includes(req.mlSubPath)) {
+    console.log(`Admin Access: ${req.mlSubPath}`);
+    return requireAuth(req, res, () => requireAdmin(req, res, next));
   }
 
   console.log(`Protected Access: ${req.mlSubPath}`);

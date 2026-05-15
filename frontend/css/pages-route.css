@@ -1834,3 +1834,108 @@
 }
 
 
+/* admin tools panel */
+
+.admin-recording-tools {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px dashed #cbd5e1;
+  opacity: 0.85;
+}
+
+.admin-recording-label {
+  font-size: 10px;
+  font-weight: 800;
+  color: black;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 10px;
+}
+
+.admin-recording-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.admin-record-btn {
+  min-height: 54px;
+  border: 1px solid #cbd5e1;
+  border-radius: 14px;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.admin-record-btn span:last-child {
+  line-height: 1;
+}
+
+.admin-record-icon {
+  color: #ef4444;
+  font-size: 14px;
+}
+
+.admin-stop-icon {
+  color: #475569;
+  font-size: 13px;
+}
+
+.admin-load-icon {
+  color: #2563eb;
+  font-size: 15px;
+}
+
+.admin-record-btn:hover {
+  background: #e0f2fe;
+  border-color: #93c5fd;
+}
+
+
+.replay-frame-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.replay-frame-btn {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.replay-frame-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.replay-frame-btn.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.replay-clear-btn {
+  border: 1px solid #fecaca;
+  background: #fff1f2;
+  color: #b91c1c;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
