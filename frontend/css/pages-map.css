@@ -1082,3 +1082,21 @@
   margin-top: 2px;
 }
 
+
+#route-start-suggestions,
+#route-end-suggestions {
+  position: absolute;
+  top: 100%;
+  width: 260px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 9999;
+}
+
+#route-start-suggestions {
+  left: 0;
+}
+
+#route-end-suggestions {
+  left: 280px;
+}

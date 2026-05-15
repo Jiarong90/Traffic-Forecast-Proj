@@ -224,9 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 天气查询主流程：
   // 1) 地理编码 -> 2) 当前天气 -> 3) 预报 -> 4) AI 建议 -> 5) 批量更新 UI
   async function fetchWeather() {
-    const query = input.value.trim();
+    const displayQuery = (input.value || "").trim();
+    const query = (input.dataset.searchValue || input.value || "").trim();
     if (!query) return alert("Please enter postal code or location");
-    lastQuery = query;
+    lastQuery = displayQuery;
     button.textContent = "⏳ Loading...";
     button.disabled = true;
     try {

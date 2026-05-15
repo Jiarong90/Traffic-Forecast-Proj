@@ -83,8 +83,8 @@ async function calculateRoutes() {
   const hintEl = document.getElementById("route-planning-hint");
   const startInput = document.getElementById("route-start-postal");
   const endInput = document.getElementById("route-end-postal");
-  const startQuery = (startInput?.value || "").trim();
-  const endQuery = (endInput?.value || "").trim();
+  const startQuery = (startInput?.dataset.searchValue || startInput?.value || "").trim();
+  const endQuery = (endInput?.dataset.searchValue || endInput?.value || "").trim();
 
   // ADDED BY JR - Clear loaded saved routes
   if (state.habitRoutePolylineLayer) state.habitRoutePolylineLayer.clearLayers();

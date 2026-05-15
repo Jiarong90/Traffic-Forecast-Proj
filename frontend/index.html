@@ -313,9 +313,9 @@
           <div class="about-team-grid">
             <article class="about-team-card" data-member-name="KOO JIA RONG" data-member-role="Role / Position"
               data-member-bio="Add the detailed introduction for KOO JIA RONG here later.">
-              <div class="about-team-photo"></div>
+              <div class="about-team-photo" style="background-image:url('./assets/images/catpfp.png');"> </div>
               <h3>KOO JIA RONG</h3>
-              <p class="about-team-role">Role / Position</p>
+              <p class="about-team-role">Team Lead / Software Engineer</p>
             </article>
             <article class="about-team-card" data-member-name="YANG YUHAO" data-member-role="Software Engineer"
               data-member-image="./assets/images/Yang.jpg" data-member-bio="Software Engineer for FAST, leading system architecture design and overall technical direction, and responsible for core system implementation.
@@ -327,23 +327,23 @@ Currently studying at University of Wollongong.">
             </article>
             <article class="about-team-card" data-member-name="TAN YEE SHIEN" data-member-role="Role / Position"
               data-member-bio="Add the detailed introduction for TAN YEE SHIEN here later.">
-              <div class="about-team-photo"></div>
+              <div class="about-team-photo" style="background-image:url('./assets/images/somefish.png');"></div>
               <h3>TAN YEE SHIEN</h3>
-              <p class="about-team-role">Role / Position</p>
+              <p class="about-team-role">Software Engineer</p>
             </article>
             <article class="about-team-card" data-member-name="Muhsin Bin Sadiq Basha"
               data-member-role="Role / Position"
               data-member-bio="Add the detailed introduction for Muhsin Bin Sadiq Basha here later.">
-              <div class="about-team-photo"></div>
+              <div class="about-team-photo" style="background-image:url('./assets/images/unknownpfp.jfif');"></div>
               <h3>Muhsin Bin Sadiq Basha</h3>
-              <p class="about-team-role">Role / Position</p>
+              <p class="about-team-role">Software Developer</p>
             </article>
             <article class="about-team-card" data-member-name="Chan Wei Peng Christopher"
               data-member-role="Role / Position"
               data-member-bio="Add the detailed introduction for Chan Wei Peng Christopher here later.">
-              <div class="about-team-photo"></div>
+              <div class="about-team-photo" style="background-image:url('./assets/images/unknownpfp.jfif');"></div>
               <h3>Chan Wei Peng Christopher</h3>
-              <p class="about-team-role">Role / Position</p>
+              <p class="about-team-role">Member</p>
             </article>
           </div>
         </section>
@@ -868,8 +868,14 @@ Currently studying at University of Wollongong.">
             <button type="button" class="btn-calculate" id="route-calculate-btn">PLAN ROUTE</button>
 
             <div class="route-start-suggestions hidden" id="route-start-suggestions">
-              <button type="button" class="route-start-suggestion" id="route-start-current-option">Current
-                Location</button>
+              <button type="button" class="route-start-suggestion" id="route-start-current-option">
+                Current Location
+              </button>
+              <div id="route-start-api-results"></div>
+            </div>
+
+            <div class="route-start-suggestions hidden" id="route-end-suggestions">
+              <div id="route-end-api-results"></div>
             </div>
           </div>
           <div class="route-actions">
@@ -1157,6 +1163,7 @@ Currently studying at University of Wollongong.">
             <div class="weather-location-suggestions hidden" id="weather-location-suggestions">
               <button type="button" class="weather-location-suggestion" id="weather-current-location-option">Current
                 Location</button>
+              <div id="weather-api-results"></div>
             </div>
           </div>
           <button type="button" class="btn-search" id="searchBtn">🔍 SEARCH</button>

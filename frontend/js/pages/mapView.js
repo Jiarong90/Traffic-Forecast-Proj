@@ -644,3 +644,144 @@ document.addEventListener("click", (e) => {
     hideMapAreaSuggestions();
   }
 });
+
+
+/* Add the helper functions for route planner and weather too */
+
+function attachOneMapAutocomplete(inputId, resultsContainerId, wrapperId, onSelectCallback) {
+  const input = document.getElementById(inputId);
+  const resultsContainer = document.getElementById(resultsContainerId);
+  const wrapper = document.getElementById(wrapperId);
+  let suggestTimer = null;
+
+  if (!input || !resultsContainer || !wrapper) {
+    console.warn(`Autocomplete failed to attach to: ${inputId}`);
+    return;
+  }
+
+  const hideSuggestions = () => {
+    resultsContainer.innerHTML = "";
+    wrapper.classList.add("hidden");
+  };
+
+  const renderSuggestions = (results) => {
+    if (!Array.isArray(results) || !results.length) {
+      hideSuggestions();
+      return;
+    }
+
+    // Draw the OneMap results
+    resultsContainer.innerHTML = results.slice(0, 4).map((r, i) => `
+      <div class="map-area-suggestion-item" data-index="${i}" style="padding: 10px; cursor: pointer; border-top: 1px solid #e2e8f0; background: white;">
+        <div style="font-weight: 600; font-size: 13px; color: #1e293b;">${escapeHtml(r.label || "Unknown location")}</div>
+        <div style="font-size: 11px; color: #64748b;">${escapeHtml(r.postal ? `Postal: ${r.postal}` : "OneMap result")}</div>
+      </div>
+    `).join("");
+
+    wrapper.classList.remove("hidden");
+
+    // Add click listeners
+    resultsContainer.querySelectorAll(".map-area-suggestion-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        const index = Number(item.dataset.index);
+        const chosen = results[index];
+        if (!chosen) return;
+
+        input.value = chosen.label || chosen.postal || "";
+        input.dataset.searchValue = chosen.postal || chosen.label || "";
+        hideSuggestions();
+
+        if (typeof onSelectCallback === 'function') {
+          onSelectCallback(chosen);
+        }
+      });
+    });
+  };
+
+  input.addEventListener("input", (e) => {
+    input.dataset.searchValue = "";
+    const query = e.target.value.trim();
+    
+    clearTimeout(suggestTimer);
+
+    if (query.length < 2) {
+      hideSuggestions();
+      return;
+    }
+
+    wrapper.classList.remove("hidden");
+
+    suggestTimer = setTimeout(async () => {
+      try {
+        const res = await window.fastAuthFetch(`/api/ml/geocode?q=${encodeURIComponent(query)}`);
+        if (res.ok) {
+          const data = await res.json();
+          renderSuggestions(data.results || []);
+        }
+      } catch (err) {
+        console.warn("OneMap search failed:", err);
+      }
+    }, 250);
+  });
+
+  // Close dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (e.target !== input && !wrapper.contains(e.target)) {
+      wrapper.classList.add("hidden");
+    }
+  });
+}
+
+window.attachOneMapAutocomplete = attachOneMapAutocomplete;
+
+document.addEventListener("DOMContentLoaded", () => {
+  attachOneMapAutocomplete(
+    "postalCode",
+    "weather-api-results",
+    "weather-location-suggestions",
+    (chosenData) => {
+
+    }
+  );
+});
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  attachOneMapAutocomplete(
+    "route-start-postal",
+    "route-start-api-results",
+    "route-start-suggestions",
+    (chosenData) => {
+
+    }
+  );
+
+  attachOneMapAutocomplete(
+    "route-end-postal",
+    "route-end-api-results",
+    "route-end-suggestions",
+    (chosenData) => {
+      state.routeEndGeo = {
+        lat: chosenData.lat,
+        lon: chosenData.lon,
+        display: chosenData.label
+      };
+    }
+  );
+});
+
+function cleanOneMapLabelForSearch(label) {
+  const text = String(label || "").trim();
+  if (!text) return "";
+
+  // If OneMap label contains a Singapore postal code, use only that.
+  const postalMatch = text.match(/\bSingapore\s*(\d{6})\b/i) || text.match(/\b(\d{6})\b/);
+  if (postalMatch) return postalMatch[1];
+
+  // Remove common noisy words that make geocoding fail.
+  return text
+    .replace(/\bSingapore\b/gi, "")
+    .replace(/\bMRT Station\b/gi, "MRT")
+    .replace(/\s+/g, " ")
+    .trim();
+}
